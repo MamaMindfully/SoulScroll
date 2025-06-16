@@ -23,6 +23,7 @@ import PushNotificationManager from "@/components/PushNotificationManager";
 import LocalModeToggle from "@/components/LocalModeToggle";
 import MobileOptimizations from "@/components/MobileOptimizations";
 import GameModeFeatures from "@/components/GameModeFeatures";
+import DeploymentOptimizations from "@/components/DeploymentOptimizations";
 
 export default function Settings() {
   const { toast } = useToast();
@@ -127,6 +128,21 @@ export default function Settings() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Mobile Optimizations */}
+            <MobileOptimizations />
+            
+            {/* Push Notifications */}
+            <PushNotificationManager />
+            
+            {/* Local Mode Toggle */}
+            <LocalModeToggle />
+            
+            {/* Game Features */}
+            <GameModeFeatures />
+            
+            {/* Deployment Status */}
+            <DeploymentOptimizations />
 
             {/* Premium Section */}
             <Card className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
