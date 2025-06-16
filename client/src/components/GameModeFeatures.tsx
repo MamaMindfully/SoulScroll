@@ -39,7 +39,12 @@ interface Challenge {
 export default function GameModeFeatures() {
   const [selectedTab, setSelectedTab] = useState<'challenges' | 'achievements' | 'rewards'>('challenges');
   
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<{
+    totalEntries: number;
+    currentStreak: number;
+    longestStreak: number;
+    averageMood: number;
+  }>({
     queryKey: ["/api/user/stats"],
   });
 
@@ -50,8 +55,8 @@ export default function GameModeFeatures() {
       title: 'First Words',
       description: 'Write your first journal entry',
       icon: '✍️',
-      unlocked: (stats?.totalEntries || 0) >= 1,
-      progress: Math.min(stats?.totalEntries || 0, 1),
+      unlocked: (stats?.totalEntries ?? 0) >= 1,
+      progress: Math.min(stats?.totalEntries ?? 0, 1),
       maxProgress: 1
     },
     {
@@ -59,8 +64,8 @@ export default function GameModeFeatures() {
       title: 'Weekly Warrior',
       description: 'Maintain a 7-day writing streak',
       icon: '🔥',
-      unlocked: (stats?.currentStreak || 0) >= 7,
-      progress: Math.min(stats?.currentStreak || 0, 7),
+      unlocked: (stats?.currentStreak ?? 0) >= 7,
+      progress: Math.min(stats?.currentStreak ?? 0, 7),
       maxProgress: 7
     },
     {
@@ -301,7 +306,7 @@ export default function GameModeFeatures() {
                   </div>
                 </div>
                 <Button variant="outline" disabled className="w-full">
-                  Locked - {20 - (stats?.totalEntries || 0)} entries to go
+                  Locked - {20 - (stats?.totalEntries ?? 0)} entries to go
                 </Button>
               </div>
             </div>

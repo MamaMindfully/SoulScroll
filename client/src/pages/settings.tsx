@@ -16,8 +16,13 @@ import {
   LogOut,
   Moon,
   Volume2,
-  Smartphone
+  Smartphone,
+  Target
 } from "lucide-react";
+import PushNotificationManager from "@/components/PushNotificationManager";
+import LocalModeToggle from "@/components/LocalModeToggle";
+import MobileOptimizations from "@/components/MobileOptimizations";
+import GameModeFeatures from "@/components/GameModeFeatures";
 
 export default function Settings() {
   const { toast } = useToast();
