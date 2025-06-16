@@ -137,7 +137,7 @@ export default function JournalEditor() {
   };
 
   return (
-    <section className="p-6">
+    <section className="p-6" data-component="journal-editor">
       <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Editor Header */}
         <div className="p-4 border-b border-gentle flex items-center justify-between">
