@@ -194,9 +194,157 @@ Address the letter to: ${name}`,
   }
 }
 
+// Advanced AI Features
+
+export async function predictMoodTrend(
+  userId: string,
+  historicalData: Array<{ date: string; mood: number; factors?: string[] }>
+): Promise<{ prediction: number; confidence: number; factors: string[]; recommendation: string }> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI emotional wellness expert that analyzes mood patterns to predict future emotional states.
+          
+          Based on historical mood data, predict the user's likely mood for the next few days and provide supportive recommendations.
+          
+          Respond with JSON in this format:
+          {
+            "prediction": number (1-5 mood prediction),
+            "confidence": number (0-1 confidence level),
+            "factors": ["factor1", "factor2"] (contributing factors),
+            "recommendation": "personalized recommendation based on the prediction"
+          }`,
+        },
+        {
+          role: "user",
+          content: `Analyze this mood history and predict future trends: ${JSON.stringify(historicalData)}`,
+        },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    
+    return {
+      prediction: Math.max(1, Math.min(5, result.prediction || 3)),
+      confidence: Math.max(0, Math.min(1, result.confidence || 0.5)),
+      factors: Array.isArray(result.factors) ? result.factors : [],
+      recommendation: result.recommendation || "Continue your journaling practice for emotional awareness."
+    };
+  } catch (error) {
+    console.error("Error predicting mood trend:", error);
+    throw new Error("Failed to predict mood trend");
+  }
+}
+
+export async function generatePersonalizedPrompt(
+  userId: string,
+  recentEntries: Array<{ content: string; emotionalTone?: any }>,
+  preferences?: { topics?: string[]; style?: string }
+): Promise<string> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a thoughtful journaling coach who creates personalized writing prompts.
+          
+          Based on the user's recent entries and emotional patterns, create a single, engaging prompt that:
+          - Is tailored to their current emotional state and interests
+          - Encourages deeper reflection or growth
+          - Feels relevant and meaningful to their journey
+          - Is neither too heavy nor too light for their current state
+          
+          Return only the prompt text, nothing else.`,
+        },
+        {
+          role: "user",
+          content: `Create a personalized prompt based on: Recent entries: ${JSON.stringify(recentEntries.slice(0, 3))} Preferences: ${JSON.stringify(preferences)}`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 150,
+    });
+
+    return response.choices[0].message.content || "What moment from today deserves to be remembered and reflected upon?";
+  } catch (error) {
+    console.error("Error generating personalized prompt:", error);
+    throw new Error("Failed to generate personalized prompt");
+  }
+}
+
+export async function generateCopingStrategies(
+  emotionalState: string,
+  context?: string
+): Promise<{ strategies: string[]; resources: string[] }> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a supportive mental health assistant providing practical coping strategies.
+          
+          Based on the user's emotional state, provide gentle, actionable strategies they can use right now.
+          
+          Respond with JSON in this format:
+          {
+            "strategies": ["strategy1", "strategy2", "strategy3"] (3-5 immediate, practical strategies),
+            "resources": ["resource1", "resource2"] (helpful resources or exercises)
+          }`,
+        },
+        {
+          role: "user",
+          content: `Provide coping strategies for someone feeling: ${emotionalState}. Context: ${context || 'General support needed'}`,
+        },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.4,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    
+    return {
+      strategies: Array.isArray(result.strategies) ? result.strategies : ["Take a few deep breaths", "Ground yourself in the present moment", "Remember that feelings are temporary"],
+      resources: Array.isArray(result.resources) ? result.resources : ["Consider speaking with a counselor", "Try a brief meditation"]
+    };
+  } catch (error) {
+    console.error("Error generating coping strategies:", error);
+    throw new Error("Failed to generate coping strategies");
+  }
+}
+
+export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+  try {
+    // Create a File-like object from the buffer
+    const audioFile = new File([audioBuffer], "audio.wav", { type: "audio/wav" });
+    
+    const response = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: "whisper-1",
+      language: "en",
+      response_format: "text",
+    });
+
+    return response as string;
+  } catch (error) {
+    console.error("Error transcribing audio:", error);
+    throw new Error("Failed to transcribe audio");
+  }
+}
+
 export const openaiService = {
   analyzeEmotionalTone,
   generateCompassionateResponse,
   generateDailyPrompt,
   generateMonthlyReflectionLetter,
+  predictMoodTrend,
+  generatePersonalizedPrompt,
+  generateCopingStrategies,
+  transcribeAudio,
 };

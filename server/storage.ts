@@ -4,6 +4,16 @@ import {
   dailyPrompts,
   emotionalInsights,
   reflectionLetters,
+  voiceEntries,
+  communityMoods,
+  communitySupport,
+  subscriptions,
+  healthData,
+  moodPredictions,
+  dataExports,
+  pushSubscriptions,
+  userAchievements,
+  userChallenges,
   type User,
   type UpsertUser,
   type JournalEntry,
@@ -14,6 +24,26 @@ import {
   type InsertEmotionalInsight,
   type ReflectionLetter,
   type InsertReflectionLetter,
+  type VoiceEntry,
+  type InsertVoiceEntry,
+  type CommunityMood,
+  type InsertCommunityMood,
+  type CommunitySupport,
+  type InsertCommunitySupport,
+  type Subscription,
+  type InsertSubscription,
+  type HealthData,
+  type InsertHealthData,
+  type MoodPrediction,
+  type InsertMoodPrediction,
+  type DataExport,
+  type InsertDataExport,
+  type PushSubscription,
+  type InsertPushSubscription,
+  type UserAchievement,
+  type InsertUserAchievement,
+  type UserChallenge,
+  type InsertUserChallenge,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
@@ -50,6 +80,50 @@ export interface IStorage {
     longestStreak: number;
     averageMood: number;
   }>;
+
+  // Voice journaling operations
+  createVoiceEntry(entryId: number, voiceData: InsertVoiceEntry): Promise<VoiceEntry>;
+  getVoiceEntry(entryId: number): Promise<VoiceEntry | undefined>;
+  updateVoiceEntry(id: number, updates: Partial<InsertVoiceEntry>): Promise<VoiceEntry>;
+
+  // Community operations
+  createCommunityMood(userId: string, moodData: InsertCommunityMood): Promise<CommunityMood>;
+  getCommunityMoods(location?: string, limit?: number): Promise<CommunityMood[]>;
+  createCommunitySupport(support: InsertCommunitySupport): Promise<CommunitySupport>;
+  getCommunitySupportForUser(userId: string): Promise<CommunitySupport[]>;
+
+  // Subscription operations
+  getUserSubscription(userId: string): Promise<Subscription | undefined>;
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  updateSubscription(userId: string, updates: Partial<InsertSubscription>): Promise<Subscription>;
+
+  // Health data operations
+  createHealthData(userId: string, data: InsertHealthData): Promise<HealthData>;
+  getHealthData(userId: string, dateRange?: { start: Date; end: Date }): Promise<HealthData[]>;
+
+  // Mood prediction operations
+  createMoodPrediction(userId: string, prediction: InsertMoodPrediction): Promise<MoodPrediction>;
+  getMoodPredictions(userId: string, limit?: number): Promise<MoodPrediction[]>;
+
+  // Data export operations
+  createDataExport(userId: string, exportData: InsertDataExport): Promise<DataExport>;
+  getDataExports(userId: string): Promise<DataExport[]>;
+  updateDataExport(id: number, updates: Partial<InsertDataExport>): Promise<DataExport>;
+
+  // Push notification operations
+  createPushSubscription(userId: string, subscription: InsertPushSubscription): Promise<PushSubscription>;
+  getPushSubscriptions(userId: string): Promise<PushSubscription[]>;
+  updatePushSubscription(id: number, updates: Partial<InsertPushSubscription>): Promise<PushSubscription>;
+
+  // Achievement operations
+  createUserAchievement(userId: string, achievement: InsertUserAchievement): Promise<UserAchievement>;
+  getUserAchievements(userId: string): Promise<UserAchievement[]>;
+  updateUserAchievement(id: number, updates: Partial<InsertUserAchievement>): Promise<UserAchievement>;
+
+  // Challenge operations
+  createUserChallenge(userId: string, challenge: InsertUserChallenge): Promise<UserChallenge>;
+  getUserChallenges(userId: string, status?: string): Promise<UserChallenge[]>;
+  updateUserChallenge(id: number, updates: Partial<InsertUserChallenge>): Promise<UserChallenge>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -260,6 +334,254 @@ export class DatabaseStorage implements IStorage {
       longestStreak: user.streakCount || 0, // TODO: Track separately
       averageMood,
     };
+  }
+
+  // Voice journaling operations
+  async createVoiceEntry(entryId: number, voiceData: InsertVoiceEntry): Promise<VoiceEntry> {
+    const [voiceEntry] = await db
+      .insert(voiceEntries)
+      .values({ ...voiceData, entryId })
+      .returning();
+    return voiceEntry;
+  }
+
+  async getVoiceEntry(entryId: number): Promise<VoiceEntry | undefined> {
+    const [voiceEntry] = await db
+      .select()
+      .from(voiceEntries)
+      .where(eq(voiceEntries.entryId, entryId));
+    return voiceEntry;
+  }
+
+  async updateVoiceEntry(id: number, updates: Partial<InsertVoiceEntry>): Promise<VoiceEntry> {
+    const [voiceEntry] = await db
+      .update(voiceEntries)
+      .set(updates)
+      .where(eq(voiceEntries.id, id))
+      .returning();
+    return voiceEntry;
+  }
+
+  // Community operations
+  async createCommunityMood(userId: string, moodData: InsertCommunityMood): Promise<CommunityMood> {
+    const [communityMood] = await db
+      .insert(communityMoods)
+      .values({ ...moodData, userId })
+      .returning();
+    return communityMood;
+  }
+
+  async getCommunityMoods(location?: string, limit: number = 50): Promise<CommunityMood[]> {
+    let query = db
+      .select()
+      .from(communityMoods)
+      .where(eq(communityMoods.isPublic, true))
+      .orderBy(desc(communityMoods.createdAt))
+      .limit(limit);
+
+    if (location) {
+      query = query.where(and(eq(communityMoods.isPublic, true), eq(communityMoods.location, location)));
+    }
+
+    return await query;
+  }
+
+  async createCommunitySupport(support: InsertCommunitySupport): Promise<CommunitySupport> {
+    const [communitySupport] = await db
+      .insert(communitySupport)
+      .values(support)
+      .returning();
+    return communitySupport;
+  }
+
+  async getCommunitySupportForUser(userId: string): Promise<CommunitySupport[]> {
+    return await db
+      .select()
+      .from(communitySupport)
+      .where(eq(communitySupport.toUserId, userId))
+      .orderBy(desc(communitySupport.createdAt));
+  }
+
+  // Subscription operations
+  async getUserSubscription(userId: string): Promise<Subscription | undefined> {
+    const [subscription] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId));
+    return subscription;
+  }
+
+  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
+    const [newSubscription] = await db
+      .insert(subscriptions)
+      .values(subscription)
+      .returning();
+    return newSubscription;
+  }
+
+  async updateSubscription(userId: string, updates: Partial<InsertSubscription>): Promise<Subscription> {
+    const [subscription] = await db
+      .update(subscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(subscriptions.userId, userId))
+      .returning();
+    return subscription;
+  }
+
+  // Health data operations
+  async createHealthData(userId: string, data: InsertHealthData): Promise<HealthData> {
+    const [healthData] = await db
+      .insert(healthData)
+      .values({ ...data, userId })
+      .returning();
+    return healthData;
+  }
+
+  async getHealthData(userId: string, dateRange?: { start: Date; end: Date }): Promise<HealthData[]> {
+    let query = db
+      .select()
+      .from(healthData)
+      .where(eq(healthData.userId, userId))
+      .orderBy(desc(healthData.date));
+
+    if (dateRange) {
+      query = query.where(
+        and(
+          eq(healthData.userId, userId),
+          gte(healthData.date, dateRange.start),
+          lte(healthData.date, dateRange.end)
+        )
+      );
+    }
+
+    return await query;
+  }
+
+  // Mood prediction operations
+  async createMoodPrediction(userId: string, prediction: InsertMoodPrediction): Promise<MoodPrediction> {
+    const [moodPrediction] = await db
+      .insert(moodPredictions)
+      .values({ ...prediction, userId })
+      .returning();
+    return moodPrediction;
+  }
+
+  async getMoodPredictions(userId: string, limit: number = 10): Promise<MoodPrediction[]> {
+    return await db
+      .select()
+      .from(moodPredictions)
+      .where(eq(moodPredictions.userId, userId))
+      .orderBy(desc(moodPredictions.createdAt))
+      .limit(limit);
+  }
+
+  // Data export operations
+  async createDataExport(userId: string, exportData: InsertDataExport): Promise<DataExport> {
+    const [dataExport] = await db
+      .insert(dataExports)
+      .values({ ...exportData, userId })
+      .returning();
+    return dataExport;
+  }
+
+  async getDataExports(userId: string): Promise<DataExport[]> {
+    return await db
+      .select()
+      .from(dataExports)
+      .where(eq(dataExports.userId, userId))
+      .orderBy(desc(dataExports.createdAt));
+  }
+
+  async updateDataExport(id: number, updates: Partial<InsertDataExport>): Promise<DataExport> {
+    const [dataExport] = await db
+      .update(dataExports)
+      .set(updates)
+      .where(eq(dataExports.id, id))
+      .returning();
+    return dataExport;
+  }
+
+  // Push notification operations
+  async createPushSubscription(userId: string, subscription: InsertPushSubscription): Promise<PushSubscription> {
+    const [pushSubscription] = await db
+      .insert(pushSubscriptions)
+      .values({ ...subscription, userId })
+      .returning();
+    return pushSubscription;
+  }
+
+  async getPushSubscriptions(userId: string): Promise<PushSubscription[]> {
+    return await db
+      .select()
+      .from(pushSubscriptions)
+      .where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.isActive, true)));
+  }
+
+  async updatePushSubscription(id: number, updates: Partial<InsertPushSubscription>): Promise<PushSubscription> {
+    const [pushSubscription] = await db
+      .update(pushSubscriptions)
+      .set(updates)
+      .where(eq(pushSubscriptions.id, id))
+      .returning();
+    return pushSubscription;
+  }
+
+  // Achievement operations
+  async createUserAchievement(userId: string, achievement: InsertUserAchievement): Promise<UserAchievement> {
+    const [userAchievement] = await db
+      .insert(userAchievements)
+      .values({ ...achievement, userId })
+      .returning();
+    return userAchievement;
+  }
+
+  async getUserAchievements(userId: string): Promise<UserAchievement[]> {
+    return await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId))
+      .orderBy(desc(userAchievements.unlockedAt));
+  }
+
+  async updateUserAchievement(id: number, updates: Partial<InsertUserAchievement>): Promise<UserAchievement> {
+    const [userAchievement] = await db
+      .update(userAchievements)
+      .set(updates)
+      .where(eq(userAchievements.id, id))
+      .returning();
+    return userAchievement;
+  }
+
+  // Challenge operations
+  async createUserChallenge(userId: string, challenge: InsertUserChallenge): Promise<UserChallenge> {
+    const [userChallenge] = await db
+      .insert(userChallenges)
+      .values({ ...challenge, userId })
+      .returning();
+    return userChallenge;
+  }
+
+  async getUserChallenges(userId: string, status?: string): Promise<UserChallenge[]> {
+    let query = db
+      .select()
+      .from(userChallenges)
+      .where(eq(userChallenges.userId, userId))
+      .orderBy(desc(userChallenges.startDate));
+
+    if (status) {
+      query = query.where(and(eq(userChallenges.userId, userId), eq(userChallenges.status, status)));
+    }
+
+    return await query;
+  }
+
+  async updateUserChallenge(id: number, updates: Partial<InsertUserChallenge>): Promise<UserChallenge> {
+    const [userChallenge] = await db
+      .update(userChallenges)
+      .set(updates)
+      .where(eq(userChallenges.id, id))
+      .returning();
+    return userChallenge;
   }
 }
 
