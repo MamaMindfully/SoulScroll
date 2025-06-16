@@ -8,6 +8,7 @@ import {
   serial,
   integer,
   boolean,
+  real,
   decimal,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -85,14 +86,140 @@ export const reflectionLetters = pgTable("reflection_letters", {
   generatedAt: timestamp("generated_at").defaultNow(),
 });
 
+// Voice journaling and transcription
+export const voiceEntries = pgTable("voice_entries", {
+  id: serial("id").primaryKey(),
+  entryId: integer("entry_id").references(() => journalEntries.id),
+  audioUrl: varchar("audio_url"),
+  transcription: text("transcription"),
+  duration: integer("duration"), // in seconds
+  processingStatus: varchar("processing_status").default("pending"), // pending, completed, failed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Community features
+export const communityMoods = pgTable("community_moods", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  anonymousId: varchar("anonymous_id").notNull(),
+  moodRating: integer("mood_rating").notNull(),
+  keywords: text("keywords").array(),
+  location: varchar("location"), // optional city/region
+  isPublic: boolean("is_public").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const communitySupport = pgTable("community_support", {
+  id: serial("id").primaryKey(),
+  fromUserId: varchar("from_user_id").notNull(),
+  toUserId: varchar("to_user_id").notNull(),
+  supportType: varchar("support_type").notNull(), // "encouragement", "tip", "resource"
+  message: text("message"),
+  isAnonymous: boolean("is_anonymous").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Subscription and premium features
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  planType: varchar("plan_type").notNull(), // "free", "premium", "premium_plus"
+  status: varchar("status").notNull(), // "active", "canceled", "past_due"
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Health and activity correlations
+export const healthData = pgTable("health_data", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  date: timestamp("date").notNull(),
+  sleepHours: real("sleep_hours"),
+  stepsCount: integer("steps_count"),
+  heartRate: integer("heart_rate"),
+  weatherCondition: varchar("weather_condition"),
+  exerciseMinutes: integer("exercise_minutes"),
+  moodCorrelation: real("mood_correlation"), // calculated correlation
+  syncedAt: timestamp("synced_at").defaultNow(),
+});
+
+// Advanced AI predictions and insights
+export const moodPredictions = pgTable("mood_predictions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  predictedDate: timestamp("predicted_date").notNull(),
+  predictedMood: real("predicted_mood"),
+  confidence: real("confidence"),
+  factors: text("factors").array(), // contributing factors
+  recommendation: text("recommendation"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Backup and export logs
+export const dataExports = pgTable("data_exports", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  exportType: varchar("export_type").notNull(), // "pdf", "json", "backup"
+  status: varchar("status").notNull(), // "pending", "completed", "failed"
+  downloadUrl: varchar("download_url"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Push notification subscriptions
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dhKey: text("p256dh_key").notNull(),
+  authKey: text("auth_key").notNull(),
+  userAgent: text("user_agent"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Achievements and challenges tracking
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  achievementId: varchar("achievement_id").notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  progress: integer("progress").default(0),
+  maxProgress: integer("max_progress").notNull(),
+});
+
+export const userChallenges = pgTable("user_challenges", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  challengeId: varchar("challenge_id").notNull(),
+  status: varchar("status").default("active"), // active, completed, expired
+  progress: integer("progress").default(0),
+  target: integer("target").notNull(),
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date").notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   journalEntries: many(journalEntries),
   emotionalInsights: many(emotionalInsights),
   reflectionLetters: many(reflectionLetters),
+  communityMoods: many(communityMoods),
+  subscriptions: many(subscriptions),
+  healthData: many(healthData),
+  moodPredictions: many(moodPredictions),
+  dataExports: many(dataExports),
+  pushSubscriptions: many(pushSubscriptions),
+  userAchievements: many(userAchievements),
+  userChallenges: many(userChallenges),
 }));
 
-export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
+export const journalEntriesRelations = relations(journalEntries, ({ one, many }) => ({
   user: one(users, {
     fields: [journalEntries.userId],
     references: [users.id],
@@ -100,6 +227,17 @@ export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
   prompt: one(dailyPrompts, {
     fields: [journalEntries.promptId],
     references: [dailyPrompts.id],
+  }),
+  voiceEntry: one(voiceEntries, {
+    fields: [journalEntries.id],
+    references: [voiceEntries.entryId],
+  }),
+}));
+
+export const voiceEntriesRelations = relations(voiceEntries, ({ one }) => ({
+  entry: one(journalEntries, {
+    fields: [voiceEntries.entryId],
+    references: [journalEntries.id],
   }),
 }));
 
@@ -117,6 +255,62 @@ export const emotionalInsightsRelations = relations(emotionalInsights, ({ one })
 export const reflectionLettersRelations = relations(reflectionLetters, ({ one }) => ({
   user: one(users, {
     fields: [reflectionLetters.userId],
+    references: [users.id],
+  }),
+}));
+
+export const communityMoodsRelations = relations(communityMoods, ({ one }) => ({
+  user: one(users, {
+    fields: [communityMoods.userId],
+    references: [users.id],
+  }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const healthDataRelations = relations(healthData, ({ one }) => ({
+  user: one(users, {
+    fields: [healthData.userId],
+    references: [users.id],
+  }),
+}));
+
+export const moodPredictionsRelations = relations(moodPredictions, ({ one }) => ({
+  user: one(users, {
+    fields: [moodPredictions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const dataExportsRelations = relations(dataExports, ({ one }) => ({
+  user: one(users, {
+    fields: [dataExports.userId],
+    references: [users.id],
+  }),
+}));
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [pushSubscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userChallengesRelations = relations(userChallenges, ({ one }) => ({
+  user: one(users, {
+    fields: [userChallenges.userId],
     references: [users.id],
   }),
 }));
@@ -154,6 +348,59 @@ export const insertReflectionLetterSchema = createInsertSchema(reflectionLetters
   generatedAt: true,
 });
 
+// New insert schemas for advanced features
+export const insertVoiceEntrySchema = createInsertSchema(voiceEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCommunityMoodSchema = createInsertSchema(communityMoods).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCommunitySupportSchema = createInsertSchema(communitySupport).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHealthDataSchema = createInsertSchema(healthData).omit({
+  id: true,
+  syncedAt: true,
+});
+
+export const insertMoodPredictionSchema = createInsertSchema(moodPredictions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDataExportSchema = createInsertSchema(dataExports).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
+  id: true,
+  unlockedAt: true,
+});
+
+export const insertUserChallengeSchema = createInsertSchema(userChallenges).omit({
+  id: true,
+  startDate: true,
+  completedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -165,3 +412,25 @@ export type InsertEmotionalInsight = z.infer<typeof insertEmotionalInsightSchema
 export type EmotionalInsight = typeof emotionalInsights.$inferSelect;
 export type InsertReflectionLetter = z.infer<typeof insertReflectionLetterSchema>;
 export type ReflectionLetter = typeof reflectionLetters.$inferSelect;
+
+// New types for advanced features
+export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;
+export type VoiceEntry = typeof voiceEntries.$inferSelect;
+export type InsertCommunityMood = z.infer<typeof insertCommunityMoodSchema>;
+export type CommunityMood = typeof communityMoods.$inferSelect;
+export type InsertCommunitySupport = z.infer<typeof insertCommunitySupportSchema>;
+export type CommunitySupport = typeof communitySupport.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertHealthData = z.infer<typeof insertHealthDataSchema>;
+export type HealthData = typeof healthData.$inferSelect;
+export type InsertMoodPrediction = z.infer<typeof insertMoodPredictionSchema>;
+export type MoodPrediction = typeof moodPredictions.$inferSelect;
+export type InsertDataExport = z.infer<typeof insertDataExportSchema>;
+export type DataExport = typeof dataExports.$inferSelect;
+export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserChallenge = z.infer<typeof insertUserChallengeSchema>;
+export type UserChallenge = typeof userChallenges.$inferSelect;
