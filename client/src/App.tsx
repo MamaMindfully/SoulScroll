@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
+import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -39,6 +40,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <AppStoreMetadata />
         <MobileTouchOptimizations />
         <Toaster />
         <Router />
