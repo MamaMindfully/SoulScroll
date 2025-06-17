@@ -12,6 +12,7 @@ import Home from "@/pages/home";
 import Timeline from "@/pages/timeline";
 import Insights from "@/pages/insights";
 import Settings from "@/pages/settings";
+import Pricing from "@/pages/pricing";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,6 +27,7 @@ function Router() {
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />
+          <Route path="/pricing" component={Pricing} />
         </>
       )}
       <Route component={NotFound} />

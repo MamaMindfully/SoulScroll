@@ -198,6 +198,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Annual subscription and gift subscription routes
+  app.post('/api/subscriptions/annual', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { planId } = req.body;
+      
+      const annualPrices = {
+        premium: 9999, // $99.99 in cents
+        'premium-plus': 19999 // $199.99 in cents
+      };
+
+      const price = annualPrices[planId as keyof typeof annualPrices];
+      if (!price) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+
+      // Create annual subscription with 17% discount already applied
+      const subscription = await storage.createSubscription({
+        userId,
+        planId,
+        billingCycle: 'annual',
+        priceId: `annual_${planId}`,
+        status: 'active',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+      });
+
+      res.json({ 
+        subscriptionId: subscription.id,
+        message: "Annual subscription created successfully",
+        savings: planId === 'premium' ? 39.88 : 79.88
+      });
+    } catch (error) {
+      console.error("Error creating annual subscription:", error);
+      res.status(500).json({ message: "Failed to create annual subscription" });
+    }
+  });
+
+  app.post('/api/subscriptions/gift', isAuthenticated, async (req: any, res) => {
+    try {
+      const { planId, duration, recipientEmail, giftMessage } = req.body;
+      const gifterId = req.user.claims.sub;
+
+      // Calculate gift price with bulk discounts
+      const basePrices = { premium: 9.99, 'premium-plus': 19.99 };
+      const basePrice = basePrices[planId as keyof typeof basePrices];
+      
+      if (!basePrice) {
+        return res.status(400).json({ message: "Invalid plan ID" });
+      }
+
+      const discounts = { 1: 0, 3: 0.05, 6: 0.10, 12: 0.17 };
+      const discount = discounts[duration as keyof typeof discounts] || 0;
+      const totalPrice = Math.round((basePrice * duration * (1 - discount)) * 100); // in cents
+
+      // Create gift subscription record
+      const giftSubscription = await storage.createSubscription({
+        userId: recipientEmail, // Use email as temporary identifier
+        planId,
+        billingCycle: 'gift',
+        priceId: `gift_${planId}_${duration}m`,
+        status: 'gift_pending',
+        gifterId,
+        giftMessage,
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000),
+      });
+
+      // In real implementation, send gift email here
+      console.log(`Gift subscription created for ${recipientEmail} from user ${gifterId}`);
+
+      res.json({ 
+        giftId: giftSubscription.id,
+        totalPrice: totalPrice / 100,
+        message: "Gift subscription created successfully"
+      });
+    } catch (error) {
+      console.error("Error creating gift subscription:", error);
+      res.status(500).json({ message: "Failed to create gift subscription" });
+    }
+  });
+
+  // Redeem gift subscription
+  app.post('/api/subscriptions/redeem-gift', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { giftCode } = req.body;
+
+      // Find pending gift subscription
+      const giftSubscription = await storage.getUserSubscription(giftCode);
+      
+      if (!giftSubscription || giftSubscription.status !== 'gift_pending') {
+        return res.status(404).json({ message: "Invalid or expired gift code" });
+      }
+
+      // Activate gift subscription for the current user
+      await storage.updateSubscription(giftSubscription.id, {
+        userId,
+        status: 'active',
+        redeemedAt: new Date()
+      });
+
+      res.json({ 
+        message: "Gift subscription redeemed successfully",
+        planId: giftSubscription.planId,
+        expiresAt: giftSubscription.currentPeriodEnd
+      });
+    } catch (error) {
+      console.error("Error redeeming gift subscription:", error);
+      res.status(500).json({ message: "Failed to redeem gift subscription" });
+    }
+  });
+
+  // Get subscription analytics for revenue tracking
+  app.get('/api/admin/revenue-analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      // This would typically require admin permissions
+      const analytics = {
+        totalSubscriptions: 0,
+        monthlyRevenue: 0,
+        annualRevenue: 0,
+        giftRevenue: 0,
+        conversionRate: 0,
+        churnRate: 0,
+      };
+
+      // In real implementation, calculate from database
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching revenue analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
