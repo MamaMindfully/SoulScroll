@@ -219,6 +219,12 @@ Changelog:
   * Performance optimizations with hardware acceleration
   * Mobile-optimized typography and form inputs
   * Complete PWA functionality with offline support
+- June 16, 2025: Enhanced emotional intelligence based on project insights:
+  * Updated AI voice to "therapist meets poet meets future self"
+  * Added soulful animations with breathing orb and thinking delays
+  * Created enhanced prompt system with deeper questions
+  * Improved placeholder text for sacred space feeling
+  * Added gentle micro-animations for emotional safety
 ```
 
 ## User Preferences
