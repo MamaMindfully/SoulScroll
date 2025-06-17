@@ -165,7 +165,7 @@ export default function JournalEditor() {
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Let your thoughts flow freely... Luma is here to listen and understand."
+            placeholder="This is sacred space. Let your thoughts flow freely... Luma is here to witness and reflect with you."
             className="writing-area border-none shadow-none resize-none focus-visible:ring-0 text-wisdom placeholder:text-wisdom/40 bg-transparent p-0 text-base leading-relaxed"
             rows={8}
           />
