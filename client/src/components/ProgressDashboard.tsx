@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, Calendar, Heart, Flame, BookOpen } from "lucide-react";
+import { TrendingUp, Calendar, Heart, Flame, BookOpen, Award, Unlock } from "lucide-react";
+import { evaluateUnlockables } from '../utils/UnlockablesEngine';
 
 interface JournalEntry {
   type: 'morning' | 'evening' | 'reflection';
@@ -22,6 +23,7 @@ const ProgressDashboard = () => {
   const [emotionTrends, setEmotionTrends] = useState<EmotionTrends>({});
   const [weeklyProgress, setWeeklyProgress] = useState(0);
   const [soulSeeds, setSoulSeeds] = useState(0);
+  const [unlockables, setUnlockables] = useState<string[]>([]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
@@ -33,6 +35,7 @@ const ProgressDashboard = () => {
     calculateStreak(stored);
     extractEmotionTrends(stored);
     calculateWeeklyProgress(stored);
+    setUnlockables(evaluateUnlockables(stored));
   }, []);
 
   const calculateStreak = (entries: JournalEntry[]) => {
@@ -216,6 +219,31 @@ const ProgressDashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Achievements & Unlockables */}
+        {unlockables.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Award className="w-5 h-5" />
+                <span>Achievements Unlocked</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-3">
+                {unlockables.map((unlock, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                    <Unlock className="w-4 h-4 text-purple-500" />
+                    <span className="text-sm font-medium text-purple-800">{unlock}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-wisdom/50 mt-4">
+                Continue your journey to unlock more rewards and insights
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recent Activity Summary */}
         {entries.length > 0 && (
