@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, Calendar, Heart, Flame, BookOpen, Award, Unlock, Crown } from "lucide-react";
+import { TrendingUp, Calendar, Heart, Flame, BookOpen, Award, Unlock, Crown, Download } from "lucide-react";
 import { evaluateUnlockables } from '../utils/UnlockablesEngine';
 import { isPremiumUser, activatePremium } from '../utils/SubscriptionEngine';
+import { exportJournalToPDF } from '../utils/PDFExportEngine';
 
 interface JournalEntry {
   type: 'morning' | 'evening' | 'reflection';
@@ -26,6 +27,11 @@ const ProgressDashboard = () => {
   const [soulSeeds, setSoulSeeds] = useState(0);
   const [unlockables, setUnlockables] = useState<string[]>([]);
   const [isPremium, setIsPremium] = useState(isPremiumUser());
+
+  const handleExport = () => {
+    const entries = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
+    exportJournalToPDF(entries);
+  };
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
@@ -247,22 +253,31 @@ const ProgressDashboard = () => {
           </Card>
         )}
 
-        {/* Premium Status */}
+        {/* Premium Status & Export */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Crown className="w-5 h-5" />
-              <span>Subscription Status</span>
+              <span>Premium Features</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isPremium ? (
-              <div className="text-center py-4">
-                <Crown className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
-                <p className="font-medium text-yellow-800">Premium Active</p>
-                <p className="text-xs text-wisdom/50 mt-2">
-                  Enjoying all premium features and deeper AI insights
-                </p>
+              <div className="space-y-4">
+                <div className="text-center py-2">
+                  <Crown className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+                  <p className="font-medium text-yellow-800">Premium Active</p>
+                  <p className="text-xs text-wisdom/50 mt-1">
+                    All premium features unlocked
+                  </p>
+                </div>
+                <button
+                  onClick={handleExport}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium py-3 px-4 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export My Journal</span>
+                </button>
               </div>
             ) : (
               <div className="text-center py-4">
@@ -276,7 +291,7 @@ const ProgressDashboard = () => {
                   Activate Premium (Demo)
                 </button>
                 <p className="text-xs text-wisdom/50 mt-2">
-                  Unlock deeper AI reflections and advanced features
+                  Unlock PDF export and advanced features
                 </p>
               </div>
             )}
