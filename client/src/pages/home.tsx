@@ -11,6 +11,7 @@ import EmotionalDashboard from "@/components/EmotionalDashboard";
 import PremiumPreview from "@/components/PremiumPreview";
 import BottomNavigation from "@/components/BottomNavigation";
 import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
+import { exportJournalToPDF } from '../utils/PDFExportEngine';
 
 export default function Home() {
   const { toast } = useToast();

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { isPremiumUser, activatePremium, getPremiumFeatures } from '../utils/SubscriptionEngine';
 import PrivacySettings from "@/components/PrivacySettings";
+import ExportManager from "@/components/ExportManager";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -136,6 +137,9 @@ export default function Settings() {
             
             {/* Privacy Settings */}
             <PrivacySettings />
+            
+            {/* Export Manager */}
+            <ExportManager />
             
             {/* Push Notifications */}
             <PushNotificationManager />
