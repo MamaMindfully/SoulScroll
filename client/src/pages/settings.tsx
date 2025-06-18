@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { isPremiumUser, activatePremium, getPremiumFeatures } from '../utils/SubscriptionEngine';
+import PrivacySettings from "@/components/PrivacySettings";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -132,6 +133,9 @@ export default function Settings() {
 
             {/* Mobile Optimizations */}
             <MobileOptimizations />
+            
+            {/* Privacy Settings */}
+            <PrivacySettings />
             
             {/* Push Notifications */}
             <PushNotificationManager />
