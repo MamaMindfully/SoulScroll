@@ -4,14 +4,14 @@ import { Bell, CloudOff, Wifi, User } from "lucide-react";
 import { useState } from "react";
 
 interface AppHeaderProps {
-  isOnline: boolean;
+  isOnline?: boolean;
 }
 
 interface UserStats {
   currentStreak: number;
 }
 
-export default function AppHeader({ isOnline }: AppHeaderProps) {
+export default function AppHeader({ isOnline = true }: AppHeaderProps) {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
 

@@ -173,6 +173,88 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Dream interpretation route
+  app.post('/api/interpret-dream', isAuthenticated, async (req: any, res) => {
+    try {
+      const { input } = req.body;
+      
+      if (!input || typeof input !== 'string') {
+        return res.status(400).json({ error: 'Invalid dream input' });
+      }
+
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      // Check if user has premium access for dream interpretation
+      const subscription = await storage.getUserSubscription(userId);
+      const isPremium = subscription?.status === 'active' && subscription?.planType !== 'free';
+
+      if (!isPremium) {
+        return res.status(403).json({ 
+          error: 'Premium subscription required for dream interpretation',
+          interpretation: 'Your dreams carry profound wisdom that speaks in the language of symbols. Trust the messages your subconscious mind is sharing with you.',
+          symbols: ['intuition', 'mystery'],
+          emotionalTone: 'Contemplative'
+        });
+      }
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a wise and mystical dream interpreter with deep knowledge of symbolism, psychology, and spiritual traditions. 
+            
+            Provide insights that are:
+            - Gentle and nurturing, never alarming
+            - Rich in symbolic meaning
+            - Connected to personal growth and self-discovery
+            - Poetic yet practical
+            - Respectful of the dreamer's subconscious wisdom
+            
+            Always respond in JSON format with:
+            {
+              "interpretation": "A flowing, insightful interpretation (2-3 paragraphs)",
+              "symbols": ["array", "of", "key", "symbols"],
+              "emotionalTone": "single word describing the dream's emotional essence"
+            }`
+          },
+          {
+            role: "user",
+            content: input
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.8,
+        max_tokens: 800
+      });
+
+      let dreamAnalysis;
+      try {
+        dreamAnalysis = JSON.parse(response.choices[0].message.content);
+      } catch (parseError) {
+        dreamAnalysis = {
+          interpretation: response.choices[0].message.content,
+          symbols: [],
+          emotionalTone: "Mystical"
+        };
+      }
+
+      res.json(dreamAnalysis);
+    } catch (error) {
+      console.error('Dream interpretation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to interpret dream',
+        interpretation: 'Your dreams carry profound wisdom that speaks in the language of symbols. Trust the messages your subconscious mind is sharing with you.',
+        symbols: ['intuition', 'mystery'],
+        emotionalTone: 'Contemplative'
+      });
+    }
+  });
+
   // Daily prompt routes
   app.get('/api/prompts/daily', isAuthenticated, async (req: any, res) => {
     try {

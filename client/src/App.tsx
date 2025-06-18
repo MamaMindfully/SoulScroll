@@ -46,6 +46,7 @@ function Router() {
           <Route path="/evening" component={() => <EveningFlow />} />
           <Route path="/progress" component={() => <ProgressDashboard />} />
           <Route path="/community" component={Community} />
+          <Route path="/dreams" component={Dreams} />
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />

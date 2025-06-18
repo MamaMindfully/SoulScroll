@@ -39,7 +39,7 @@ export default function Dreams() {
   return (
     <div className="min-h-screen bg-gentle">
       {/* Header */}
-      <AppHeader />
+      <AppHeader isOnline={true} />
 
       {/* Main Content */}
       <main className="pb-20 pt-16">
