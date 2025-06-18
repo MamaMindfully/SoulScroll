@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -14,6 +15,7 @@ export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [, setLocation] = useLocation();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -29,6 +31,27 @@ export default function Home() {
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
+
+  // Auto-launch morning flow during morning hours
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      const now = new Date();
+      const hour = now.getHours();
+      
+      // Check if it's morning time (4 AM to 10 AM) and user hasn't done morning ritual today
+      if (hour >= 4 && hour <= 10) {
+        const today = new Date().toDateString();
+        const lastMorningRitual = localStorage.getItem('last-morning-ritual');
+        
+        if (lastMorningRitual !== today) {
+          // Navigate to morning flow if not completed today
+          setTimeout(() => {
+            setLocation('/morning');
+          }, 1000); // Small delay to ensure smooth transition
+        }
+      }
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
 
   // Handle online/offline status
   useEffect(() => {

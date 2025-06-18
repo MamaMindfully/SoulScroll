@@ -37,7 +37,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
-          <Route path="/morning" component={MorningFlow} />
+          <Route path="/morning" component={() => <MorningFlow />} />
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />

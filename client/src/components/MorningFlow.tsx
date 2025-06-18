@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +23,7 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
   const [intention, setIntention] = useState('');
   const [mood, setMood] = useState('');
   const [step, setStep] = useState(1);
+  const [, setLocation] = useLocation();
 
   const handleNext = () => {
     if (step === 3) {
@@ -36,7 +38,16 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
       const existing = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
       localStorage.setItem('soulscroll-entries', JSON.stringify([...existing, entry]));
       
-      if (onComplete) onComplete();
+      // Mark morning ritual as completed for today
+      const today = new Date().toDateString();
+      localStorage.setItem('last-morning-ritual', today);
+      
+      if (onComplete) {
+        onComplete();
+      } else {
+        // Navigate back to home after completion
+        setLocation('/');
+      }
     } else {
       setStep(step + 1);
     }
