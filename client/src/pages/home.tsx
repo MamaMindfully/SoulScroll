@@ -10,11 +10,13 @@ import AIReflection from "@/components/AIReflection";
 import EmotionalDashboard from "@/components/EmotionalDashboard";
 import PremiumPreview from "@/components/PremiumPreview";
 import BottomNavigation from "@/components/BottomNavigation";
+import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
 
 export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const isPremium = isPremiumUser();
   const [, setLocation] = useLocation();
 
   // Redirect to home if not authenticated
@@ -120,6 +122,25 @@ export default function Home() {
         <EmotionalDashboard />
 
         {/* Premium Preview */}
+        {!isPremium && (
+          <div className="mx-4 mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+            <h3 className="text-lg font-bold text-purple-800 mb-3">🌟 Unlock SoulScroll Premium</h3>
+            <ul className="space-y-2 mb-4">
+              {getPremiumFeatures().map((feature, index) => (
+                <li key={index} className="text-sm text-purple-700 flex items-center">
+                  <span className="mr-2">•</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <button 
+              onClick={() => setLocation('/pricing')}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium py-2 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+            >
+              Upgrade to Premium
+            </button>
+          </div>
+        )}
         <PremiumPreview />
 
         {/* Offline Banner */}

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, Calendar, Heart, Flame, BookOpen, Award, Unlock } from "lucide-react";
+import { TrendingUp, Calendar, Heart, Flame, BookOpen, Award, Unlock, Crown } from "lucide-react";
 import { evaluateUnlockables } from '../utils/UnlockablesEngine';
+import { isPremiumUser, activatePremium } from '../utils/SubscriptionEngine';
 
 interface JournalEntry {
   type: 'morning' | 'evening' | 'reflection';
@@ -24,6 +25,7 @@ const ProgressDashboard = () => {
   const [weeklyProgress, setWeeklyProgress] = useState(0);
   const [soulSeeds, setSoulSeeds] = useState(0);
   const [unlockables, setUnlockables] = useState<string[]>([]);
+  const [isPremium, setIsPremium] = useState(isPremiumUser());
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
@@ -244,6 +246,42 @@ const ProgressDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Premium Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Crown className="w-5 h-5" />
+              <span>Subscription Status</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isPremium ? (
+              <div className="text-center py-4">
+                <Crown className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
+                <p className="font-medium text-yellow-800">Premium Active</p>
+                <p className="text-xs text-wisdom/50 mt-2">
+                  Enjoying all premium features and deeper AI insights
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <button
+                  onClick={() => {
+                    activatePremium();
+                    setIsPremium(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium py-3 px-4 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200"
+                >
+                  Activate Premium (Demo)
+                </button>
+                <p className="text-xs text-wisdom/50 mt-2">
+                  Unlock deeper AI reflections and advanced features
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Activity Summary */}
         {entries.length > 0 && (
