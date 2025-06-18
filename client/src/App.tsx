@@ -10,6 +10,8 @@ import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import { fetchSoulScrollReply } from './utils/gptAPI';
 import { prompts } from './utils/promptTemplates';
 import { saveReflection, incrementReflectionCount } from './utils/storage';
+import OnboardingFlow from './components/OnboardingFlow';
+import { useUserProfile } from './hooks/useUserProfile';
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -20,11 +22,17 @@ import Pricing from "@/pages/pricing";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { profile, savePreferences } = useUserProfile();
+
+  // Check if user has completed onboarding
+  const hasCompletedOnboarding = profile.intent && profile.ritualTime;
 
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
+      ) : !hasCompletedOnboarding ? (
+        <Route path="/" component={() => <OnboardingFlow saveUserPreferences={savePreferences} />} />
       ) : (
         <>
           <Route path="/" component={Home} />
