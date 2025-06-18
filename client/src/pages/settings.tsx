@@ -20,8 +20,10 @@ import {
   Moon,
   Volume2,
   Smartphone,
-  Target
+  Target,
+  FileText
 } from "lucide-react";
+import { exportJournalToPDF } from '../utils/PDFExportEngine';
 import PushNotificationManager from "@/components/PushNotificationManager";
 import LocalModeToggle from "@/components/LocalModeToggle";
 import MobileOptimizations from "@/components/MobileOptimizations";
@@ -31,6 +33,7 @@ import DeploymentOptimizations from "@/components/DeploymentOptimizations";
 export default function Settings() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [isPremium, setIsPremium] = useState(isPremiumUser());
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -49,6 +52,16 @@ export default function Settings() {
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
+  };
+
+  const handleExport = () => {
+    const entries = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
+    exportJournalToPDF(entries);
+  };
+
+  const handleActivatePremium = () => {
+    activatePremium();
+    setIsPremium(true);
   };
 
   const handlePremiumUpgrade = () => {
@@ -241,13 +254,32 @@ export default function Settings() {
                 </h3>
                 
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-between p-3 bg-gentle/50 rounded-lg text-left">
-                    <div className="flex items-center space-x-3">
-                      <Download className="w-4 h-4 text-wisdom/60" />
-                      <span className="text-sm text-wisdom">Export Your Data</span>
-                    </div>
-                    <span className="text-xs text-wisdom/50">→</span>
-                  </button>
+                  {isPremium ? (
+                    <button 
+                      onClick={handleExport}
+                      className="w-full flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-left transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Download className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-blue-800 font-medium">Export My Journal</span>
+                      </div>
+                      <FileText className="w-4 h-4 text-blue-600" />
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={handleActivatePremium}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Download className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <span className="text-sm text-gray-600">Export Your Data</span>
+                          <div className="text-xs text-gray-500">Premium feature</div>
+                        </div>
+                      </div>
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                    </button>
+                  )}
 
                   <button className="w-full flex items-center justify-between p-3 bg-gentle/50 rounded-lg text-left">
                     <div className="flex items-center space-x-3">
