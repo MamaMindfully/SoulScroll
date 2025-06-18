@@ -1,8 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { PenTool, History, TrendingUp, Settings } from "lucide-react";
+import { PenTool, Users, TrendingUp, Settings } from "lucide-react";
 
 interface BottomNavigationProps {
-  currentPage: "write" | "timeline" | "progress" | "settings";
+  currentPage: "write" | "community" | "progress" | "settings";
 }
 
 export default function BottomNavigation({ currentPage }: BottomNavigationProps) {
@@ -16,10 +16,10 @@ export default function BottomNavigation({ currentPage }: BottomNavigationProps)
       label: "Write",
     },
     {
-      id: "timeline",
-      path: "/timeline",
-      icon: History,
-      label: "History",
+      id: "community",
+      path: "/community",
+      icon: Users,
+      label: "Community",
     },
     {
       id: "progress",

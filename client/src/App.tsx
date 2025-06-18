@@ -14,10 +14,12 @@ import OnboardingFlow from './components/OnboardingFlow';
 import MorningFlow from './components/MorningFlow';
 import EveningFlow from './components/EveningFlow';
 import ProgressDashboard from './components/ProgressDashboard';
+import CommunityFeed from './components/CommunityFeed';
 import { useUserProfile } from './hooks/useUserProfile';
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import Community from "@/pages/community";
 import Timeline from "@/pages/timeline";
 import Insights from "@/pages/insights";
 import Settings from "@/pages/settings";
@@ -42,6 +44,7 @@ function Router() {
           <Route path="/morning" component={() => <MorningFlow />} />
           <Route path="/evening" component={() => <EveningFlow />} />
           <Route path="/progress" component={() => <ProgressDashboard />} />
+          <Route path="/community" component={Community} />
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />
