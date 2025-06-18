@@ -24,6 +24,7 @@ import Timeline from "@/pages/timeline";
 import Insights from "@/pages/insights";
 import Settings from "@/pages/settings";
 import Dreams from "@/pages/dreams";
+import Mantras from "@/pages/mantras";
 import Pricing from "@/pages/pricing";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/progress" component={() => <ProgressDashboard />} />
           <Route path="/community" component={Community} />
           <Route path="/dreams" component={Dreams} />
+          <Route path="/mantras" component={Mantras} />
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />
