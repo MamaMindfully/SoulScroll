@@ -7,6 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PenTool, Mic, Save, Check } from "lucide-react";
+import { fetchSoulScrollReply } from '../utils/gptAPI';
+import { prompts } from '../utils/promptTemplates';
+import { saveReflection, incrementReflectionCount } from '../utils/storage';
 
 interface JournalEntryData {
   content: string;
@@ -17,6 +20,7 @@ export default function JournalEditor() {
   const [content, setContent] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "pending">("saved");
+  const [gptResponse, setGptResponse] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
@@ -92,10 +96,23 @@ export default function JournalEditor() {
     },
   });
 
-  const handleSave = (isAutoSave = false) => {
+  const handleSave = async (isAutoSave = false) => {
     if (!content.trim()) return;
     
     setAutoSaveStatus("saving");
+    
+    // Generate SoulScroll AI response and save to localStorage
+    if (!isAutoSave) {
+      try {
+        const reply = await fetchSoulScrollReply(content.trim());
+        setGptResponse(reply);
+        saveReflection(content.trim(), new Date().toISOString());
+        incrementReflectionCount();
+      } catch (error) {
+        console.error('Error generating SoulScroll reply:', error);
+      }
+    }
+    
     createEntryMutation.mutate({
       content: content.trim(),
       // @ts-ignore - Add isAutoSave flag for different handling
