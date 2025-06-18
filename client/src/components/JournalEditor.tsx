@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PenTool, Mic, Save, Check } from "lucide-react";
 import { fetchSoulScrollReply } from '../utils/gptAPI';
+import { getAIReflection } from '../utils/AIJournalEngine';
 import { prompts } from '../utils/promptTemplates';
 import { saveReflection, incrementReflectionCount } from '../utils/storage';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 interface JournalEntryData {
   content: string;
@@ -20,10 +22,11 @@ export default function JournalEditor() {
   const [content, setContent] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "pending">("saved");
-  const [gptResponse, setGptResponse] = useState("");
+  const [aiOutput, setAIOutput] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const { profile } = useUserProfile();
 
   // Calculate word count
   useEffect(() => {
@@ -101,15 +104,16 @@ export default function JournalEditor() {
     
     setAutoSaveStatus("saving");
     
-    // Generate SoulScroll AI response and save to localStorage
+    // Generate AI response and save to localStorage for non-auto saves
     if (!isAutoSave) {
       try {
-        const reply = await fetchSoulScrollReply(content.trim());
-        setGptResponse(reply);
+        const userIntent = profile.intent || 'self-discovery';
+        const aiResponse = await getAIReflection(content.trim(), userIntent);
+        setAIOutput(aiResponse);
         saveReflection(content.trim(), new Date().toISOString());
         incrementReflectionCount();
       } catch (error) {
-        console.error('Error generating SoulScroll reply:', error);
+        console.error('Error generating AI reflection:', error);
       }
     }
     
@@ -212,6 +216,25 @@ export default function JournalEditor() {
           </div>
         </div>
       </Card>
+
+      {/* AI Reflection Section */}
+      {aiOutput && (
+        <Card className="mt-6">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-primary">SoulScroll Reflection</span>
+            </div>
+            <div className="prose prose-sm max-w-none text-wisdom/80 leading-relaxed">
+              {aiOutput.split('\n').map((paragraph, index) => (
+                <p key={index} className="mb-3 last:mb-0">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </section>
   );
 }
