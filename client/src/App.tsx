@@ -12,6 +12,7 @@ import { prompts } from './utils/promptTemplates';
 import { saveReflection, incrementReflectionCount } from './utils/storage';
 import OnboardingFlow from './components/OnboardingFlow';
 import MorningFlow from './components/MorningFlow';
+import EveningFlow from './components/EveningFlow';
 import { useUserProfile } from './hooks/useUserProfile';
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
@@ -38,6 +39,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/morning" component={() => <MorningFlow />} />
+          <Route path="/evening" component={() => <EveningFlow />} />
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />
