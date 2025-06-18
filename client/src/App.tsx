@@ -23,6 +23,7 @@ import Community from "@/pages/community";
 import Timeline from "@/pages/timeline";
 import Insights from "@/pages/insights";
 import Settings from "@/pages/settings";
+import Dreams from "@/pages/dreams";
 import Pricing from "@/pages/pricing";
 
 function Router() {
