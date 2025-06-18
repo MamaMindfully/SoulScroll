@@ -5,6 +5,9 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { insertJournalEntrySchema, insertDailyPromptSchema } from "@shared/schema";
 import { journalService } from "./services/journalService";
+import OpenAI from "openai";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -19,6 +22,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // AI reflection endpoint
+  app.post('/api/ai/reflection', isAuthenticated, async (req: any, res) => {
+    try {
+      const { text, intent } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      const systemPrompt = `
+You are SoulScroll, a gentle AI journaling companion.
+Respond to the user's entry with emotionally intelligent reflections.
+Your tone should match their journaling goal (e.g., self-discovery, creative expression, emotional clarity).
+Do NOT give advice. Do NOT analyze clinically. Simply reflect, validate, and guide deeper introspection.
+
+The user is writing for: ${intent || 'self-discovery'}.
+Their entry is:
+"${text}"
+
+Respond in 1–3 thoughtful paragraphs.
+End with a simple, poetic follow-up question.
+      `;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: text }
+        ],
+        temperature: 0.8,
+      });
+
+      const reflection = response.choices?.[0]?.message?.content || "I'm here when you're ready to reflect more.";
+      
+      res.json({ reflection });
+    } catch (error) {
+      console.error("Error generating AI reflection:", error);
+      res.status(500).json({ error: "Failed to generate reflection" });
     }
   });
 
