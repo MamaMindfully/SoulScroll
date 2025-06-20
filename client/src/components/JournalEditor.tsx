@@ -118,31 +118,36 @@ export default function JournalEditor() {
     if (!isAutoSave) {
       setHasSubmitted(true);
       
-      // Generate AI reflection for entries longer than 20 characters
-      if (content.trim().length > 20) {
+      // Generate AI reflection for entries longer than 10 characters
+      if (content.trim().length > 10) {
         setLoadingReflection(true);
         try {
-          const response = await fetch('/api/reflect', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ entry: content.trim() })
-          });
+          console.log('Fetching reflection for entry:', content.trim().substring(0, 50) + '...');
           
-          if (response.ok) {
-            const reflectionData = await response.json();
-            setReflection(reflectionData);
-          } else {
-            console.error('Failed to get reflection:', response.statusText);
-            // Set a simple fallback reflection
-            setReflection({
-              insight: "Thank you for sharing your thoughts. Taking time to reflect is a valuable practice for personal growth.",
-              followUpPrompt: "What feeling or thought from your entry would you like to explore further?",
-              source: 'fallback'
-            });
-          }
+          // Use apiRequest to include authentication
+          const reflectionData = await apiRequest("POST", "/api/reflect", { 
+            entry: content.trim() 
+          }).then(res => res.json());
+          
+          console.log('Reflection data received:', reflectionData);
+          setReflection(reflectionData);
         } catch (error) {
           console.error('Error getting reflection:', error);
-          // Set a simple fallback reflection
+          
+          // Check if it's an auth error
+          if (isUnauthorizedError(error as Error)) {
+            toast({
+              title: "Please log in",
+              description: "You need to be logged in to get AI reflections.",
+              variant: "destructive",
+            });
+            setTimeout(() => {
+              window.location.href = "/api/login";
+            }, 1500);
+            return;
+          }
+          
+          // Set intelligent fallback reflection
           setReflection({
             insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
             followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
