@@ -145,6 +145,7 @@ Luma is a full-stack emotional journaling application that combines React fronte
 - **Personalized Recommendations**: AI-generated coping strategies and action items
 - **Emotional Intelligence**: Advanced sentiment analysis with nuanced emotion detection
 - **Dream Interpretation**: Mystical AI-powered dream analysis with symbol extraction and spiritual insights
+- **Progressive Depth Exploration**: 5-level "Go Deeper" system for profound self-discovery
 
 ### Spiritual & Mindfulness Tools
 - **Mantra Designer**: Create personalized mantras and affirmations organized by category

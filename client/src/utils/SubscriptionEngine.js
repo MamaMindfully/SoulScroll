@@ -9,6 +9,7 @@ export function activatePremium() {
 export function getPremiumFeatures() {
   return [
     "🧠 Advanced AI reflections and emotional analysis",
+    "🔍 Progressive depth exploration with 'Go Deeper' insights",
     "🎙️ Voice journaling with AI transcription", 
     "📤 Export journal as professional PDF documents",
     "🌙 Dream interpretation with mystical AI insights",

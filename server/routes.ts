@@ -259,6 +259,98 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Deeper reflection route for progressive AI insights
+  app.post('/api/deeper', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entry, basePrompt, level = 0, previousInsights = [] } = req.body;
+      
+      if (!entry || typeof entry !== 'string') {
+        return res.status(400).json({ error: 'Invalid journal entry' });
+      }
+
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      // Check if user has premium access for deeper insights
+      const subscription = await storage.getUserSubscription(userId);
+      const isPremium = subscription?.status === 'active' && subscription?.planType !== 'free';
+
+      if (!isPremium) {
+        return res.status(403).json({ 
+          error: 'Premium subscription required for deeper insights',
+          deeperReflection: 'Your thoughts hold layers of wisdom. Upgrade to explore the deeper dimensions of your reflections.'
+        });
+      }
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a profound wisdom guide specializing in progressive depth exploration. Your role is to help users go deeper into their reflections through increasingly insightful questions and observations.
+
+            Current depth level: ${level}/5
+            
+            Guidelines for each level:
+            Level 0: Surface emotions and immediate reactions
+            Level 1: Underlying patterns and recurring themes
+            Level 2: Core beliefs and values exploration  
+            Level 3: Soul-level insights and life purpose connections
+            Level 4+: Transcendent wisdom and integration
+            
+            Your response should:
+            - Build upon previous insights: ${previousInsights.join(' | ')}
+            - Ask a profound question that goes ${level + 1} layers deeper
+            - Offer a gentle insight that illuminates hidden aspects
+            - Use compassionate, nurturing language
+            - Connect to universal human experiences when appropriate
+            - Avoid being prescriptive; instead, invite exploration
+            
+            Format your response as a deeper reflection prompt that guides the user to explore beyond their initial entry.`
+          },
+          {
+            role: "user",
+            content: `Original entry: "${entry}"
+            
+            Previous AI response: "${basePrompt}"
+            
+            Please provide a deeper reflection prompt that invites me to explore the next layer of understanding. Focus on level ${level + 1} depth.`
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 300
+      });
+
+      const deeperReflection = response.choices[0].message.content;
+
+      res.json({ 
+        deeperReflection,
+        level: level + 1,
+        maxLevel: 5
+      });
+    } catch (error) {
+      console.error('Deeper reflection error:', error);
+      
+      // Provide meaningful fallback based on level
+      const fallbackReflections = [
+        "What emotions are you not fully expressing about this situation? What wants to be felt or heard?",
+        "If this experience had a deeper message for your life journey, what might it be trying to teach you?",
+        "What part of yourself is asking for attention or healing through this reflection?",
+        "How does this connect to your deepest values and the legacy you want to create?",
+        "What would unconditional love and wisdom say about this moment in your life?"
+      ];
+      
+      res.json({ 
+        deeperReflection: fallbackReflections[level] || "Trust the wisdom that lives within your experience. What does your heart know to be true?",
+        level: level + 1,
+        maxLevel: 5
+      });
+    }
+  });
+
   // Dream interpretation route
   app.post('/api/interpret-dream', isAuthenticated, async (req: any, res) => {
     try {

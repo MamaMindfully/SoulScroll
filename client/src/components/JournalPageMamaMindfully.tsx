@@ -12,6 +12,7 @@ import JournalHistory from './JournalHistory';
 import VisualProgressTracker from './VisualProgressTracker';
 import KeyboardAvoidingWrapper from './KeyboardAvoidingWrapper';
 import DismissibleBanner from './DismissibleBanner';
+import TapToGoDeeper from './TapToGoDeeper';
 
 interface MamaMindfullyResponse {
   feedback: string;
@@ -340,6 +341,18 @@ const JournalPageMamaMindfully = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Tap to Go Deeper */}
+      {aiFeedback && (
+        <TapToGoDeeper 
+          originalPrompt={aiFeedback}
+          userEntry={entry}
+          onDeepInsight={(insight) => {
+            console.log('Deep insight received:', insight);
+            // Could add to a deeper insights array if needed
+          }}
+        />
       )}
 
       {/* Nurturing Actions */}
