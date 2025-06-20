@@ -238,7 +238,7 @@ export default function JournalEditor() {
               size="sm"
               onClick={() => handleSave(false)}
               disabled={!content.trim() || createEntryMutation.isPending || loadingReflection}
-              className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+              className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg px-4"
               style={{ minHeight: '44px' }}
             >
               {(createEntryMutation.isPending || loadingReflection) ? (
@@ -251,7 +251,7 @@ export default function JournalEditor() {
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span className="text-sm">Save & Reflect</span>
+                  <span className="text-sm font-medium">Save & Reflect</span>
                 </>
               )}
             </Button>
