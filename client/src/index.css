@@ -2,6 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-First Responsive Design */
+:root {
+  --touch-target-size: 44px;
+  --mobile-padding: 1rem 1.5rem;
+  --mobile-container-width: min(90vw, 100%);
+}
+
+/* Base font sizing with responsive clamp */
+body {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  min-height: 100vh;
+  padding: var(--mobile-padding);
+}
+
+/* Button improvements for touch accessibility */
+button, .btn {
+  min-height: var(--touch-target-size);
+  min-width: var(--touch-target-size);
+  padding: 12px 20px;
+  font-size: clamp(0.9rem, 2.2vw, 1rem);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Full-width buttons for mobile */
+.btn-full {
+  min-width: 100%;
+  width: 100%;
+}
+
+/* Container max-widths for mobile */
+.container-mobile {
+  max-width: var(--mobile-container-width);
+  margin: 0 auto;
+  padding: var(--mobile-padding);
+}
+
+/* Input focus improvements */
+input:focus, textarea:focus {
+  scroll-margin-top: 100px;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Responsive text scaling */
+h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.25rem, 3.5vw, 2rem); }
+h3 { font-size: clamp(1.125rem, 3vw, 1.5rem); }
+
+/* Touch-friendly spacing */
+.touch-spacing > * + * {
+  margin-top: 1rem;
+}
+
+/* Keyboard avoidance */
+.keyboard-avoiding {
+  transition: transform 0.3s ease;
+}
+
+.keyboard-avoiding.keyboard-open {
+  transform: translateY(-20vh);
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* Bottom navigation improvements */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 0;
+  z-index: 999;
+  min-height: 64px;
+}
+
+.bottom-nav .nav-item {
+  min-height: var(--touch-target-size);
+  min-width: var(--touch-target-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.bottom-nav .nav-item:active {
+  transform: scale(0.95);
+  background-color: #f3f4f6;
+}
+
+/* Banner dismissal */
+.dismissible-banner {
+  transition: all 0.3s ease;
+}
+
+.dismissible-banner.hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(240, 6%, 10%);

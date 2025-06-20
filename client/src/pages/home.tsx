@@ -10,6 +10,8 @@ import AIReflection from "@/components/AIReflection";
 import EmotionalDashboard from "@/components/EmotionalDashboard";
 import PremiumPreview from "@/components/PremiumPreview";
 import BottomNavigation from "@/components/BottomNavigation";
+import FloatingActionButton from "@/components/FloatingActionButton";
+import DismissibleBanner from "@/components/DismissibleBanner";
 import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
 import { exportJournalToPDF } from '../utils/PDFExportEngine';
 
@@ -154,6 +156,9 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton />
 
       {/* Bottom Navigation */}
       <BottomNavigation currentPage="write" />

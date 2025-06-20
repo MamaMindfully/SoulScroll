@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
+import FloatingActionButton from "@/components/FloatingActionButton";
 import JournalPageMamaMindfully from "@/components/JournalPageMamaMindfully";
 
 export default function MamaMindfully() {
@@ -56,6 +57,13 @@ export default function MamaMindfully() {
           </div>
         </section>
       </main>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton 
+        onNewEntry={() => window.location.href = '/'}
+        onMamaMindfully={() => window.location.reload()}
+        onDreamMode={() => window.location.href = '/dreams'}
+      />
 
       {/* Bottom Navigation */}
       <BottomNavigation currentPage="write" />

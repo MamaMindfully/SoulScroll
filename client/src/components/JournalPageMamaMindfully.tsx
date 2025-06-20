@@ -10,6 +10,8 @@ import { checkForNewAchievements as checkUnlockables } from '../utils/unlockable
 import JournalConfirmation from './JournalConfirmation';
 import JournalHistory from './JournalHistory';
 import VisualProgressTracker from './VisualProgressTracker';
+import KeyboardAvoidingWrapper from './KeyboardAvoidingWrapper';
+import DismissibleBanner from './DismissibleBanner';
 
 interface MamaMindfullyResponse {
   feedback: string;
@@ -188,30 +190,47 @@ const JournalPageMamaMindfully = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="border-pink-200 bg-gradient-to-br from-pink-50 to-rose-50">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-pink-800">
-              <Flower className="w-6 h-6" />
-              <span>🌼 Your Moment of Reflection</span>
-            </div>
-            <Button 
-              onClick={handleViewHistory}
-              variant="outline"
-              size="sm"
-              className="border-pink-300 text-pink-700"
-            >
-              <BookOpen className="w-4 h-4 mr-2" />
-              History
-            </Button>
-          </CardTitle>
-          <p className="text-pink-600 text-sm">
-            A safe space for authentic self-discovery with your nurturing AI wellness coach
-          </p>
-        </CardHeader>
-      </Card>
+    <KeyboardAvoidingWrapper>
+      <div className="container-mobile space-y-6 touch-spacing">
+        {/* Dismissible Banner */}
+        <DismissibleBanner
+          type="tip"
+          title="Mama Mindfully is here for you"
+          message="Share what's in your heart. I'm here to listen with love and offer gentle guidance."
+          dismissKey="mama-mindfully-intro"
+          showCondition={() => {
+            const entries = JSON.parse(localStorage.getItem('soulscroll-journal-history') || '[]');
+            const mamaMindfullyEntries = entries.filter((e: any) => e.aiPersona === 'mama-mindfully');
+            return mamaMindfullyEntries.length === 0;
+          }}
+        />
+
+        {/* Header */}
+        <Card className="border-pink-200 bg-gradient-to-br from-pink-50 to-rose-50">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-pink-800">
+                <Flower className="w-6 h-6" />
+                <span style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>
+                  🌼 Your Moment of Reflection
+                </span>
+              </div>
+              <Button 
+                onClick={handleViewHistory}
+                variant="outline"
+                size="sm"
+                className="border-pink-300 text-pink-700 btn-full"
+                style={{ minHeight: '44px' }}
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                History
+              </Button>
+            </CardTitle>
+            <p className="text-pink-600 text-sm">
+              A safe space for authentic self-discovery with your nurturing AI wellness coach
+            </p>
+          </CardHeader>
+        </Card>
 
       {/* Journal Entry */}
       <Card className="border-pink-200">
@@ -240,17 +259,26 @@ const JournalPageMamaMindfully = () => {
             <Button 
               onClick={handleJournalSubmit}
               disabled={!entry.trim() || loading}
-              className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white"
+              className="btn-full bg-gradient-to-r from-pink-500 to-rose-500 text-white"
+              style={{ 
+                minHeight: '44px',
+                padding: '12px 20px',
+                fontSize: 'clamp(0.9rem, 2.2vw, 1rem)'
+              }}
             >
               {loading ? (
                 <>
                   <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
-                  Gathering mindful reflection...
+                  <span style={{ fontSize: 'clamp(0.85rem, 2vw, 0.95rem)' }}>
+                    Gathering mindful reflection...
+                  </span>
                 </>
               ) : (
                 <>
                   <Heart className="w-4 h-4 mr-2" />
-                  Reflect with Mama Mindfully
+                  <span style={{ fontSize: 'clamp(0.9rem, 2.2vw, 1rem)' }}>
+                    Reflect with Mama Mindfully
+                  </span>
                 </>
               )}
             </Button>
@@ -259,7 +287,8 @@ const JournalPageMamaMindfully = () => {
               <Button 
                 onClick={resetJournal}
                 variant="outline"
-                className="border-pink-300 text-pink-700"
+                className="border-pink-300 text-pink-700 btn-full"
+                style={{ minHeight: '44px' }}
               >
                 New Entry
               </Button>
