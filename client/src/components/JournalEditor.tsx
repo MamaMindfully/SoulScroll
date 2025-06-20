@@ -78,6 +78,13 @@ export default function JournalEditor() {
           title: "Entry saved",
           description: "Your thoughts have been captured with care.",
         });
+        
+        // Clear form after some time
+        setTimeout(() => {
+          setContent('');
+          setHasSubmitted(false);
+          setReflection(null);
+        }, 12000);
       }
     },
     onError: (error) => {
@@ -108,84 +115,51 @@ export default function JournalEditor() {
     
     setAutoSaveStatus("saving");
     
-    try {
-      // Save the journal entry
-      await apiRequest("POST", "/api/journal/entries", { content: content.trim() });
+    if (!isAutoSave) {
+      setHasSubmitted(true);
       
-      if (!isAutoSave) {
-        setHasSubmitted(true);
-        
-        toast({
-          title: "Entry saved!",
-          description: "Your journal entry has been saved successfully.",
-        });
-        
-        queryClient.invalidateQueries({ queryKey: ["/api/journal/entries"] });
-        
-        // Generate AI reflection for entries longer than 20 characters
-        if (content.trim().length > 20) {
-          setLoadingReflection(true);
-          try {
-            const response = await fetch('/api/reflect', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ entry: content.trim() })
-            });
-            
-            if (response.ok) {
-              const reflectionData = await response.json();
-              setReflection(reflectionData);
-            } else {
-              console.error('Failed to get reflection:', response.statusText);
-              // Set a simple fallback reflection
-              setReflection({
-                insight: "Thank you for sharing your thoughts. Taking time to reflect is a valuable practice for personal growth.",
-                followUpPrompt: "What feeling or thought from your entry would you like to explore further?",
-                source: 'fallback'
-              });
-            }
-          } catch (error) {
-            console.error('Error getting reflection:', error);
+      // Generate AI reflection for entries longer than 20 characters
+      if (content.trim().length > 20) {
+        setLoadingReflection(true);
+        try {
+          const response = await fetch('/api/reflect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entry: content.trim() })
+          });
+          
+          if (response.ok) {
+            const reflectionData = await response.json();
+            setReflection(reflectionData);
+          } else {
+            console.error('Failed to get reflection:', response.statusText);
             // Set a simple fallback reflection
             setReflection({
-              insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
-              followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
+              insight: "Thank you for sharing your thoughts. Taking time to reflect is a valuable practice for personal growth.",
+              followUpPrompt: "What feeling or thought from your entry would you like to explore further?",
               source: 'fallback'
             });
-          } finally {
-            setLoadingReflection(false);
           }
+        } catch (error) {
+          console.error('Error getting reflection:', error);
+          // Set a simple fallback reflection
+          setReflection({
+            insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
+            followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
+            source: 'fallback'
+          });
+        } finally {
+          setLoadingReflection(false);
         }
-        
-        // Clear the form after some time
-        setTimeout(() => {
-          setContent('');
-          setHasSubmitted(false);
-          setReflection(null);
-        }, 10000);
       }
-      
-      setAutoSaveStatus("saved");
-    } catch (error) {
-      if (isUnauthorizedError(error as Error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      
-      toast({
-        title: "Error",
-        description: "Failed to save entry. Please try again.",
-        variant: "destructive",
-      });
-      setAutoSaveStatus("pending");
     }
+    
+    // Use the existing createEntryMutation
+    createEntryMutation.mutate({
+      content: content.trim(),
+      // @ts-ignore - Add isAutoSave flag for different handling
+      isAutoSave,
+    });
   };
 
   const handleVoiceRecording = () => {
@@ -263,15 +237,23 @@ export default function JournalEditor() {
               variant="ghost"
               size="sm"
               onClick={() => handleSave(false)}
-              disabled={!content.trim() || createEntryMutation.isPending}
-              className="flex items-center space-x-2"
+              disabled={!content.trim() || createEntryMutation.isPending || loadingReflection}
+              className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+              style={{ minHeight: '44px' }}
             >
-              {createEntryMutation.isPending ? (
-                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              {(createEntryMutation.isPending || loadingReflection) ? (
+                <>
+                  <LoaderCircle className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">
+                    {loadingReflection ? 'Reflecting...' : 'Saving...'}
+                  </span>
+                </>
               ) : (
-                <Save className="w-4 h-4" />
+                <>
+                  <Save className="w-4 h-4" />
+                  <span className="text-sm">Save & Reflect</span>
+                </>
               )}
-              <span className="text-sm">Save</span>
             </Button>
           </div>
           
@@ -281,8 +263,92 @@ export default function JournalEditor() {
         </div>
       </Card>
 
-      {/* AI Reflection Section */}
-      {aiOutput && (
+      {/* Success and Reflection Display */}
+      {hasSubmitted && (
+        <div className="space-y-4 mt-6">
+          <div className="text-center py-4">
+            <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Entry saved successfully!
+            </div>
+          </div>
+          
+          {/* Loading reflection */}
+          {loadingReflection && (
+            <div className="text-center py-4">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
+                Generating reflection...
+              </div>
+            </div>
+          )}
+          
+          {/* AI Reflection Display */}
+          {reflection && !loadingReflection && (
+            <div className="space-y-4 animate-in slide-in-from-bottom duration-500">
+              {/* Insight */}
+              <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                      <Lightbulb className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-blue-800 text-sm">
+                          Reflection Insight
+                        </h4>
+                        {reflection.source && (
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              reflection.source === 'ai' 
+                                ? 'border-blue-300 text-blue-700'
+                                : 'border-gray-300 text-gray-600'
+                            }`}
+                          >
+                            {reflection.source === 'ai' ? 'AI Generated' : 'Smart Analysis'}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-gray-800 leading-relaxed text-sm">
+                        {reflection.insight}
+                      </p>
+                      {reflection.notice && (
+                        <p className="text-xs text-blue-600 mt-2 italic">
+                          {reflection.notice}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Follow-up Question */}
+              <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-purple-100 p-2 rounded-full flex-shrink-0">
+                      <MessageCircle className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-purple-800 text-sm mb-2">
+                        Deeper Question
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed text-sm font-medium italic">
+                        {reflection.followUpPrompt}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Legacy AI Output Display (keeping for compatibility) */}
+      {aiOutput && !hasSubmitted && (
         <Card className="mt-6">
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 mb-4">
