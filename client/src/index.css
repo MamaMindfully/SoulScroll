@@ -7,13 +7,28 @@
   --touch-target-size: 44px;
   --mobile-padding: 1rem 1.5rem;
   --mobile-container-width: min(90vw, 100%);
+  --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+  --header-height: 64px;
+  --bottom-nav-height: 80px;
 }
 
 /* Base font sizing with responsive clamp */
 body {
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   min-height: 100vh;
-  padding: var(--mobile-padding);
+  padding: 0;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* iOS-specific fixes */
+body {
+  /* Prevent zoom on input focus in iOS */
+  -webkit-text-size-adjust: 100%;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 /* Button improvements for touch accessibility */
@@ -43,6 +58,19 @@ button, .btn {
 input:focus, textarea:focus {
   scroll-margin-top: 100px;
   transform: translateZ(0); /* Force hardware acceleration */
+  /* Prevent iOS zoom on focus */
+  font-size: max(1rem, 16px);
+  /* Better mobile focus styling */
+  outline: 2px solid var(--primary-color, #6366f1);
+  outline-offset: 2px;
+}
+
+/* Prevent iOS input zoom */
+input[type="text"], 
+input[type="email"], 
+input[type="password"], 
+textarea {
+  font-size: max(1rem, 16px);
 }
 
 /* Responsive text scaling */
@@ -102,9 +130,12 @@ h3 { font-size: clamp(1.125rem, 3vw, 1.5rem); }
   right: 0;
   background: white;
   border-top: 1px solid #e5e7eb;
-  padding: 8px 0;
+  padding: 8px 0 calc(8px + var(--safe-area-bottom));
   z-index: 999;
-  min-height: 64px;
+  min-height: calc(64px + var(--safe-area-bottom));
+  /* iOS Safari bounce fix */
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .bottom-nav .nav-item {
@@ -133,6 +164,59 @@ h3 { font-size: clamp(1.125rem, 3vw, 1.5rem); }
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
+}
+
+/* Performance optimizations */
+.animate-in {
+  animation-fill-mode: both;
+}
+
+/* Smooth scrolling for iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for iOS Safari viewport height */
+.viewport-height {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for newer browsers */
+}
+
+/* Main content area spacing */
+.main-content {
+  padding: var(--mobile-padding);
+  padding-top: calc(var(--header-height) + 1rem);
+  padding-bottom: calc(var(--bottom-nav-height) + 1rem);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Card improvements for mobile */
+.card-mobile {
+  margin: 0 auto;
+  max-width: var(--mobile-container-width);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Dark mode improvements */
+@media (prefers-color-scheme: dark) {
+  .loading-skeleton {
+    background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+    background-size: 200% 100%;
+  }
 }
 
 :root {

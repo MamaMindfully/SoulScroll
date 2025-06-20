@@ -14,6 +14,9 @@ import FloatingActionButton from "@/components/FloatingActionButton";
 import DismissibleBanner from "@/components/DismissibleBanner";
 import DailyRitualCard from "@/components/DailyRitualCard";
 import ReflectionResponse from "@/components/ReflectionResponse";
+import LoadingState from "@/components/LoadingState";
+import OfflineIndicator from "@/components/OfflineIndicator";
+import PerformanceOptimizer from "@/components/PerformanceOptimizer";
 import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
 import { exportJournalToPDF } from '../utils/PDFExportEngine';
 
@@ -97,23 +100,16 @@ export default function Home() {
   }
 
   return (
-    <div className="app-container bg-white">
-      {/* Status Bar */}
-      <div className="status-bar px-4 py-2 text-white text-sm flex justify-between items-center">
-        <span className="font-medium">9:41 AM</span>
-        <div className="flex items-center space-x-1 text-xs">
-          <span>••••</span>
-          <span>📶</span>
-          <span>📶</span>
-          <span>🔋</span>
-        </div>
-      </div>
+    <PerformanceOptimizer>
+      <div className="viewport-height bg-white">
+        {/* Offline Indicator */}
+        <OfflineIndicator />
 
-      {/* App Header */}
-      <AppHeader isOnline={isOnline} />
+        {/* App Header */}
+        <AppHeader isOnline={isOnline} />
 
-      {/* Main Content */}
-      <main className="main-content">
+        {/* Main Content */}
+        <main className="main-content">
         {/* Daily Prompt */}
         <DailyPrompt />
 
@@ -164,8 +160,9 @@ export default function Home() {
       {/* Floating Action Button */}
       <FloatingActionButton />
 
-      {/* Bottom Navigation */}
-      <BottomNavigation currentPage="write" />
-    </div>
+        {/* Bottom Navigation */}
+        <BottomNavigation currentPage="write" />
+      </div>
+    </PerformanceOptimizer>
   );
 }
