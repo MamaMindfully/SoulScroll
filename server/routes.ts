@@ -173,6 +173,92 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Mama Mindfully wellness coaching route
+  app.post('/api/mama-mindfully', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entry } = req.body;
+      
+      if (!entry || typeof entry !== 'string') {
+        return res.status(400).json({ error: 'Invalid journal entry' });
+      }
+
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      // Check if user has premium access for Mama Mindfully
+      const subscription = await storage.getUserSubscription(userId);
+      const isPremium = subscription?.status === 'active' && subscription?.planType !== 'free';
+
+      if (!isPremium) {
+        return res.status(403).json({ 
+          error: 'Premium subscription required for Mama Mindfully',
+          feedback: 'Your words carry such wisdom and courage. Trust in your journey of self-discovery, beautiful soul.',
+          followUpPrompt: 'Take three deep breaths and honor your feelings. What does your heart need right now?',
+          emotionalTone: 'Compassionate',
+          nurturingActions: ['Practice self-compassion', 'Trust your intuition']
+        });
+      }
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are Mama Mindfully, a warm, intuitive wellness coach who embodies the nurturing wisdom of a loving mother and the insight of a skilled therapist. You offer gentle support for self-discovery and emotional balance.
+
+            Your responses should be:
+            - Loving and non-judgmental
+            - Deeply empathetic and validating
+            - Focused on self-compassion and inner wisdom
+            - Encouraging personal growth through gentle awareness
+            - Practical yet spiritually grounded
+            
+            Always respond in JSON format with:
+            {
+              "feedback": "A loving, wise reflection that validates their experience (2-3 sentences)",
+              "followUpPrompt": "A gentle question or nurturing action to deepen awareness",
+              "emotionalTone": "Single word describing the emotional essence of your response",
+              "nurturingActions": ["array", "of", "self-care", "suggestions"]
+            }`
+          },
+          {
+            role: "user",
+            content: `Please provide gentle guidance for this journal entry: "${entry}"`
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.8,
+        max_tokens: 600
+      });
+
+      let wellness;
+      try {
+        wellness = JSON.parse(response.choices[0].message.content);
+      } catch (parseError) {
+        wellness = {
+          feedback: response.choices[0].message.content,
+          followUpPrompt: 'What feels most nurturing to your soul right now?',
+          emotionalTone: 'Nurturing',
+          nurturingActions: ['Take deep breaths', 'Practice self-kindness']
+        };
+      }
+
+      res.json(wellness);
+    } catch (error) {
+      console.error('Mama Mindfully error:', error);
+      res.status(500).json({ 
+        error: 'Failed to connect with Mama Mindfully',
+        feedback: 'Your words carry such wisdom and courage. Trust in your journey of self-discovery, beautiful soul. You are exactly where you need to be.',
+        followUpPrompt: 'Take three deep breaths and place your hand on your heart. What does your inner wisdom whisper to you right now?',
+        emotionalTone: 'Compassionate',
+        nurturingActions: ['Practice self-compassion', 'Trust your intuition', 'Honor your feelings']
+      });
+    }
+  });
+
   // Dream interpretation route
   app.post('/api/interpret-dream', isAuthenticated, async (req: any, res) => {
     try {

@@ -8,10 +8,15 @@ export function activatePremium() {
 
 export function getPremiumFeatures() {
   return [
-    "🧠 Deeper AI reflections",
-    "🎨 Unlock full theme library",
-    "📤 Export journal to PDF",
-    "🗣️ Choose AI voice styles",
-    "🌌 Dream Log and Creative Mode"
+    "🧠 Advanced AI reflections and emotional analysis",
+    "🎙️ Voice journaling with AI transcription", 
+    "📤 Export journal as professional PDF documents",
+    "🌙 Dream interpretation with mystical AI insights",
+    "🌸 Mantra designer with personalized affirmations",
+    "🌼 Mama Mindfully wellness coaching",
+    "📊 Detailed mood predictions and pattern recognition",
+    "✨ Premium daily prompts and guided exercises",
+    "🔒 Advanced privacy controls and data export",
+    "🆘 Priority customer support and early access"
   ];
 }

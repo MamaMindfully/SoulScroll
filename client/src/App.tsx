@@ -25,6 +25,7 @@ import Insights from "@/pages/insights";
 import Settings from "@/pages/settings";
 import Dreams from "@/pages/dreams";
 import Mantras from "@/pages/mantras";
+import MamaMindfully from "@/pages/mama-mindfully";
 import Pricing from "@/pages/pricing";
 
 function Router() {
@@ -49,6 +50,7 @@ function Router() {
           <Route path="/community" component={Community} />
           <Route path="/dreams" component={Dreams} />
           <Route path="/mantras" component={Mantras} />
+          <Route path="/mama-mindfully" component={MamaMindfully} />
           <Route path="/timeline" component={Timeline} />
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />
