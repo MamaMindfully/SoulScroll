@@ -79,12 +79,15 @@ export default function JournalEditor() {
           description: "Your thoughts have been captured with care.",
         });
         
+        // Generate reflection after successful save
+        generateReflection(content.trim());
+        
         // Clear form after some time
         setTimeout(() => {
           setContent('');
           setHasSubmitted(false);
           setReflection(null);
-        }, 12000);
+        }, 15000);
       }
     },
     onError: (error) => {
@@ -110,74 +113,57 @@ export default function JournalEditor() {
     },
   });
 
+  const generateReflection = async (entryContent: string) => {
+    if (entryContent.length < 10) return;
+    
+    setLoadingReflection(true);
+    try {
+      const reflectionData = await apiRequest("POST", "/api/reflect", { 
+        entry: entryContent 
+      }).then(res => res.json());
+      
+      setReflection(reflectionData);
+    } catch (error) {
+      console.error('Error getting reflection:', error);
+      
+      if (isUnauthorizedError(error as Error)) {
+        toast({
+          title: "Please log in",
+          description: "You need to be logged in to get AI reflections.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 1500);
+        return;
+      }
+      
+      // Set intelligent fallback reflection
+      setReflection({
+        insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
+        followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
+        source: 'fallback'
+      });
+    } finally {
+      setLoadingReflection(false);
+    }
+  };
+
   const handleSave = async (isAutoSave = false) => {
     if (!content.trim()) return;
     
     setAutoSaveStatus("saving");
     
     if (!isAutoSave) {
-      console.log('handleSave called for manual save, content length:', content.trim().length);
       setHasSubmitted(true);
-      
-      // Generate AI reflection for entries longer than 10 characters
-      if (content.trim().length > 10) {
-        console.log('Starting reflection generation...');
-        setLoadingReflection(true);
-        
-        // Call reflection in a setTimeout to ensure it runs after the mutation
-        setTimeout(async () => {
-        try {
-          console.log('Fetching reflection for entry:', content.trim().substring(0, 50) + '...');
-          
-          // Use apiRequest to include authentication
-          const reflectionData = await apiRequest("POST", "/api/reflect", { 
-            entry: content.trim() 
-          }).then(res => res.json());
-          
-          console.log('Reflection data received:', reflectionData);
-          setReflection(reflectionData);
-        } catch (error) {
-          console.error('Error getting reflection:', error);
-          
-          // Check if it's an auth error
-          if (isUnauthorizedError(error as Error)) {
-            toast({
-              title: "Please log in",
-              description: "You need to be logged in to get AI reflections.",
-              variant: "destructive",
-            });
-            setTimeout(() => {
-              window.location.href = "/api/login";
-            }, 1500);
-            return;
-          }
-          
-          // Set intelligent fallback reflection
-          setReflection({
-            insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
-            followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
-            source: 'fallback'
-          });
-        } finally {
-          setLoadingReflection(false);
-        }
-        }, 500); // Wait 500ms before generating reflection
-      } else {
-        console.log('Entry too short for reflection, length:', content.trim().length);
-      }
     }
     
     // Use the existing createEntryMutation
-    try {
-      createEntryMutation.mutate({
-        content: content.trim(),
-        // @ts-ignore - Add isAutoSave flag for different handling
-        isAutoSave,
-      });
-    } catch (error) {
-      console.error('Error in createEntryMutation:', error);
-      setAutoSaveStatus("pending");
-    }
+    createEntryMutation.mutate({
+      content: content.trim(),
+      // @ts-ignore - Add isAutoSave flag for different handling
+      isAutoSave,
+    });
   };
 
   const handleVoiceRecording = () => {
@@ -254,10 +240,7 @@ export default function JournalEditor() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                console.log('Save button clicked, content:', content.trim().substring(0, 30) + '...');
-                handleSave(false);
-              }}
+              onClick={() => handleSave(false)}
               disabled={!content.trim() || createEntryMutation.isPending || loadingReflection}
               className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg px-4"
               style={{ minHeight: '44px' }}
@@ -292,7 +275,6 @@ export default function JournalEditor() {
               <CheckCircle className="w-4 h-4 mr-2" />
               Entry saved successfully!
             </div>
-
           </div>
           
           {/* Loading reflection */}
