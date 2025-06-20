@@ -365,37 +365,57 @@ End with a simple, poetic follow-up question.
         return res.status(401).json({ error: 'User not authenticated' });
       }
 
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a warm, thoughtful reflection coach. Provide a soulful insight in response to a user\'s journal entry, followed by a follow-up question that deepens the reflection. Format your response with the insight first, then a double line break, then the follow-up question.'
-          },
-          {
-            role: 'user',
-            content: `Here is my journal entry for today: "${entry}"`
-          }
-        ],
-        temperature: 0.75,
-        max_tokens: 400
-      });
+      // Try OpenAI API first
+      try {
+        // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a warm, thoughtful reflection coach. Provide a soulful insight in response to a user\'s journal entry, followed by a follow-up question that deepens the reflection. Format your response with the insight first, then a double line break, then the follow-up question.'
+            },
+            {
+              role: 'user',
+              content: `Here is my journal entry for today: "${entry}"`
+            }
+          ],
+          temperature: 0.75,
+          max_tokens: 400
+        });
 
-      const responseText = completion.choices[0].message.content?.trim() || '';
-      const parts = responseText.split(/\n\n+/); // split by paragraph
-      
-      const insight = parts[0] || "Thank you for reflecting today. Your thoughts hold wisdom and meaning.";
-      const followUpPrompt = parts[1] || "Would you like to explore this feeling further?";
+        const responseText = completion.choices[0].message.content?.trim() || '';
+        const parts = responseText.split(/\n\n+/); // split by paragraph
+        
+        const insight = parts[0] || "Thank you for reflecting today. Your thoughts hold wisdom and meaning.";
+        const followUpPrompt = parts[1] || "Would you like to explore this feeling further?";
 
-      res.json({
-        insight,
-        followUpPrompt
-      });
+        res.json({
+          insight,
+          followUpPrompt,
+          source: 'ai'
+        });
+      } catch (openaiError: any) {
+        console.error('OpenAI API error:', openaiError);
+        
+        // Check if it's a quota/billing issue
+        if (openaiError.code === 'insufficient_quota' || openaiError.status === 429) {
+          // Use intelligent fallback based on entry content
+          const intelligentReflection = generateIntelligentFallback(entry);
+          res.json({
+            insight: intelligentReflection.insight,
+            followUpPrompt: intelligentReflection.followUpPrompt,
+            source: 'fallback',
+            notice: 'AI reflection temporarily unavailable. Using intelligent analysis.'
+          });
+        } else {
+          throw openaiError; // Re-throw other errors
+        }
+      }
     } catch (error) {
       console.error('Error in /reflect:', error);
       
-      // Provide meaningful fallback responses
+      // Final fallback with generic but meaningful responses
       const fallbackInsights = [
         "Your reflection shows deep self-awareness. Every moment of honest introspection is a gift to your future self.",
         "Thank you for taking time to pause and reflect. Your thoughts and feelings are valid and important.",
@@ -415,10 +435,77 @@ End with a simple, poetic follow-up question.
       
       res.json({
         insight: randomInsight,
-        followUpPrompt: randomPrompt
+        followUpPrompt: randomPrompt,
+        source: 'generic'
       });
     }
   });
+
+  // Helper function for intelligent fallback reflections
+  function generateIntelligentFallback(entry: string) {
+    const entryLower = entry.toLowerCase();
+    
+    // Analyze entry content for themes
+    const themes = {
+      gratitude: ['grateful', 'thank', 'appreciate', 'blessing', 'lucky'],
+      challenge: ['difficult', 'hard', 'struggle', 'challenge', 'tough', 'stress'],
+      growth: ['learn', 'grow', 'develop', 'improve', 'change', 'progress'],
+      relationships: ['family', 'friend', 'love', 'relationship', 'connect', 'together'],
+      work: ['work', 'job', 'career', 'project', 'meeting', 'colleague'],
+      health: ['tired', 'energy', 'sleep', 'exercise', 'health', 'body'],
+      emotions: ['happy', 'sad', 'angry', 'excited', 'worried', 'calm', 'anxious']
+    };
+    
+    const detectedThemes: string[] = [];
+    
+    for (const [theme, keywords] of Object.entries(themes)) {
+      if (keywords.some(keyword => entryLower.includes(keyword))) {
+        detectedThemes.push(theme);
+      }
+    }
+    
+    // Generate contextual responses based on detected themes
+    if (detectedThemes.includes('gratitude')) {
+      return {
+        insight: "Your appreciation and gratitude shine through your words. Recognizing the positive in your life is a powerful practice that cultivates joy and resilience.",
+        followUpPrompt: "What other small moments of beauty or kindness can you notice in your day?"
+      };
+    }
+    
+    if (detectedThemes.includes('challenge')) {
+      return {
+        insight: "You're facing something difficult, and your willingness to acknowledge it shows courage. Challenges often carry hidden gifts of strength and wisdom.",
+        followUpPrompt: "What inner resources or strengths are you discovering through this challenge?"
+      };
+    }
+    
+    if (detectedThemes.includes('growth')) {
+      return {
+        insight: "Your focus on growth and learning reflects a beautiful commitment to becoming your best self. Every step forward, no matter how small, is meaningful progress.",
+        followUpPrompt: "What would it feel like to celebrate this growth you're experiencing?"
+      };
+    }
+    
+    if (detectedThemes.includes('relationships')) {
+      return {
+        insight: "The connections in your life are clearly important to you. Relationships are mirrors that help us understand ourselves and grow in love and compassion.",
+        followUpPrompt: "How do your relationships reflect the love and care you bring to the world?"
+      };
+    }
+    
+    if (detectedThemes.includes('emotions')) {
+      return {
+        insight: "Your emotional awareness is a gift. Feelings are messengers that guide us toward what matters most and what needs our attention.",
+        followUpPrompt: "What is this emotion trying to teach you about what you need right now?"
+      };
+    }
+    
+    // Default intelligent response
+    return {
+      insight: "Your thoughts reveal a person who is genuinely engaged with life. This kind of reflection is how wisdom grows and self-understanding deepens.",
+      followUpPrompt: "If you could offer yourself one piece of compassionate guidance right now, what would it be?"
+    };
+  }
 
   // Dream interpretation route
   app.post('/api/interpret-dream', isAuthenticated, async (req: any, res) => {

@@ -6,7 +6,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { PenTool, Mic, Save, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { PenTool, Mic, Save, Check, CheckCircle, LoaderCircle, Lightbulb, MessageCircle } from "lucide-react";
 import { fetchSoulScrollReply } from '../utils/gptAPI';
 import { getAIReflection } from '../utils/AIJournalEngine';
 import { prompts } from '../utils/promptTemplates';
@@ -23,6 +24,9 @@ export default function JournalEditor() {
   const [wordCount, setWordCount] = useState(0);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "pending">("saved");
   const [aiOutput, setAIOutput] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [reflection, setReflection] = useState<any>(null);
+  const [loadingReflection, setLoadingReflection] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
@@ -104,24 +108,84 @@ export default function JournalEditor() {
     
     setAutoSaveStatus("saving");
     
-    // Generate AI response and save to localStorage for non-auto saves
-    if (!isAutoSave) {
-      try {
-        const userIntent = profile.intent || 'self-discovery';
-        const aiResponse = await getAIReflection(content.trim(), userIntent);
-        setAIOutput(aiResponse);
-        saveReflection(content.trim(), new Date().toISOString());
-        incrementReflectionCount();
-      } catch (error) {
-        console.error('Error generating AI reflection:', error);
+    try {
+      // Save the journal entry
+      await apiRequest("POST", "/api/journal/entries", { content: content.trim() });
+      
+      if (!isAutoSave) {
+        setHasSubmitted(true);
+        
+        toast({
+          title: "Entry saved!",
+          description: "Your journal entry has been saved successfully.",
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/journal/entries"] });
+        
+        // Generate AI reflection for entries longer than 20 characters
+        if (content.trim().length > 20) {
+          setLoadingReflection(true);
+          try {
+            const response = await fetch('/api/reflect', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ entry: content.trim() })
+            });
+            
+            if (response.ok) {
+              const reflectionData = await response.json();
+              setReflection(reflectionData);
+            } else {
+              console.error('Failed to get reflection:', response.statusText);
+              // Set a simple fallback reflection
+              setReflection({
+                insight: "Thank you for sharing your thoughts. Taking time to reflect is a valuable practice for personal growth.",
+                followUpPrompt: "What feeling or thought from your entry would you like to explore further?",
+                source: 'fallback'
+              });
+            }
+          } catch (error) {
+            console.error('Error getting reflection:', error);
+            // Set a simple fallback reflection
+            setReflection({
+              insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
+              followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
+              source: 'fallback'
+            });
+          } finally {
+            setLoadingReflection(false);
+          }
+        }
+        
+        // Clear the form after some time
+        setTimeout(() => {
+          setContent('');
+          setHasSubmitted(false);
+          setReflection(null);
+        }, 10000);
       }
+      
+      setAutoSaveStatus("saved");
+    } catch (error) {
+      if (isUnauthorizedError(error as Error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      
+      toast({
+        title: "Error",
+        description: "Failed to save entry. Please try again.",
+        variant: "destructive",
+      });
+      setAutoSaveStatus("pending");
     }
-    
-    createEntryMutation.mutate({
-      content: content.trim(),
-      // @ts-ignore - Add isAutoSave flag for different handling
-      isAutoSave,
-    });
   };
 
   const handleVoiceRecording = () => {
