@@ -13,6 +13,7 @@ import VisualProgressTracker from './VisualProgressTracker';
 import KeyboardAvoidingWrapper from './KeyboardAvoidingWrapper';
 import DismissibleBanner from './DismissibleBanner';
 import TapToGoDeeper from './TapToGoDeeper';
+import DailyRitualCard from './DailyRitualCard';
 
 interface MamaMindfullyResponse {
   feedback: string;
@@ -203,6 +204,16 @@ const JournalPageMamaMindfully = () => {
             const entries = JSON.parse(localStorage.getItem('soulscroll-journal-history') || '[]');
             const mamaMindfullyEntries = entries.filter((e: any) => e.aiPersona === 'mama-mindfully');
             return mamaMindfullyEntries.length === 0;
+          }}
+        />
+
+        {/* Daily Ritual */}
+        <DailyRitualCard 
+          type="auto"
+          category="wellness"
+          onRitualComplete={(ritual) => {
+            // Pre-fill journal entry with ritual prompt
+            setEntry(ritual + '\n\n');
           }}
         />
 

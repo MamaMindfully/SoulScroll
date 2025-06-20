@@ -12,6 +12,7 @@ import PremiumPreview from "@/components/PremiumPreview";
 import BottomNavigation from "@/components/BottomNavigation";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import DismissibleBanner from "@/components/DismissibleBanner";
+import DailyRitualCard from "@/components/DailyRitualCard";
 import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
 import { exportJournalToPDF } from '../utils/PDFExportEngine';
 

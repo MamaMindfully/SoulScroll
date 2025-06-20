@@ -123,7 +123,7 @@ Luma is a full-stack emotional journaling application that combines React fronte
 
 ### Premium Subscription System
 - **Tiered Plans**: Free, Premium ($9.99), and Premium Plus ($19.99) subscription tiers
-- **Feature Gating**: Advanced AI features, voice journaling, dream interpretation, mantra designer, Mama Mindfully wellness coaching, and analytics for premium users
+- **Feature Gating**: Advanced AI features, voice journaling, dream interpretation, mantra designer, Mama Mindfully wellness coaching, progressive depth exploration, and analytics for premium users
 - **Subscription Management**: User portal for plan changes and billing history
 - **Stripe Integration**: Secure payment processing with subscription lifecycle management
 
@@ -151,6 +151,8 @@ Luma is a full-stack emotional journaling application that combines React fronte
 - **Mantra Designer**: Create personalized mantras and affirmations organized by category
 - **Dream Mode**: Complete dream interpretation system with intention setting and AI analysis
 - **Mama Mindfully**: Nurturing AI wellness coach for emotional support and gentle guidance
+- **Daily Rituals**: Time-aware morning/evening prompts with personalization and streak tracking
+- **Progressive Depth Exploration**: 5-level "Go Deeper" system for profound self-discovery
 - **Meditation Integration**: Guided practices and mindfulness exercises
 - **Sacred Space**: Digital sanctuary for reflection and spiritual practice
 
