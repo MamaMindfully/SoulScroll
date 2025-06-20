@@ -5,9 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Flower, Heart, Sparkles, Leaf, LoaderCircle, BookOpen } from "lucide-react";
 import { isPremiumUser } from '../utils/SubscriptionEngine';
-import { saveJournalEntry } from '../utils/journalHistoryUtils';
+import { saveJournalEntry, checkForNewAchievements } from '../utils/journalHistoryUtils';
+import { checkForNewAchievements as checkUnlockables } from '../utils/unlockablesEngine';
 import JournalConfirmation from './JournalConfirmation';
 import JournalHistory from './JournalHistory';
+import VisualProgressTracker from './VisualProgressTracker';
 
 interface MamaMindfullyResponse {
   feedback: string;
@@ -70,6 +72,13 @@ const JournalPageMamaMindfully = () => {
         tags: ['wellness', 'self-care']
       });
 
+      // Check for new achievements
+      const newAchievements = checkUnlockables();
+      if (newAchievements.length > 0) {
+        // Could show achievement notification here
+        console.log('New achievements unlocked:', newAchievements);
+      }
+
       // Show confirmation
       setCurrentView('confirmation');
     } catch (error) {
@@ -90,6 +99,9 @@ const JournalPageMamaMindfully = () => {
         mood: 3,
         tags: ['wellness', 'self-care']
       });
+
+      // Check for achievements even on error
+      checkUnlockables();
 
       setCurrentView('confirmation');
     } finally {
