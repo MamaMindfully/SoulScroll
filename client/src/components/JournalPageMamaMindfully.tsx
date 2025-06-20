@@ -14,6 +14,7 @@ import KeyboardAvoidingWrapper from './KeyboardAvoidingWrapper';
 import DismissibleBanner from './DismissibleBanner';
 import TapToGoDeeper from './TapToGoDeeper';
 import DailyRitualCard from './DailyRitualCard';
+import ReflectionResponse from './ReflectionResponse';
 
 interface MamaMindfullyResponse {
   feedback: string;
@@ -364,6 +365,24 @@ const JournalPageMamaMindfully = () => {
             // Could add to a deeper insights array if needed
           }}
         />
+      )}
+
+      {/* General Reflection (Alternative to Mama Mindfully) */}
+      {!hasResponse && !loading && entry.trim().length > 50 && (
+        <div className="mt-6">
+          <div className="text-center mb-4">
+            <p className="text-sm text-gray-600">
+              Or get a general AI reflection on your entry:
+            </p>
+          </div>
+          <ReflectionResponse 
+            journalEntry={entry}
+            onReflectionComplete={(reflection) => {
+              // Could integrate with Mama Mindfully if needed
+              console.log('General reflection completed:', reflection);
+            }}
+          />
+        </div>
       )}
 
       {/* Nurturing Actions */}

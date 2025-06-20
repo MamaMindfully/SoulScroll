@@ -13,6 +13,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import DismissibleBanner from "@/components/DismissibleBanner";
 import DailyRitualCard from "@/components/DailyRitualCard";
+import ReflectionResponse from "@/components/ReflectionResponse";
 import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
 import { exportJournalToPDF } from '../utils/PDFExportEngine';
 
@@ -121,6 +122,8 @@ export default function Home() {
 
         {/* AI Reflection */}
         <AIReflection />
+        
+        {/* AI Reflection will be integrated into JournalEditor */}
 
         {/* Emotional Dashboard */}
         <EmotionalDashboard />

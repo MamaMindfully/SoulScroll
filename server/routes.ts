@@ -351,6 +351,75 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Reflection route for general journal insights
+  app.post('/api/reflect', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entry } = req.body;
+
+      if (!entry || typeof entry !== 'string') {
+        return res.status(400).json({ error: 'Missing or invalid journal entry' });
+      }
+
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a warm, thoughtful reflection coach. Provide a soulful insight in response to a user\'s journal entry, followed by a follow-up question that deepens the reflection. Format your response with the insight first, then a double line break, then the follow-up question.'
+          },
+          {
+            role: 'user',
+            content: `Here is my journal entry for today: "${entry}"`
+          }
+        ],
+        temperature: 0.75,
+        max_tokens: 400
+      });
+
+      const responseText = completion.choices[0].message.content?.trim() || '';
+      const parts = responseText.split(/\n\n+/); // split by paragraph
+      
+      const insight = parts[0] || "Thank you for reflecting today. Your thoughts hold wisdom and meaning.";
+      const followUpPrompt = parts[1] || "Would you like to explore this feeling further?";
+
+      res.json({
+        insight,
+        followUpPrompt
+      });
+    } catch (error) {
+      console.error('Error in /reflect:', error);
+      
+      // Provide meaningful fallback responses
+      const fallbackInsights = [
+        "Your reflection shows deep self-awareness. Every moment of honest introspection is a gift to your future self.",
+        "Thank you for taking time to pause and reflect. Your thoughts and feelings are valid and important.",
+        "This entry reveals your capacity for growth and understanding. Trust the wisdom that emerges from quiet reflection.",
+        "Your willingness to explore your inner world is a beautiful practice. Each entry is a step toward greater self-knowledge."
+      ];
+      
+      const fallbackPrompts = [
+        "What emotion feels most present for you right now?",
+        "If you could offer yourself one piece of gentle advice, what would it be?",
+        "What would it feel like to show yourself complete compassion in this moment?",
+        "What small step could honor what you're feeling right now?"
+      ];
+      
+      const randomInsight = fallbackInsights[Math.floor(Math.random() * fallbackInsights.length)];
+      const randomPrompt = fallbackPrompts[Math.floor(Math.random() * fallbackPrompts.length)];
+      
+      res.json({
+        insight: randomInsight,
+        followUpPrompt: randomPrompt
+      });
+    }
+  });
+
   // Dream interpretation route
   app.post('/api/interpret-dream', isAuthenticated, async (req: any, res) => {
     try {
