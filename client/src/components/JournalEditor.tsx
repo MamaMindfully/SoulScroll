@@ -116,11 +116,16 @@ export default function JournalEditor() {
     setAutoSaveStatus("saving");
     
     if (!isAutoSave) {
+      console.log('handleSave called for manual save, content length:', content.trim().length);
       setHasSubmitted(true);
       
       // Generate AI reflection for entries longer than 10 characters
       if (content.trim().length > 10) {
+        console.log('Starting reflection generation...');
         setLoadingReflection(true);
+        
+        // Call reflection in a setTimeout to ensure it runs after the mutation
+        setTimeout(async () => {
         try {
           console.log('Fetching reflection for entry:', content.trim().substring(0, 50) + '...');
           
@@ -156,15 +161,23 @@ export default function JournalEditor() {
         } finally {
           setLoadingReflection(false);
         }
+        }, 500); // Wait 500ms before generating reflection
+      } else {
+        console.log('Entry too short for reflection, length:', content.trim().length);
       }
     }
     
     // Use the existing createEntryMutation
-    createEntryMutation.mutate({
-      content: content.trim(),
-      // @ts-ignore - Add isAutoSave flag for different handling
-      isAutoSave,
-    });
+    try {
+      createEntryMutation.mutate({
+        content: content.trim(),
+        // @ts-ignore - Add isAutoSave flag for different handling
+        isAutoSave,
+      });
+    } catch (error) {
+      console.error('Error in createEntryMutation:', error);
+      setAutoSaveStatus("pending");
+    }
   };
 
   const handleVoiceRecording = () => {
@@ -241,7 +254,10 @@ export default function JournalEditor() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleSave(false)}
+              onClick={() => {
+                console.log('Save button clicked, content:', content.trim().substring(0, 30) + '...');
+                handleSave(false);
+              }}
               disabled={!content.trim() || createEntryMutation.isPending || loadingReflection}
               className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 rounded-lg px-4"
               style={{ minHeight: '44px' }}
@@ -276,6 +292,7 @@ export default function JournalEditor() {
               <CheckCircle className="w-4 h-4 mr-2" />
               Entry saved successfully!
             </div>
+
           </div>
           
           {/* Loading reflection */}
