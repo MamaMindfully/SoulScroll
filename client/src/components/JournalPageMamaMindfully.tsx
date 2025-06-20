@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Flower, Heart, Sparkles, Leaf, LoaderCircle } from "lucide-react";
+import { Flower, Heart, Sparkles, Leaf, LoaderCircle, BookOpen } from "lucide-react";
 import { isPremiumUser } from '../utils/SubscriptionEngine';
+import { saveJournalEntry } from '../utils/journalHistoryUtils';
+import JournalConfirmation from './JournalConfirmation';
+import JournalHistory from './JournalHistory';
 
 interface MamaMindfullyResponse {
   feedback: string;
@@ -22,6 +25,9 @@ const JournalPageMamaMindfully = () => {
   const [loading, setLoading] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [hasResponse, setHasResponse] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [currentView, setCurrentView] = useState<'write' | 'confirmation' | 'history'>('write');
   const isPremium = isPremiumUser();
 
   const handleEntryChange = (value: string) => {
@@ -52,6 +58,20 @@ const JournalPageMamaMindfully = () => {
       setEmotionalTone(data.emotionalTone || 'Nurturing');
       setNurturingActions(data.nurturingActions || []);
       setHasResponse(true);
+
+      // Save to journal history
+      saveJournalEntry({
+        content: entry.trim(),
+        emotionalTone: data.emotionalTone || 'Nurturing',
+        aiFeedback: data.feedback,
+        followUpPrompt: data.followUpPrompt,
+        aiPersona: 'mama-mindfully',
+        mood: 4, // Default positive mood for Mama Mindfully
+        tags: ['wellness', 'self-care']
+      });
+
+      // Show confirmation
+      setCurrentView('confirmation');
     } catch (error) {
       console.error('Mama Mindfully error:', error);
       setAiFeedback('Your words carry such wisdom and courage. Trust in your journey of self-discovery, beautiful soul. You are exactly where you need to be.');
@@ -59,6 +79,19 @@ const JournalPageMamaMindfully = () => {
       setEmotionalTone('Compassionate');
       setNurturingActions(['Practice self-compassion', 'Trust your intuition']);
       setHasResponse(true);
+
+      // Save to journal history even on error
+      saveJournalEntry({
+        content: entry.trim(),
+        emotionalTone: 'Compassionate',
+        aiFeedback: 'Your words carry such wisdom and courage. Trust in your journey of self-discovery, beautiful soul. You are exactly where you need to be.',
+        followUpPrompt: 'Take three deep breaths and place your hand on your heart. What does your inner wisdom whisper to you right now?',
+        aiPersona: 'mama-mindfully',
+        mood: 3,
+        tags: ['wellness', 'self-care']
+      });
+
+      setCurrentView('confirmation');
     } finally {
       setLoading(false);
     }
@@ -72,6 +105,19 @@ const JournalPageMamaMindfully = () => {
     setNurturingActions([]);
     setWordCount(0);
     setHasResponse(false);
+    setCurrentView('write');
+  };
+
+  const handleViewHistory = () => {
+    setCurrentView('history');
+  };
+
+  const handleViewFeedback = () => {
+    setCurrentView('write');
+  };
+
+  const handleBackToWrite = () => {
+    setCurrentView('write');
   };
 
   if (!isPremium) {
@@ -99,14 +145,55 @@ const JournalPageMamaMindfully = () => {
     );
   }
 
+  // Show confirmation screen
+  if (currentView === 'confirmation') {
+    return (
+      <JournalConfirmation
+        wordCount={wordCount}
+        emotionalTone={emotionalTone}
+        hasAiFeedback={!!aiFeedback}
+        onViewHistory={handleViewHistory}
+        onNewEntry={resetJournal}
+        onViewFeedback={handleViewFeedback}
+      />
+    );
+  }
+
+  // Show history screen
+  if (currentView === 'history') {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-wisdom">Journal History</h2>
+          <Button onClick={handleBackToWrite} variant="outline">
+            <Heart className="w-4 h-4 mr-2" />
+            Back to Writing
+          </Button>
+        </div>
+        <JournalHistory />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <Card className="border-pink-200 bg-gradient-to-br from-pink-50 to-rose-50">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-pink-800">
-            <Flower className="w-6 h-6" />
-            <span>🌼 Your Moment of Reflection</span>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-pink-800">
+              <Flower className="w-6 h-6" />
+              <span>🌼 Your Moment of Reflection</span>
+            </div>
+            <Button 
+              onClick={handleViewHistory}
+              variant="outline"
+              size="sm"
+              className="border-pink-300 text-pink-700"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              History
+            </Button>
           </CardTitle>
           <p className="text-pink-600 text-sm">
             A safe space for authentic self-discovery with your nurturing AI wellness coach
