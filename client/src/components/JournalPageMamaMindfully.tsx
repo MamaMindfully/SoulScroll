@@ -366,7 +366,8 @@ const JournalPageMamaMindfully = () => {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </KeyboardAvoidingWrapper>
   );
 };
 
