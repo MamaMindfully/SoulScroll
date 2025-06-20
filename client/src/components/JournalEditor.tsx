@@ -79,9 +79,6 @@ export default function JournalEditor() {
           description: "Your thoughts have been captured with care.",
         });
         
-        // Generate reflection after successful save
-        generateReflection(content.trim());
-        
         // Clear form after some time
         setTimeout(() => {
           setContent('');
@@ -118,25 +115,24 @@ export default function JournalEditor() {
     
     setLoadingReflection(true);
     try {
-      const reflectionData = await apiRequest("POST", "/api/reflect", { 
-        entry: entryContent 
-      }).then(res => res.json());
+      const res = await fetch('/api/reflect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entry: entryContent })
+      });
       
-      setReflection(reflectionData);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      const data = await res.json();
+      setReflection({
+        insight: data.insight,
+        followUpPrompt: data.followUpPrompt,
+        source: data.source || 'ai'
+      });
     } catch (error) {
       console.error('Error getting reflection:', error);
-      
-      if (isUnauthorizedError(error as Error)) {
-        toast({
-          title: "Please log in",
-          description: "You need to be logged in to get AI reflections.",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 1500);
-        return;
-      }
       
       // Set intelligent fallback reflection
       setReflection({
@@ -156,6 +152,11 @@ export default function JournalEditor() {
     
     if (!isAutoSave) {
       setHasSubmitted(true);
+      
+      // Immediately start reflection generation while saving
+      if (content.trim().length > 10) {
+        generateReflection(content.trim());
+      }
     }
     
     // Use the existing createEntryMutation
