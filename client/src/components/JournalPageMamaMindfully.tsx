@@ -328,7 +328,7 @@ const JournalPageMamaMindfully = () => {
 
       {/* AI Feedback */}
       {aiFeedback && (
-        <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+        <Card id="mama-mindfully-insight" className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 fade-in">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -354,7 +354,7 @@ const JournalPageMamaMindfully = () => {
 
       {/* Follow-up Prompt */}
       {followUp && (
-        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 fade-in-delayed">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Leaf className="w-5 h-5 text-green-600" />

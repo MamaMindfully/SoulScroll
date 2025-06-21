@@ -146,6 +146,13 @@ export default function JournalEditor() {
       console.log("💡 Setting reflection state:", reflectionData);
       setReflection(reflectionData);
       
+      // Scroll to insight section after reflection is generated
+      setTimeout(() => {
+        const insightBox = document.getElementById("journal-editor-insight");
+        if (insightBox) {
+          insightBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
     } catch (error) {
       console.error("❌ AI reflection error:", error);
       
@@ -168,6 +175,14 @@ export default function JournalEditor() {
       
       console.log("🔄 Using fallback reflection:", fallbackReflection);
       setReflection(fallbackReflection);
+      
+      // Scroll to insight section even for fallback reflection
+      setTimeout(() => {
+        const insightBox = document.getElementById("journal-editor-insight");
+        if (insightBox) {
+          insightBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
       
     } finally {
       console.log("🏁 AI reflection generation complete");
@@ -333,7 +348,7 @@ export default function JournalEditor() {
           
           {/* AI Reflection Display */}
           {reflection && !loadingReflection && (
-            <div className="space-y-4 animate-in slide-in-from-bottom duration-500">
+            <div id="journal-editor-insight" className="space-y-4 fade-in">
               {/* Insight */}
               <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
                 <CardContent className="p-4">
@@ -373,7 +388,7 @@ export default function JournalEditor() {
               </Card>
 
               {/* Follow-up Question */}
-              <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+              <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 fade-in-delayed">
                 <CardContent className="p-4">
                   <div className="flex items-start space-x-3">
                     <div className="bg-purple-100 p-2 rounded-full flex-shrink-0">
