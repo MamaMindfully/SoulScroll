@@ -36,6 +36,7 @@ const JournalPageMamaMindfully = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [currentView, setCurrentView] = useState<'write' | 'confirmation' | 'history'>('write');
   const [deeperResponse, setDeeperResponse] = useState('');
+  const [compassionateInsight, setCompassionateInsight] = useState('');
   const isPremium = true // Demo mode;
 
   const handleEntryChange = (value: string) => {
@@ -66,6 +67,10 @@ const JournalPageMamaMindfully = () => {
       setEmotionalTone(data.emotionalTone || 'Nurturing');
       setNurturingActions(data.nurturingActions || []);
       setHasResponse(true);
+      
+      // Generate immediate compassionate insight
+      const insight = generateContextualInsight(entry.trim(), data.emotionalTone);
+      setCompassionateInsight(insight);
       
       // Scroll to insight section after AI response is generated
       setTimeout(() => {
@@ -102,6 +107,10 @@ const JournalPageMamaMindfully = () => {
       setEmotionalTone('Compassionate');
       setNurturingActions(['Practice self-compassion', 'Trust your intuition']);
       setHasResponse(true);
+      
+      // Generate compassionate insight even for fallback
+      const insight = generateCompassionateInsight(entry.trim());
+      setCompassionateInsight(insight);
       
       // Scroll to insight section even for fallback response
       setTimeout(() => {
@@ -140,6 +149,7 @@ const JournalPageMamaMindfully = () => {
     setWordCount(0);
     setHasResponse(false);
     setDeeperResponse('');
+    setCompassionateInsight('');
     setCurrentView('write');
   };
 
@@ -361,6 +371,13 @@ const JournalPageMamaMindfully = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Immediate Compassionate Insight */}
+      {compassionateInsight && (
+        <div className="transition-all duration-500 bg-gradient-to-r from-purple-100 to-indigo-100 border-l-4 border-indigo-300 p-4 rounded-xl shadow-inner mt-4 fade-in">
+          <p className="text-indigo-900 italic text-md">"{compassionateInsight}"</p>
+        </div>
       )}
 
       {/* Follow-up Prompt */}

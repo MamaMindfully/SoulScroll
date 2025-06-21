@@ -30,6 +30,7 @@ export default function JournalEditor() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [reflection, setReflection] = useState<any>(null);
   const [loadingReflection, setLoadingReflection] = useState(false);
+  const [compassionateInsight, setCompassionateInsight] = useState<string>('');
   const { toast } = useToast();
   const { isPremium } = usePremium();
   const queryClient = useQueryClient();
