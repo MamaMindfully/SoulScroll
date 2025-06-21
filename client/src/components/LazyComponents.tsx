@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 
-// Lazy load heavy components
+// Lazy load heavy components - pages
 export const LazyFeed = lazy(() => import('@/pages/Feed'));
 export const LazyDreams = lazy(() => import('@/pages/dreams'));
 export const LazyMantras = lazy(() => import('@/pages/mantras'));
@@ -9,6 +9,11 @@ export const LazyInsights = lazy(() => import('@/pages/insights'));
 export const LazyTimeline = lazy(() => import('@/pages/timeline'));
 export const LazySettings = lazy(() => import('@/pages/settings'));
 export const LazyPricing = lazy(() => import('@/pages/pricing'));
+
+// Lazy load heavy components - components
+export const LazyAskArc = lazy(() => import('@/components/AskArc'));
+export const LazyExportManager = lazy(() => import('@/components/ExportManager'));
+export const LazyArcArchive = lazy(() => import('@/components/ArcArchive'));
 
 // Loading component
 const ComponentLoader = ({ name }: { name: string }) => (

@@ -93,6 +93,11 @@ export default function JournalEditor() {
       if (hasSubmitted && content.trim().length > 10) {
         console.log("🤖 Starting AI reflection generation...");
         generateReflection(content.trim());
+        
+        // Scroll to response after a brief delay
+        setTimeout(() => {
+          responseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 1000);
       } else {
         console.log("⏭️ Skipping AI reflection - conditions not met:", { hasSubmitted, contentLength: content.trim().length });
       }

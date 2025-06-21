@@ -9,6 +9,13 @@ export default function FloatingStartButton() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Check if journey has been started or user is authenticated
+    const journeyStarted = localStorage.getItem('journeyStarted') === 'true';
+    if (journeyStarted || isAuthenticated) {
+      setIsVisible(false);
+      return;
+    }
+
     const handleScroll = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       setScrolled(scrollTop > 100);
@@ -23,7 +30,7 @@ export default function FloatingStartButton() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAuthenticated]);
 
   const handleStartJourney = () => {
     if (!isAuthenticated) {
