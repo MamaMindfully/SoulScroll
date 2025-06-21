@@ -266,6 +266,8 @@ Changelog:
   * Built Inner Compass feature with daily themes and guidance prompts
   * Created Ask Arc AI assistant for deeper reflection and life questions
   * Added Wisdom Feed component with community insights and inspirational quotes
+  * Implemented Arc Memory Archive with pattern analysis and theme extraction
+  * Added OpenAI API integration for Arc assistant with conversation support
 ```
 
 ## User Preferences

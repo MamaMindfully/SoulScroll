@@ -37,6 +37,7 @@ import {
 } from "@/components/LazyComponents";
 import ExportManager from "@/components/ExportManager";
 import AskArc from "@/components/AskArc";
+import ArcArchive from "@/components/ArcArchive";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -69,6 +70,7 @@ function Router() {
           <Route path="/feed" component={withLazyLoading(LazyFeed, "Feed")} />
           <Route path="/export" component={ExportManager} />
           <Route path="/ask-arc" component={AskArc} />
+          <Route path="/arc-archive" component={ArcArchive} />
         </>
       )}
       <Route component={NotFound} />
