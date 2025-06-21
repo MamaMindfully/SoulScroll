@@ -67,31 +67,36 @@ export default function JournalEditor() {
 
   const createEntryMutation = useMutation({
     mutationFn: async (entryData: JournalEntryData) => {
+      console.log("📡 Sending journal entry to backend:", entryData);
       const response = await apiRequest("POST", "/api/journal/entries", entryData);
-      return response.json();
+      const result = await response.json();
+      console.log("✅ Journal entry saved successfully:", result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log("🎉 Journal save success callback triggered");
+      
       // Invalidate and refetch journal entries
       queryClient.invalidateQueries({ queryKey: ["/api/journal/entries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       
       setAutoSaveStatus("saved");
       
-      if (!data.isAutoSave) {
-        toast({
-          title: "Entry saved",
-          description: "Your thoughts have been captured with care.",
-        });
-        
-        // Clear form after some time
-        setTimeout(() => {
-          setContent('');
-          setHasSubmitted(false);
-          setReflection(null);
-        }, 15000);
+      toast({
+        title: "Entry saved",
+        description: "Your thoughts have been captured with care.",
+      });
+      
+      // Generate AI reflection after successful save
+      if (hasSubmitted && content.trim().length > 10) {
+        console.log("🤖 Starting AI reflection generation...");
+        generateReflection(content.trim());
+      } else {
+        console.log("⏭️ Skipping AI reflection - conditions not met:", { hasSubmitted, contentLength: content.trim().length });
       }
     },
     onError: (error) => {
+      console.error("❌ Journal save failed:", error);
       setAutoSaveStatus("pending");
       
       if (isUnauthorizedError(error)) {
@@ -115,22 +120,37 @@ export default function JournalEditor() {
   });
 
   const generateReflection = async (entryContent: string) => {
-    if (entryContent.length < 10) return;
+    console.log("🧠 AI Reflection generation started for content:", entryContent.substring(0, 100) + "...");
+    
+    if (entryContent.length < 10) {
+      console.log("❌ Content too short for reflection:", entryContent.length);
+      return;
+    }
     
     setLoadingReflection(true);
+    
     try {
+      console.log("📡 Making API request to /api/reflect...");
       const response = await apiRequest('POST', '/api/reflect', { entry: entryContent });
-      const data = await response.json();
+      console.log("📡 API response received:", response.status);
       
-      setReflection({
+      const data = await response.json();
+      console.log("✅ AI reflection data:", data);
+      
+      const reflectionData = {
         insight: data.insight || data.reflection || "Your reflection shows deep wisdom and self-awareness.",
         followUpPrompt: data.followUpPrompt || "What deeper insights emerge as you sit with this reflection?",
         source: data.source || 'ai'
-      });
+      };
+      
+      console.log("💡 Setting reflection state:", reflectionData);
+      setReflection(reflectionData);
+      
     } catch (error) {
-      console.error('Error getting reflection:', error);
+      console.error("❌ AI reflection error:", error);
       
       if (isUnauthorizedError(error)) {
+        console.log("🔐 Authentication error - user needs to log in");
         toast({
           title: "Authentication Required",
           description: "Please log in to receive AI reflections",
@@ -140,12 +160,17 @@ export default function JournalEditor() {
       }
       
       // Set intelligent fallback reflection
-      setReflection({
+      const fallbackReflection = {
         insight: "Your willingness to journal shows wisdom and self-awareness. Each entry is a step toward greater understanding.",
         followUpPrompt: "What insights are emerging for you as you reflect on your experience?",
         source: 'fallback'
-      });
+      };
+      
+      console.log("🔄 Using fallback reflection:", fallbackReflection);
+      setReflection(fallbackReflection);
+      
     } finally {
+      console.log("🏁 AI reflection generation complete");
       setLoadingReflection(false);
     }
   };

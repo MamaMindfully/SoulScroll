@@ -408,20 +408,29 @@ End with a simple, poetic follow-up question.
 
   // Reflection route for general journal insights
   app.post('/api/reflect', isAuthenticated, async (req: any, res) => {
+    console.log("🧠 AI Reflection endpoint hit");
+    
     try {
       const { entry } = req.body;
+      console.log("📝 Journal entry received:", entry?.substring(0, 100) + "...");
 
       if (!entry || typeof entry !== 'string') {
+        console.log("❌ Invalid entry format");
         return res.status(400).json({ error: 'Missing or invalid journal entry' });
       }
 
       const userId = req.user?.claims?.sub;
       if (!userId) {
+        console.log("❌ User not authenticated");
         return res.status(401).json({ error: 'User not authenticated' });
       }
+      
+      console.log("👤 Generating reflection for user:", userId);
 
       // Try OpenAI API first
       try {
+        console.log("🤖 Calling OpenAI API...");
+        
         // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         const completion = await openai.chat.completions.create({
           model: 'gpt-4o',
@@ -439,36 +448,52 @@ End with a simple, poetic follow-up question.
           max_tokens: 400
         });
 
+        console.log("✅ OpenAI API response received");
         const responseText = completion.choices[0].message.content?.trim() || '';
+        console.log("🎯 AI response text:", responseText);
+        
         const parts = responseText.split(/\n\n+/); // split by paragraph
         
         const insight = parts[0] || "Thank you for reflecting today. Your thoughts hold wisdom and meaning.";
         const followUpPrompt = parts[1] || "Would you like to explore this feeling further?";
+        
+        console.log("💡 Parsed insight:", insight);
+        console.log("❓ Parsed follow-up:", followUpPrompt);
 
-        res.json({
+        const result = {
           insight,
           followUpPrompt,
           source: 'ai'
-        });
+        };
+        
+        console.log("📤 Sending AI reflection response:", result);
+        res.json(result);
+        
       } catch (openaiError: any) {
-        console.error('OpenAI API error:', openaiError);
+        console.error('❌ OpenAI API error:', openaiError);
         
         // Check if it's a quota/billing issue
         if (openaiError.code === 'insufficient_quota' || openaiError.status === 429) {
+          console.log("🔄 Using fallback due to OpenAI quota/rate limit");
+          
           // Use intelligent fallback based on entry content
           const intelligentReflection = generateIntelligentFallback(entry);
-          res.json({
+          const fallbackResult = {
             insight: intelligentReflection.insight,
             followUpPrompt: intelligentReflection.followUpPrompt,
             source: 'fallback',
             notice: 'AI reflection temporarily unavailable. Using intelligent analysis.'
-          });
+          };
+          
+          console.log("📤 Sending fallback reflection:", fallbackResult);
+          res.json(fallbackResult);
         } else {
+          console.error("💥 OpenAI API unexpected error:", openaiError);
           throw openaiError; // Re-throw other errors
         }
       }
     } catch (error) {
-      console.error('Error in /reflect:', error);
+      console.error('❌ Critical error in /api/reflect:', error);
       
       // Final fallback with generic but meaningful responses
       const fallbackInsights = [
