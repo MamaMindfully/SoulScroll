@@ -15,10 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { PenTool, Mic, Save, Check, CheckCircle, LoaderCircle, Lightbulb, MessageCircle } from "lucide-react";
-import { fetchSoulScrollReply } from '../utils/gptAPI';
-import { getAIReflection } from '../utils/AIJournalEngine';
-import { prompts } from '../utils/promptTemplates';
-import { saveReflection, incrementReflectionCount } from '../utils/storage';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 interface JournalEntryData {
@@ -123,24 +119,25 @@ export default function JournalEditor() {
     
     setLoadingReflection(true);
     try {
-      const res = await fetch('/api/reflect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entry: entryContent })
-      });
+      const response = await apiRequest('POST', '/api/reflect', { entry: entryContent });
+      const data = await response.json();
       
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      
-      const data = await res.json();
       setReflection({
-        insight: data.insight,
-        followUpPrompt: data.followUpPrompt,
+        insight: data.insight || data.reflection || "Your reflection shows deep wisdom and self-awareness.",
+        followUpPrompt: data.followUpPrompt || "What deeper insights emerge as you sit with this reflection?",
         source: data.source || 'ai'
       });
     } catch (error) {
       console.error('Error getting reflection:', error);
+      
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to receive AI reflections",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Set intelligent fallback reflection
       setReflection({
@@ -160,20 +157,12 @@ export default function JournalEditor() {
     
     if (!isAutoSave) {
       setHasSubmitted(true);
-      
-      // Immediately start reflection generation while saving
-      if (content.trim().length > 10) {
-        generateReflection(content.trim());
-      }
     }
     
-    // Use the existing createEntryMutation
     createEntryMutation.mutate({
       content: content.trim(),
-      // @ts-ignore - Add isAutoSave flag for different handling
-      isAutoSave,
     });
-  };
+  };;
 
   const handleVoiceRecording = () => {
     toast({
