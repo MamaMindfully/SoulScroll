@@ -166,7 +166,7 @@ export default function Home() {
           <div className="mx-4 mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
             <h3 className="text-lg font-bold text-purple-800 mb-3">🌟 Unlock SoulScroll Premium</h3>
             <ul className="space-y-2 mb-4">
-              {getPremiumFeatures().map((feature, index) => (
+              {Object.entries(premiumFeatures).filter(([_, enabled]) => enabled).map(([feature, _], index) => (
                 <li key={index} className="text-sm text-purple-700 flex items-center">
                   <span className="mr-2">•</span>
                   {feature}

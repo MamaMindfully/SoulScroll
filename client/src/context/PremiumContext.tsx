@@ -43,6 +43,7 @@ export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children }) =>
   const fetchPremiumStatus = async () => {
     if (!isAuthenticated || !user) {
       setIsPremium(false);
+      setPremiumFeatures(await getPremiumFeatures());
       setIsLoading(false);
       return;
     }
@@ -50,10 +51,17 @@ export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children }) =>
     try {
       const response = await apiRequest('GET', '/api/user/premium-status');
       const data = await response.json();
-      setIsPremium(data?.isPremium || false);
+      const premiumStatus = data?.isPremium || false;
+      
+      setIsPremium(premiumStatus);
+      
+      // Fetch detailed premium features
+      const features = await getPremiumFeatures(user.id);
+      setPremiumFeatures(features);
     } catch (error) {
       console.error('Failed to fetch premium status:', error);
       setIsPremium(false);
+      setPremiumFeatures(await getPremiumFeatures());
     } finally {
       setIsLoading(false);
     }
@@ -68,8 +76,15 @@ export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children }) =>
     fetchPremiumStatus();
   }, [isAuthenticated, user]);
 
+  const contextValue = {
+    isPremium,
+    isLoading,
+    premiumFeatures,
+    refreshPremiumStatus
+  };
+
   return (
-    <PremiumContext.Provider value={{ isPremium, isLoading, refreshPremiumStatus }}>
+    <PremiumContext.Provider value={contextValue}>
       {children}
     </PremiumContext.Provider>
   );
