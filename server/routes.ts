@@ -259,8 +259,8 @@ End with a simple, poetic follow-up question.
     }
   });
 
-  // Deeper reflection route for progressive AI insights
-  app.post('/api/deeper', isAuthenticated, async (req: any, res) => {
+  // Deeper reflection route for progressive AI insights (premium feature)
+  app.post('/api/deeper', isAuthenticated, checkPremium, async (req: any, res) => {
     try {
       const { entry, basePrompt, level = 0, previousInsights = [] } = req.body;
       

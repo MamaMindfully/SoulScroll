@@ -17,14 +17,31 @@ import ReflectionResponse from "@/components/ReflectionResponse";
 import LoadingState from "@/components/LoadingState";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import PerformanceOptimizer from "@/components/PerformanceOptimizer";
-import { isPremiumUser, getPremiumFeatures } from '../utils/SubscriptionEngine';
-import { exportJournalToPDF } from '../utils/PDFExportEngine';
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumGate } from "@/components/PremiumGate";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const isPremium = isPremiumUser();
+  const { isPremium } = usePremium();
+
+  const togglePremiumMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/user/toggle-premium");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/premium-status"] });
+      toast({
+        title: "Premium Status Updated",
+        description: "Your premium status has been toggled for testing.",
+      });
+    },
+  });
   const [, setLocation] = useLocation();
 
   // Redirect to home if not authenticated
@@ -110,6 +127,26 @@ export default function Home() {
 
         {/* Main Content */}
         <main className="main-content">
+        {/* Premium Testing Toggle */}
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mx-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-sm font-medium text-yellow-800">
+                Testing Mode: {isPremium ? "Premium 💎" : "Free"}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => togglePremiumMutation.mutate()}
+              disabled={togglePremiumMutation.isPending}
+              className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+            >
+              {togglePremiumMutation.isPending ? "Updating..." : "Toggle Premium"}
+            </Button>
+          </div>
+        </div>
+
         {/* Daily Prompt */}
         <DailyPrompt />
 

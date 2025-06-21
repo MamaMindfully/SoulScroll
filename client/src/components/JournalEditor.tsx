@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumGate } from "@/components/PremiumGate";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ export default function JournalEditor() {
   const [reflection, setReflection] = useState<any>(null);
   const [loadingReflection, setLoadingReflection] = useState(false);
   const { toast } = useToast();
+  const { isPremium } = usePremium();
   const queryClient = useQueryClient();
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const { profile } = useUserProfile();
@@ -210,15 +213,30 @@ export default function JournalEditor() {
             <span className="font-medium text-wisdom">Today's Entry</span>
           </div>
           <div className="flex items-center space-x-3">
-            {/* Voice Recording Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleVoiceRecording}
-              className="w-8 h-8 p-0 rounded-full bg-accent/10 hover:bg-accent/20"
-            >
-              <Mic className="w-4 h-4 text-accent" />
-            </Button>
+            {/* Voice Recording Button - Premium Feature */}
+            {isPremium ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleVoiceRecording}
+                className="w-8 h-8 p-0 rounded-full bg-accent/10 hover:bg-accent/20"
+              >
+                <Mic className="w-4 h-4 text-accent" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toast({
+                  title: "Premium Feature",
+                  description: "Voice journaling is available for premium members only.",
+                  variant: "default",
+                })}
+                className="w-8 h-8 p-0 rounded-full bg-gray-100 hover:bg-gray-200"
+              >
+                <Mic className="w-4 h-4 text-gray-400" />
+              </Button>
+            )}
             {/* Word Count */}
             <span className="text-xs text-wisdom/60">{wordCount} words</span>
           </div>
