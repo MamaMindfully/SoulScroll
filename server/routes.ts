@@ -847,6 +847,38 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Premium features endpoint
+  app.get('/api/premium/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const requestingUserId = req.user.claims.sub;
+      
+      if (userId !== requestingUserId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const user = await storage.getUser(userId);
+      const isPremium = user?.isPremium || false;
+      
+      const features = {
+        voiceJournaling: isPremium,
+        dreamInterpretation: isPremium,
+        advancedAI: isPremium,
+        unlimitedEntries: isPremium,
+        exportFeatures: isPremium,
+        rituals: true,
+        mantras: isPremium,
+        community: true,
+        analytics: isPremium
+      };
+      
+      res.json({ features });
+    } catch (error) {
+      console.error('Error fetching premium features:', error);
+      res.status(500).json({ message: 'Failed to fetch premium features' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
