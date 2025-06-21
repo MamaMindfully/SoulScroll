@@ -1143,6 +1143,232 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Embeddings endpoint for memory loop engine
+  app.post('/api/embeddings', isAuthenticated, async (req: any, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const response = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: text,
+      });
+
+      res.json({ embedding: response.data[0].embedding });
+    } catch (error) {
+      logger.error('Error creating embedding:', error);
+      res.status(500).json({ error: 'Failed to create embedding' });
+    }
+  });
+
+  // Ritual progress endpoints
+  app.get('/api/ritual-progress/:weekId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { weekId } = req.params;
+      const userId = req.user.claims.sub;
+
+      // For now, return mock data - in production this would query the database
+      res.json({
+        exists: false,
+        completed_days: 0,
+        reward_claimed: false
+      });
+    } catch (error) {
+      logger.error('Error getting ritual progress:', error);
+      res.status(500).json({ error: 'Failed to get ritual progress' });
+    }
+  });
+
+  app.post('/api/ritual-progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const { week_id, completed_days, reward_claimed } = req.body;
+      const userId = req.user.claims.sub;
+
+      // In production, this would create a database entry
+      res.json({ success: true, id: Date.now() });
+    } catch (error) {
+      logger.error('Error creating ritual progress:', error);
+      res.status(500).json({ error: 'Failed to create ritual progress' });
+    }
+  });
+
+  app.patch('/api/ritual-progress/:weekId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { weekId } = req.params;
+      const updates = req.body;
+      const userId = req.user.claims.sub;
+
+      // In production, this would update the database
+      res.json({ success: true, ...updates });
+    } catch (error) {
+      logger.error('Error updating ritual progress:', error);
+      res.status(500).json({ error: 'Failed to update ritual progress' });
+    }
+  });
+
+  // Affirmation to action endpoint
+  app.post('/api/affirmation-to-action', isAuthenticated, async (req: any, res) => {
+    try {
+      const { affirmation } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are a practical wisdom guide. Turn affirmations into concrete, doable actions for today. Be specific, actionable, and inspiring. Format: 'Today's soul-task: [specific action]'"
+          },
+          {
+            role: "user",
+            content: `Turn this affirmation into a practical, real-world challenge for today: "${affirmation}"`
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0.7,
+      });
+
+      const actionText = response.choices[0]?.message?.content || "Today's soul-task: Take one mindful breath and set a positive intention.";
+      
+      res.json({ action: actionText });
+    } catch (error) {
+      logger.error('Error generating action from affirmation:', error);
+      res.status(500).json({ error: 'Failed to generate action' });
+    }
+  });
+
+  // Daily affirmation endpoint
+  app.get('/api/daily-affirmation', isAuthenticated, async (req: any, res) => {
+    try {
+      const affirmations = [
+        "I am grounded and focused",
+        "I trust my inner wisdom", 
+        "I am worthy of love and respect",
+        "I embrace growth and change",
+        "I am grateful for this moment",
+        "I radiate positive energy",
+        "I am creative and resourceful",
+        "I choose peace over worry",
+        "I am strong and resilient",
+        "I attract abundance in all forms"
+      ];
+
+      const randomAffirmation = affirmations[Math.floor(Math.random() * affirmations.length)];
+      res.json({ affirmation: randomAffirmation });
+    } catch (error) {
+      logger.error('Error getting daily affirmation:', error);
+      res.status(500).json({ error: 'Failed to get daily affirmation' });
+    }
+  });
+
+  // Weekly theme generation
+  app.post('/api/generate-weekly-theme', isAuthenticated, async (req: any, res) => {
+    try {
+      const { weekId } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are a spiritual guide creating weekly themes for personal growth. Generate a beautiful, inspiring theme with title, description, color, and affirmation. Respond in JSON format."
+          },
+          {
+            role: "user",
+            content: `Generate a weekly theme for spiritual growth and journaling for week ${weekId}. Include: title, description, color, and affirmation.`
+          }
+        ],
+        max_tokens: 200,
+        temperature: 0.8,
+      });
+
+      try {
+        const theme = JSON.parse(response.choices[0]?.message?.content || '{}');
+        res.json({ theme });
+      } catch (parseError) {
+        // Fallback if JSON parsing fails
+        res.json({
+          theme: {
+            title: "Inner Wisdom",
+            description: "Trust the guidance that comes from within",
+            color: "purple",
+            affirmation: "I trust my inner wisdom to guide me"
+          }
+        });
+      }
+    } catch (error) {
+      logger.error('Error generating weekly theme:', error);
+      res.status(500).json({ error: 'Failed to generate weekly theme' });
+    }
+  });
+
+  // Action completion tracking
+  app.post('/api/action-completion', isAuthenticated, async (req: any, res) => {
+    try {
+      const { action, completed, completed_at } = req.body;
+      const userId = req.user.claims.sub;
+
+      // In production, this would store in database
+      res.json({ success: true, id: Date.now() });
+    } catch (error) {
+      logger.error('Error tracking action completion:', error);
+      res.status(500).json({ error: 'Failed to track action completion' });
+    }
+  });
+
+  // Weekly action progress
+  app.get('/api/weekly-action-progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+
+      // Mock data - in production this would query database
+      res.json({
+        completed_count: 5,
+        total_count: 7,
+        completion_rate: 0.71,
+        streak_days: 3,
+        favorite_type: 'mindfulness'
+      });
+    } catch (error) {
+      logger.error('Error getting weekly action progress:', error);
+      res.status(500).json({ error: 'Failed to get weekly action progress' });
+    }
+  });
+
+  // Personalized action generation
+  app.post('/api/personalized-action', isAuthenticated, async (req: any, res) => {
+    try {
+      const { profile, recent_entries } = req.body;
+
+      const entriesText = recent_entries ? recent_entries.map((e: any) => e.content).join('\n') : '';
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "Based on the user's recent journal entries, suggest a personalized action that addresses their current emotional state and growth areas. Be specific and actionable."
+          },
+          {
+            role: "user",
+            content: `Based on these recent journal entries, suggest a personalized action for today:\n\n${entriesText}`
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0.7,
+      });
+
+      const action = response.choices[0]?.message?.content || "Take time to reflect on your recent growth and celebrate your progress.";
+      
+      res.json({ action: `Today's soul-task: ${action}` });
+    } catch (error) {
+      logger.error('Error generating personalized action:', error);
+      res.status(500).json({ error: 'Failed to generate personalized action' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
