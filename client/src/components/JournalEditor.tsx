@@ -7,6 +7,8 @@ import { PremiumGate } from "@/components/PremiumGate";
 import DeepPrompt from "@/components/DeepPrompt";
 import { useAutoSave } from "@/utils/autoSave";
 import { exportEntryToPDF } from "@/utils/pdfExport";
+import { debounce, performanceMonitor } from "@/utils/performanceOptimizations";
+import { useWebWorker } from "@/hooks/useWebWorker";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
