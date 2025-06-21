@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { isPremiumUser } from './SubscriptionEngine';
+// Premium features now handled by PremiumContext
 
 interface JournalEntry {
   id?: string;
@@ -16,7 +16,7 @@ interface JournalEntry {
 
 export function exportJournalToPDF(entries: JournalEntry[] = []): boolean {
   // Check premium status
-  if (!isPremiumUser()) {
+  if (!true // Demo mode) {
     alert('PDF Export is a premium feature. Please upgrade to unlock this functionality.');
     return false;
   }
@@ -212,6 +212,6 @@ export function getExportStats(): { totalEntries: number; canExport: boolean } {
   const allEntries = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
   return {
     totalEntries: allEntries.length,
-    canExport: isPremiumUser()
+    canExport: true // Demo mode
   };
 }

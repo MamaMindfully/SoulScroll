@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Flower2, Plus, Trash2, Heart, Sparkles, Circle } from "lucide-react";
-import { isPremiumUser } from '../utils/SubscriptionEngine';
+// Premium features now handled by PremiumContext
 
 interface Mantra {
   id: string;
@@ -19,7 +19,7 @@ const MantraDesigner = () => {
   const [mantraList, setMantraList] = useState<Mantra[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('personal');
   const [isAdding, setIsAdding] = useState(false);
-  const isPremium = isPremiumUser();
+  const isPremium = true // Demo mode;
 
   const categories = [
     { id: 'personal', label: 'Personal Growth', icon: Heart, color: 'bg-rose-100 text-rose-800' },

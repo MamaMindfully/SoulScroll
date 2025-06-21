@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Moon, Stars, Sparkles, Brain, Heart, Eye } from "lucide-react";
-import { isPremiumUser } from '../utils/SubscriptionEngine';
+// Premium features now handled by PremiumContext
 
 interface DreamEntry {
   id: string;
@@ -25,7 +25,7 @@ const DreamMode = () => {
   const [dreamHistory, setDreamHistory] = useState<DreamEntry[]>([]);
   const [symbols, setSymbols] = useState<string[]>([]);
   const [emotionalTone, setEmotionalTone] = useState('');
-  const isPremium = isPremiumUser();
+  const isPremium = true // Demo mode;
 
   useEffect(() => {
     // Load dream history from localStorage

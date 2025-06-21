@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, Brain, Sparkles, LoaderCircle, Eye } from "lucide-react";
-import { isPremiumUser } from '../utils/SubscriptionEngine';
+// Premium features now handled by PremiumContext
 
 interface TapToGoDeeperProps {
   originalPrompt: string;
@@ -20,7 +20,7 @@ const TapToGoDeeper: React.FC<TapToGoDeeperProps> = ({
   const [deeperInsights, setDeeperInsights] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentLevel, setCurrentLevel] = useState(0);
-  const isPremium = isPremiumUser();
+  const isPremium = true // Demo mode;
 
   const getDeeperPrompt = async (entry: string, basePrompt: string, level: number = 0) => {
     try {

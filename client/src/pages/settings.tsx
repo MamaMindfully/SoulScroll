@@ -6,7 +6,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { isPremiumUser, activatePremium, getPremiumFeatures } from '../utils/SubscriptionEngine';
+import { usePremium } from "@/context/PremiumContext";
 import PrivacySettings from "@/components/PrivacySettings";
 import ExportManager from "@/components/ExportManager";
 import { 
@@ -33,7 +33,7 @@ import DeploymentOptimizations from "@/components/DeploymentOptimizations";
 export default function Settings() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [isPremium, setIsPremium] = useState(isPremiumUser());
+  const [isPremium, setIsPremium] = useState(true // Demo mode);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function Settings() {
   };
 
   const handleActivatePremium = () => {
-    activatePremium();
+    // Demo activation;
     setIsPremium(true);
   };
 

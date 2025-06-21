@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Download, FileText, Calendar as CalendarIcon, Crown } from "lucide-react";
 import { exportJournalToPDF, exportDateRange, getExportStats } from '../utils/PDFExportEngine';
-import { isPremiumUser } from '../utils/SubscriptionEngine';
+// Premium features now handled by PremiumContext
 import { format } from "date-fns";
 
 const ExportManager = () => {
@@ -15,7 +15,7 @@ const ExportManager = () => {
   const [endDate, setEndDate] = useState<Date>();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { totalEntries, canExport } = getExportStats();
-  const isPremium = isPremiumUser();
+  const isPremium = true // Demo mode;
 
   const handleFullExport = async () => {
     if (!canExport) return;

@@ -511,13 +511,15 @@ End with a simple, poetic follow-up question.
       ];
       
       const randomInsight = fallbackInsights[Math.floor(Math.random() * fallbackInsights.length)];
-      const randomPrompt = fallbackPrompts[Math.floor(Math.random() * fallbackPrompts.length)];
-      
-      res.json({
+      const finalFallback = {
         insight: randomInsight,
-        followUpPrompt: randomPrompt,
-        source: 'generic'
-      });
+        followUpPrompt: "What emotions or thoughts are stirring as you read this reflection?",
+        source: 'fallback',
+        notice: 'AI reflection service temporarily unavailable. Using thoughtful fallback.'
+      };
+      
+      console.log("🆘 Sending final fallback reflection:", finalFallback);
+      res.json(finalFallback);
     }
   });
 

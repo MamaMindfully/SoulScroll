@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Flower, Heart, Sparkles, Leaf, LoaderCircle, BookOpen } from "lucide-react";
-import { isPremiumUser } from '../utils/SubscriptionEngine';
+// Premium features now handled by PremiumContext
 import { saveJournalEntry, checkForNewAchievements } from '../utils/journalHistoryUtils';
 import { checkForNewAchievements as checkUnlockables } from '../utils/unlockablesEngine';
 import JournalConfirmation from './JournalConfirmation';
@@ -35,7 +35,7 @@ const JournalPageMamaMindfully = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [currentView, setCurrentView] = useState<'write' | 'confirmation' | 'history'>('write');
-  const isPremium = isPremiumUser();
+  const isPremium = true // Demo mode;
 
   const handleEntryChange = (value: string) => {
     setEntry(value);

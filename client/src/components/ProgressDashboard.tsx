@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, Calendar, Heart, Flame, BookOpen, Award, Unlock, Crown, Download } from "lucide-react";
 import { evaluateUnlockables } from '../utils/UnlockablesEngine';
-import { isPremiumUser, activatePremium } from '../utils/SubscriptionEngine';
+import { usePremium } from "@/context/PremiumContext";
 import { exportJournalToPDF } from '../utils/PDFExportEngine';
 
 interface JournalEntry {
@@ -26,7 +26,7 @@ const ProgressDashboard = () => {
   const [weeklyProgress, setWeeklyProgress] = useState(0);
   const [soulSeeds, setSoulSeeds] = useState(0);
   const [unlockables, setUnlockables] = useState<string[]>([]);
-  const [isPremium, setIsPremium] = useState(isPremiumUser());
+  const { isPremium } = usePremium();
 
   const handleExport = () => {
     const entries = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
@@ -283,8 +283,8 @@ const ProgressDashboard = () => {
               <div className="text-center py-4">
                 <button
                   onClick={() => {
-                    activatePremium();
-                    setIsPremium(true);
+                    // Demo activation - in production this would redirect to payment
+                    console.log("Demo premium activation");
                   }}
                   className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-medium py-3 px-4 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200"
                 >

@@ -176,18 +176,24 @@ export default function JournalEditor() {
   };
 
   const handleSave = async (isAutoSave = false) => {
-    if (!content.trim()) return;
+    console.log("🚀 Journal save started:", { isAutoSave, contentLength: content.trim().length });
+    
+    if (!content.trim()) {
+      console.log("❌ Save aborted - empty content");
+      return;
+    }
     
     setAutoSaveStatus("saving");
     
     if (!isAutoSave) {
+      console.log("📝 Manual save - setting hasSubmitted to true");
       setHasSubmitted(true);
     }
     
     createEntryMutation.mutate({
       content: content.trim(),
     });
-  };;
+  };
 
   const handleVoiceRecording = () => {
     toast({
