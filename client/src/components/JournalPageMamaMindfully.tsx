@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Flower, Heart, Sparkles, Leaf, LoaderCircle, BookOpen } from "lucide-react";
 // Premium features now handled by PremiumContext
 import { saveJournalEntry, checkForNewAchievements } from '../utils/journalHistoryUtils';
-import { checkForNewAchievements as checkUnlockables } from '../utils/unlockablesEngine';
+// import { checkForNewAchievements as checkUnlockables } from '../utils/unlockablesEngine';
 import JournalConfirmation from './JournalConfirmation';
 import JournalHistory from './JournalHistory';
 import VisualProgressTracker from './VisualProgressTracker';

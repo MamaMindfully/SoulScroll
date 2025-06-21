@@ -18,3 +18,7 @@ export function evaluateUnlockables(entries) {
 
   return unlocks;
 }
+
+export function checkForNewAchievements(entries) {
+  return evaluateUnlockables(entries);
+}
