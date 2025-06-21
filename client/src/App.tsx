@@ -33,11 +33,11 @@ import {
   LazyTimeline, 
   LazySettings, 
   LazyPricing,
+  LazyAskArc,
+  LazyExportManager,
+  LazyArcArchive,
   withLazyLoading 
 } from "@/components/LazyComponents";
-import ExportManager from "@/components/ExportManager";
-import AskArc from "@/components/AskArc";
-import ArcArchive from "@/components/ArcArchive";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -68,9 +68,9 @@ function Router() {
           <Route path="/settings" component={withLazyLoading(LazySettings, "Settings")} />
           <Route path="/pricing" component={withLazyLoading(LazyPricing, "Pricing")} />
           <Route path="/feed" component={withLazyLoading(LazyFeed, "Feed")} />
-          <Route path="/export" component={ExportManager} />
-          <Route path="/ask-arc" component={AskArc} />
-          <Route path="/arc-archive" component={ArcArchive} />
+          <Route path="/export" component={withLazyLoading(LazyExportManager, "Export Manager")} />
+          <Route path="/ask-arc" component={withLazyLoading(LazyAskArc, "Ask Arc")} />
+          <Route path="/arc-archive" component={withLazyLoading(LazyArcArchive, "Arc Archive")} />
         </>
       )}
       <Route component={NotFound} />
