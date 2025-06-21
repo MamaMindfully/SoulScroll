@@ -1,74 +1,28 @@
 {
-  "name": "SoulScroll - AI-Powered Journaling",
+  "name": "SoulScroll - AI Journaling Companion",
   "short_name": "SoulScroll",
-  "description": "A soulful journaling app that combines emotional intelligence with AI guidance for deep reflection, personal growth, and mindful self-discovery.",
+  "description": "A journaling app powered by AI that helps you grow, reflect, and stay connected to your inner compass.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f0f5ff",
-  "theme_color": "#6b73ff",
+  "background_color": "#000000",
+  "theme_color": "#6B73FF",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
-  "categories": ["lifestyle", "productivity", "health"],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshots/mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
+  "categories": ["lifestyle", "wellness", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "maskable any"
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
     },
     {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
@@ -76,40 +30,19 @@
   ],
   "shortcuts": [
     {
-      "name": "New Entry",
+      "name": "New Journal Entry",
       "short_name": "Write",
       "description": "Start a new journal entry",
-      "url": "/?shortcut=new-entry",
-      "icons": [
-        {
-          "src": "/icons/shortcut-write.png",
-          "sizes": "96x96"
-        }
-      ]
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "View Feed",
-      "short_name": "Feed",
-      "description": "Browse your journal entries",
-      "url": "/feed?shortcut=feed",
-      "icons": [
-        {
-          "src": "/icons/shortcut-feed.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Dream Mode",
-      "short_name": "Dreams",
-      "description": "Interpret your dreams",
-      "url": "/dreams?shortcut=dreams",
-      "icons": [
-        {
-          "src": "/icons/shortcut-dreams.png",
-          "sizes": "96x96"
-        }
-      ]
+      "name": "Ask Arc",
+      "short_name": "Ask Arc",
+      "description": "Get guidance from your AI companion",
+      "url": "/ask-arc",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }

@@ -31,6 +31,7 @@ export default function JournalEditor() {
   const [reflection, setReflection] = useState<any>(null);
   const [loadingReflection, setLoadingReflection] = useState(false);
   const [compassionateInsight, setCompassionateInsight] = useState<string>('');
+  const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { isPremium } = usePremium();
   const queryClient = useQueryClient();
