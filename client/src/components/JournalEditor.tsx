@@ -5,6 +5,8 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { usePremium } from "@/context/PremiumContext";
 import { PremiumGate } from "@/components/PremiumGate";
 import DeepPrompt from "@/components/DeepPrompt";
+import { useAutoSave } from "@/utils/autoSave";
+import { exportEntryToPDF } from "@/utils/pdfExport";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

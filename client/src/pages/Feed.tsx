@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Heart, Sparkles, ChevronRight } from 'lucide-react';
+import { Calendar, Heart, Sparkles, ChevronRight, Download } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { exportEntryToPDF, exportMultipleEntriesToPDF } from '@/utils/pdfExport';
 
 interface JournalEntry {
   id: number;

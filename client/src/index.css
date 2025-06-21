@@ -1,5 +1,7 @@
 /* Import premium styles */
 @import './styles/premium.css';
+@import './styles/themes.css';
+@import './styles/mobile.css';
 
 @tailwind base;
 @tailwind components;
