@@ -63,6 +63,14 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
       setReflection(data);
       setHasGenerated(true);
       
+      // Scroll to insight section after reflection is generated
+      setTimeout(() => {
+        const insightBox = document.getElementById("insight-section");
+        if (insightBox) {
+          insightBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
+      
       if (onReflectionComplete) {
         onReflectionComplete(data);
       }
@@ -75,6 +83,14 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
         followUpPrompt: "What feeling or thought from your entry would you like to explore more deeply?"
       });
       setHasGenerated(true);
+      
+      // Scroll to insight section even for fallback reflection
+      setTimeout(() => {
+        const insightBox = document.getElementById("insight-section");
+        if (insightBox) {
+          insightBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +150,7 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div id="insight-section" className="space-y-4 fade-in">
       {/* AI Insight */}
       <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
         <CardHeader>
@@ -158,7 +174,7 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
       </Card>
 
       {/* Follow-up Prompt */}
-      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 fade-in-delayed">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2 text-purple-800">
             <MessageCircle className="w-5 h-5" />

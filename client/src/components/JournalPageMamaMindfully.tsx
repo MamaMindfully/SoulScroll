@@ -65,6 +65,14 @@ const JournalPageMamaMindfully = () => {
       setEmotionalTone(data.emotionalTone || 'Nurturing');
       setNurturingActions(data.nurturingActions || []);
       setHasResponse(true);
+      
+      // Scroll to insight section after AI response is generated
+      setTimeout(() => {
+        const insightBox = document.getElementById("mama-mindfully-insight");
+        if (insightBox) {
+          insightBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
 
       // Save to journal history
       saveJournalEntry({
@@ -93,6 +101,14 @@ const JournalPageMamaMindfully = () => {
       setEmotionalTone('Compassionate');
       setNurturingActions(['Practice self-compassion', 'Trust your intuition']);
       setHasResponse(true);
+      
+      // Scroll to insight section even for fallback response
+      setTimeout(() => {
+        const insightBox = document.getElementById("mama-mindfully-insight");
+        if (insightBox) {
+          insightBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 300);
 
       // Save to journal history even on error
       saveJournalEntry({
