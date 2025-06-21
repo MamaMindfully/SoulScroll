@@ -13,6 +13,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Premium middleware
+  const checkPremium = async (req: any, res: any, next: any) => {
+    const userId = req.user?.claims?.sub;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+      const user = await storage.getUser(userId);
+      if (!user?.isPremium) {
+        return res.status(403).json({ error: 'Premium access required' });
+      }
+      next();
+    } catch (error) {
+      console.error('Premium check error:', error);
+      return res.status(500).json({ error: 'Failed to verify premium status' });
+    }
+  };
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
@@ -173,8 +193,8 @@ End with a simple, poetic follow-up question.
     }
   });
 
-  // Mama Mindfully wellness coaching route
-  app.post('/api/mama-mindfully', isAuthenticated, async (req: any, res) => {
+  // Mama Mindfully wellness coaching route (premium feature)
+  app.post('/api/mama-mindfully', isAuthenticated, checkPremium, async (req: any, res) => {
     try {
       const { entry } = req.body;
       
@@ -256,6 +276,41 @@ End with a simple, poetic follow-up question.
         emotionalTone: 'Compassionate',
         nurturingActions: ['Practice self-compassion', 'Trust your intuition', 'Honor your feelings']
       });
+    }
+  });
+
+  // Get user premium status
+  app.get('/api/user/premium-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json({ isPremium: user?.isPremium || false });
+    } catch (error) {
+      console.error("Error fetching premium status:", error);
+      res.status(500).json({ message: "Failed to fetch premium status" });
+    }
+  });
+
+  // Toggle premium status for testing
+  app.post('/api/user/toggle-premium', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const newPremiumStatus = !user?.isPremium;
+      
+      await storage.upsertUser({
+        id: userId,
+        email: user?.email,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        profileImageUrl: user?.profileImageUrl,
+        isPremium: newPremiumStatus
+      });
+      
+      res.json({ isPremium: newPremiumStatus });
+    } catch (error) {
+      console.error("Error toggling premium status:", error);
+      res.status(500).json({ message: "Failed to toggle premium status" });
     }
   });
 
