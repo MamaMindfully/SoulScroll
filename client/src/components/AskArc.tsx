@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, MessageSquare, Loader2 } from 'lucide-react';
-import { createCompletion } from '@/utils/openaiClient';
+import { usePremium } from '@/context/PremiumContext';
+import { apiRequest } from '@/lib/queryClient';
 
 const AskArc: React.FC = () => {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<Array<{question: string, answer: string}>>([]);
+  const { isPremium } = usePremium();
 
   const askArc = async () => {
     if (!question.trim()) return;
@@ -24,7 +26,9 @@ const AskArc: React.FC = () => {
           ).join('\n\n')}\n\nCurrent question: ${question}`
         : question;
 
-      const arcResponse = await createCompletion(context, {
+      const response = await apiRequest('POST', '/api/ask', {
+        prompt: context,
+        multiResponse: isPremium,
         system: `You are Arc, a gentle, soulful AI reflection coach and journaling companion. 
         
         Your personality:
@@ -42,6 +46,9 @@ const AskArc: React.FC = () => {
         - Avoid clinical or overly spiritual language
         - Be authentic and present, not performative`
       });
+      
+      const data = await response.json();
+      const arcResponse = data.result;
       
       setResponse(arcResponse);
       

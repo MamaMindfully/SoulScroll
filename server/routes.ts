@@ -908,6 +908,27 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Timeline endpoint for mood visualization
+  app.get('/api/timeline', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const entries = await storage.getJournalEntries(userId, 50, 0);
+      
+      // Format entries for timeline visualization
+      const timelineData = entries.map(entry => ({
+        date: entry.createdAt,
+        mood: entry.emotionalTone || 'neutral',
+        wordCount: entry.wordCount || 0,
+        content: entry.content.slice(0, 100) + '...'
+      }));
+      
+      res.json(timelineData);
+    } catch (error) {
+      console.error('Error fetching timeline data:', error);
+      res.status(500).json({ error: 'Failed to fetch timeline data' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
