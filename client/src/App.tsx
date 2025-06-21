@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { PremiumProvider } from "@/context/PremiumContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
@@ -73,21 +74,23 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider>
-          <PremiumProvider>
-            <AppStoreMetadata />
-            <MobileTouchOptimizations />
-            <div className="app-container">
-              <Router />
-              <Toaster />
-              <FloatingStartButton />
-            </div>
-          </PremiumProvider>
-        </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ThemeProvider>
+            <PremiumProvider>
+              <AppStoreMetadata />
+              <MobileTouchOptimizations />
+              <div className="app-container">
+                <Router />
+                <Toaster />
+                <FloatingStartButton />
+              </div>
+            </PremiumProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

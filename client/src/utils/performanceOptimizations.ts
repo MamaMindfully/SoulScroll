@@ -28,6 +28,8 @@ export function throttle<T extends (...args: any[]) => any>(
 }
 
 // Lazy loading utility for components
+import React from 'react';
+
 export const lazyLoad = (componentImport: () => Promise<any>) => {
   return React.lazy(componentImport);
 };

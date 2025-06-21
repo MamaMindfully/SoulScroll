@@ -28,7 +28,7 @@ export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const { isPremium, refreshPremiumStatus } = usePremium();
+  const { isPremium, refreshPremiumStatus, premiumFeatures } = usePremium();
 
   const togglePremiumMutation = useMutation({
     mutationFn: async () => {
