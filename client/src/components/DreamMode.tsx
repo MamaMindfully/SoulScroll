@@ -160,7 +160,8 @@ const DreamMode = () => {
               <Button 
                 onClick={handleIntentSubmit}
                 disabled={!dreamIntent.trim()}
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white"
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 <Moon className="w-4 h-4 mr-2" />
                 Set Intention & Sleep
@@ -192,7 +193,8 @@ const DreamMode = () => {
                 <Button 
                   onClick={handleDreamSubmit}
                   disabled={!dreamLog.trim() || isAnalyzing}
-                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white cursor-pointer"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   {isAnalyzing ? (
                     <>
@@ -210,7 +212,8 @@ const DreamMode = () => {
                 <Button 
                   onClick={resetDreamMode}
                   variant="outline"
-                  className="border-purple-300 text-purple-700"
+                  className="border-purple-300 text-purple-700 cursor-pointer"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   Reset
                 </Button>

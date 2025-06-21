@@ -187,11 +187,12 @@ const CommunityFeed = () => {
                       </span>
                       <button
                         onClick={() => handleLike(reflection.id)}
-                        className={`flex items-center space-x-1 text-xs transition-colors ${
+                        className={`flex items-center space-x-1 text-xs transition-colors cursor-pointer ${
                           likedPosts.has(reflection.id)
                             ? 'text-red-500'
                             : 'text-wisdom/50 hover:text-red-400'
                         }`}
+                        style={{ pointerEvents: 'auto' }}
                       >
                         <Heart 
                           className={`w-4 h-4 ${
