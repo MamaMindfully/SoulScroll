@@ -36,6 +36,7 @@ import {
   withLazyLoading 
 } from "@/components/LazyComponents";
 import ExportManager from "@/components/ExportManager";
+import AskArc from "@/components/AskArc";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -67,6 +68,7 @@ function Router() {
           <Route path="/pricing" component={withLazyLoading(LazyPricing, "Pricing")} />
           <Route path="/feed" component={withLazyLoading(LazyFeed, "Feed")} />
           <Route path="/export" component={ExportManager} />
+          <Route path="/ask-arc" component={AskArc} />
         </>
       )}
       <Route component={NotFound} />

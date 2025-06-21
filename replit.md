@@ -263,6 +263,9 @@ Changelog:
   * Implemented PDF export functionality with jsPDF and html2canvas
   * Created comprehensive export manager with multiple export options
   * Added visual PDF export preserving journal layout and styling
+  * Built Inner Compass feature with daily themes and guidance prompts
+  * Created Ask Arc AI assistant for deeper reflection and life questions
+  * Added Wisdom Feed component with community insights and inspirational quotes
 ```
 
 ## User Preferences
