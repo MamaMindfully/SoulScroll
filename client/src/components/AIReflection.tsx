@@ -62,12 +62,12 @@ export default function AIReflection() {
 
   const handleContinueExploring = () => {
     // In a real app, this would navigate to a deeper reflection or prompt follow-up questions
-    console.log("Continue exploring clicked");
+    // console.log("Continue exploring clicked");
   };
 
   const handleSaveInsight = () => {
     // In a real app, this would save the insight to favorites or bookmarks
-    console.log("Save insight clicked");
+    // console.log("Save insight clicked");
   };
 
   return (

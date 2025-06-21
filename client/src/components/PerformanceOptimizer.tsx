@@ -68,7 +68,7 @@ const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ children })
         try {
           await navigator.serviceWorker.register('/sw.js');
         } catch (error) {
-          console.log('Service Worker registration failed:', error);
+          // console.log('Service Worker registration failed:', error);
         }
       }
     };
@@ -86,11 +86,11 @@ const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ children })
         // Measure page load time
         window.addEventListener('load', () => {
           const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-          console.log(`Page load time: ${loadTime}ms`);
+          // console.log(`Page load time: ${loadTime}ms`);
           
           // Report to analytics if needed
           if (loadTime > 3000) {
-            console.warn('Slow page load detected');
+            // console.warn('Slow page load detected');
           }
         });
 
@@ -100,13 +100,13 @@ const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ children })
           new PerformanceObserver((list) => {
             const entries = list.getEntries();
             const lastEntry = entries[entries.length - 1];
-            console.log('LCP:', lastEntry.startTime);
+            // console.log('LCP:', lastEntry.startTime);
           }).observe({ entryTypes: ['largest-contentful-paint'] });
 
           // First Input Delay
           new PerformanceObserver((list) => {
             list.getEntries().forEach((entry) => {
-              console.log('FID:', entry.processingStart - entry.startTime);
+              // console.log('FID:', entry.processingStart - entry.startTime);
             });
           }).observe({ entryTypes: ['first-input'] });
         }

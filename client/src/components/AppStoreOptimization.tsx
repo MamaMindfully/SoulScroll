@@ -133,7 +133,7 @@ export function InstallPrompt() {
     // Check if PWA can be installed
     if ('beforeinstallprompt' in window) {
       // Trigger PWA install prompt
-      console.log('PWA install prompt triggered');
+      // console.log('PWA install prompt triggered');
     } else if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
       // Show iOS install instructions
       alert('To install Luma:\n1. Tap the Share button\n2. Select "Add to Home Screen"\n3. Tap "Add" to install');

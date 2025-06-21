@@ -437,3 +437,11 @@ export type InsertUserChallenge = z.infer<typeof insertUserChallengeSchema>;
 export type UserChallenge = typeof userChallenges.$inferSelect;
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
+
+// New table types
+export type InsertSecretScroll = z.infer<typeof insertSecretScrollSchema>;
+export type SecretScroll = typeof secretScrolls.$inferSelect;
+export type InsertSavedReflection = z.infer<typeof insertSavedReflectionSchema>;
+export type SavedReflection = typeof savedReflections.$inferSelect;
+export type InsertRitual = z.infer<typeof insertRitualSchema>;
+export type Ritual = typeof rituals.$inferSelect;

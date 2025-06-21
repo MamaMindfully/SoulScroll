@@ -78,13 +78,13 @@ export function DataControlCenter() {
 
   const handleDataExport = () => {
     // In real implementation, trigger data export
-    console.log("Initiating data export...");
+    // console.log("Initiating data export...");
     setShowExportDialog(false);
   };
 
   const handleAccountDeletion = () => {
     // In real implementation, trigger account deletion
-    console.log("Initiating account deletion...");
+    // console.log("Initiating account deletion...");
     setShowDeleteDialog(false);
   };
 

@@ -269,7 +269,7 @@ export const warmupCache = async () => {
     try {
       await cachedApiRequest('GET', endpoint, undefined, { priority: 'high' });
     } catch (error) {
-      console.warn(`Failed to warmup cache for ${endpoint}:`, error);
+      // Silently fail cache warmup - non-critical
     }
   }
 };
