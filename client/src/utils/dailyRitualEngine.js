@@ -177,6 +177,42 @@ export class DailyRitualEngine {
     return prompts[ritual.id] || "Take a moment to connect with yourself.";
   }
 
+  getRitualStats(userId = null) {
+    try {
+      // Mock stats - in production this would query database
+      return {
+        total_completed: 12,
+        streak_days: 5,
+        favorite_ritual: 'gratitude',
+        completion_rate: 0.75,
+        weekly_completions: 8,
+        last_completed: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error getting ritual stats:', error);
+      return {
+        total_completed: 0,
+        streak_days: 0,
+        favorite_ritual: 'gratitude',
+        completion_rate: 0,
+        weekly_completions: 0,
+        last_completed: null
+      };
+    }
+  }
+
+  getRitualWithTracking(type) {
+    const rituals = this.getCurrentRituals();
+    const selectedRituals = type === 'morning' ? this.morningRituals : this.eveningRituals;
+    const randomRitual = selectedRituals[Math.floor(Math.random() * selectedRituals.length)];
+    return this.generateRitualPrompt(randomRitual);
+  }
+
+  getCurrentTimeType() {
+    const timeOfDay = this.getCurrentTimeOfDay();
+    return timeOfDay === 'morning' || timeOfDay === 'afternoon' ? 'morning' : 'evening';
+  }
+
   async testConnection() {
     try {
       console.log('🧪 Testing daily ritual engine...');
@@ -198,6 +234,11 @@ export const dailyRitualEngine = new DailyRitualEngine();
 export const getCurrentRituals = () => dailyRitualEngine.getCurrentRituals();
 export const generatePersonalizedRitual = (userId, timeOfDay, preferences) => 
   dailyRitualEngine.generatePersonalizedRitual(userId, timeOfDay, preferences);
+export const getPersonalizedRitual = (userId, timeOfDay, preferences) => 
+  dailyRitualEngine.generatePersonalizedRitual(userId, timeOfDay, preferences);
 export const trackRitualCompletion = (userId, ritualId, completed) => 
   dailyRitualEngine.trackRitualCompletion(userId, ritualId, completed);
+export const getRitualStats = (userId) => dailyRitualEngine.getRitualStats(userId);
+export const getRitualWithTracking = (type) => dailyRitualEngine.getRitualWithTracking(type);
+export const getCurrentTimeType = () => dailyRitualEngine.getCurrentTimeType();
 export const testRitualConnection = () => dailyRitualEngine.testConnection();

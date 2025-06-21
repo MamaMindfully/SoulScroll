@@ -36,6 +36,8 @@ export default function JournalEditor() {
   const [reflection, setReflection] = useState<any>(null);
   const [loadingReflection, setLoadingReflection] = useState(false);
   const [compassionateInsight, setCompassionateInsight] = useState<string>('');
+  const [showSecretScroll, setShowSecretScroll] = useState(false);
+  const [secretScroll, setSecretScroll] = useState<any>(null);
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { isPremium } = usePremium();
@@ -80,7 +82,7 @@ export default function JournalEditor() {
       console.log("✅ Journal entry saved successfully:", result);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("🎉 Journal save success callback triggered");
       
       // Invalidate and refetch journal entries
@@ -88,6 +90,28 @@ export default function JournalEditor() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       
       setAutoSaveStatus("saved");
+      
+      // Score emotional resonance
+      if (data.id && content.trim()) {
+        try {
+          await scoreEntryEmotion(content.trim(), data.id);
+        } catch (error) {
+          console.error('Error scoring emotion:', error);
+        }
+      }
+      
+      // Check for secret scroll unlock
+      if (profile?.id) {
+        try {
+          const scrollResult = await checkScrollUnlockAfterEntry(profile.id);
+          if (scrollResult.shouldShow && scrollResult.scroll) {
+            setSecretScroll(scrollResult.scroll);
+            setShowSecretScroll(true);
+          }
+        } catch (error) {
+          console.error('Error checking scroll unlock:', error);
+        }
+      }
       
       toast({
         title: "Entry saved",
