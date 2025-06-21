@@ -128,19 +128,18 @@ export default function Home() {
         {/* Main Content */}
         <main className="main-content">
         {/* Premium Testing Toggle */}
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mx-4">
+        <div className="premium-toggle mx-4">
           <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm font-medium text-yellow-800">
-                Testing Mode: {isPremium ? "Premium 💎" : "Free"}
-              </span>
+            <div className={`premium-status-indicator ${isPremium ? 'premium' : 'free'}`}>
+              <span>Testing Mode: {isPremium ? "Premium 💎" : "Free"}</span>
+              {isPremium && <span className="premium-badge">Premium</span>}
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => togglePremiumMutation.mutate()}
               disabled={togglePremiumMutation.isPending}
-              className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+              className="premium-button"
             >
               {togglePremiumMutation.isPending ? "Updating..." : "Toggle Premium"}
             </Button>

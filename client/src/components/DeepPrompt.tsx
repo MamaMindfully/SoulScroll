@@ -64,31 +64,29 @@ export default function DeepPrompt({ insight, entry, onDeepReflection }: DeepPro
 
   if (!isPremium) {
     return (
-      <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 mt-4">
-        <CardContent className="p-6 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <Lock className="w-8 h-8 text-amber-600" />
-              <Sparkles className="w-4 h-4 text-amber-500 absolute -top-1 -right-1" />
-            </div>
+      <div className="locked-feature mt-4">
+        <div className="flex justify-center mb-4">
+          <div className="relative">
+            <Lock className="w-8 h-8 text-red-500" />
+            <Sparkles className="w-4 h-4 text-amber-500 absolute -top-1 -right-1" />
           </div>
-          
-          <h3 className="text-lg font-semibold text-amber-900 mb-2">
-            Want to Go Deeper?
-          </h3>
-          
-          <p className="text-amber-700 mb-4 text-sm">
-            This deeper reflection feature is available for Premium members only.
-          </p>
-          
-          <Button 
-            onClick={() => window.location.href = "/pricing"}
-            className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
-          >
-            Upgrade to Unlock
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Want to Go Deeper?
+        </h3>
+        
+        <p className="text-gray-700 mb-4 text-sm">
+          This deeper reflection feature is available for Premium members only.
+        </p>
+        
+        <Button 
+          onClick={() => window.location.href = "/pricing"}
+          className="upgrade-cta"
+        >
+          Upgrade to Unlock
+        </Button>
+      </div>
     );
   }
 

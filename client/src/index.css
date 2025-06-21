@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import premium styles */
+@import './styles/premium.css';
+
 /* Mobile-First Responsive Design */
 :root {
   --touch-target-size: 44px;
