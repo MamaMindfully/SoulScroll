@@ -35,6 +35,7 @@ const JournalPageMamaMindfully = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [currentView, setCurrentView] = useState<'write' | 'confirmation' | 'history'>('write');
+  const [deeperResponse, setDeeperResponse] = useState('');
   const isPremium = true // Demo mode;
 
   const handleEntryChange = (value: string) => {
@@ -138,6 +139,7 @@ const JournalPageMamaMindfully = () => {
     setNurturingActions([]);
     setWordCount(0);
     setHasResponse(false);
+    setDeeperResponse('');
     setCurrentView('write');
   };
 
@@ -151,6 +153,15 @@ const JournalPageMamaMindfully = () => {
 
   const handleBackToWrite = () => {
     setCurrentView('write');
+  };
+
+  const handleDeeperSubmit = () => {
+    if (deeperResponse.trim()) {
+      // Save the deeper reflection to localStorage or send to backend
+      console.log("User's deeper reflection:", deeperResponse);
+      setDeeperResponse("");
+      alert("Thanks for going deeper 🙏");
+    }
   };
 
   if (!isPremium) {
@@ -366,6 +377,24 @@ const JournalPageMamaMindfully = () => {
               <p className="text-gray-800 leading-relaxed">
                 {followUp}
               </p>
+            </div>
+            
+            {/* Deeper Response Box */}
+            <div className="deeper-response-box">
+              <textarea
+                placeholder="Your response..."
+                value={deeperResponse}
+                onChange={(e) => setDeeperResponse(e.target.value)}
+                rows={3}
+                className="deeper-textarea"
+              />
+              <button 
+                className="btn-submit" 
+                onClick={handleDeeperSubmit}
+                disabled={!deeperResponse.trim()}
+              >
+                Reflect
+              </button>
             </div>
           </CardContent>
         </Card>

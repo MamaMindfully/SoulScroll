@@ -33,6 +33,7 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [followUpResponse, setFollowUpResponse] = useState('');
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [deeperResponse, setDeeperResponse] = useState('');
 
   // Auto-generate reflection if requested and journal entry exists
   React.useEffect(() => {
@@ -102,6 +103,15 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
       // For now, just log it
       console.log('Follow-up response:', followUpResponse);
       setFollowUpResponse('');
+    }
+  };
+
+  const handleDeeperSubmit = () => {
+    if (deeperResponse.trim()) {
+      // Optional: Send to backend or save to localStorage
+      console.log("User's deeper reflection:", deeperResponse);
+      setDeeperResponse("");
+      alert("Thanks for going deeper 🙏");
     }
   };
 
@@ -227,6 +237,24 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
                   New Reflection
                 </Button>
               </div>
+            </div>
+            
+            {/* Deeper Response Box */}
+            <div className="deeper-response-box">
+              <textarea
+                placeholder="Your response..."
+                value={deeperResponse}
+                onChange={(e) => setDeeperResponse(e.target.value)}
+                rows={3}
+                className="deeper-textarea"
+              />
+              <button 
+                className="btn-submit" 
+                onClick={handleDeeperSubmit}
+                disabled={!deeperResponse.trim()}
+              >
+                Reflect
+              </button>
             </div>
           </div>
         </CardContent>
