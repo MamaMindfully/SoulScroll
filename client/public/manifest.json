@@ -1,15 +1,29 @@
 {
-  "name": "Luma - AI Journal for Emotional Wellness",
-  "short_name": "Luma",
-  "description": "Your AI-powered companion for emotional journaling and self-discovery",
+  "name": "SoulScroll - AI-Powered Journaling",
+  "short_name": "SoulScroll",
+  "description": "A soulful journaling app that combines emotional intelligence with AI guidance for deep reflection, personal growth, and mindful self-discovery.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8FAFC",
-  "theme_color": "#6B73FF",
+  "background_color": "#f0f5ff",
+  "theme_color": "#6b73ff",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["health", "lifestyle", "productivity"],
+  "categories": ["lifestyle", "productivity", "health"],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -19,7 +33,7 @@
     },
     {
       "src": "/icons/icon-96x96.png",
-      "sizes": "96x96", 
+      "sizes": "96x96",
       "type": "image/png",
       "purpose": "maskable any"
     },
@@ -62,18 +76,40 @@
   ],
   "shortcuts": [
     {
-      "name": "New Journal Entry",
+      "name": "New Entry",
       "short_name": "Write",
       "description": "Start a new journal entry",
-      "url": "/?action=write",
-      "icons": [{ "src": "/icons/shortcut-write.png", "sizes": "192x192" }]
+      "url": "/?shortcut=new-entry",
+      "icons": [
+        {
+          "src": "/icons/shortcut-write.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
-      "name": "Voice Journal",
-      "short_name": "Voice", 
-      "description": "Record a voice journal entry",
-      "url": "/?action=voice",
-      "icons": [{ "src": "/icons/shortcut-voice.png", "sizes": "192x192" }]
+      "name": "View Feed",
+      "short_name": "Feed",
+      "description": "Browse your journal entries",
+      "url": "/feed?shortcut=feed",
+      "icons": [
+        {
+          "src": "/icons/shortcut-feed.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Dream Mode",
+      "short_name": "Dreams",
+      "description": "Interpret your dreams",
+      "url": "/dreams?shortcut=dreams",
+      "icons": [
+        {
+          "src": "/icons/shortcut-dreams.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ]
 }

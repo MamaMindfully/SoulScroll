@@ -19,6 +19,7 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import PerformanceOptimizer from "@/components/PerformanceOptimizer";
 import { usePremium } from "@/context/PremiumContext";
 import { PremiumGate } from "@/components/PremiumGate";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
