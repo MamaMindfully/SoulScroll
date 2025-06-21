@@ -337,6 +337,15 @@ Changelog:
   * Added comprehensive backend APIs for scroll generation and emotional analysis
   * Integrated emotional milestone tracking and insight generation
   * Created fallback systems for offline emotional scoring and scroll generation
+- June 21, 2025: Implemented customizable AI mentor personas system:
+  * Created mentorPersonas.js constants file with four distinct AI personalities (Sage, Poet, Coach, Friend)
+  * Added mentor_persona column to users database table with 'sage' as default
+  * Built MentorPersonaSelector component with visual persona selection and live preview
+  * Enhanced generateInsight utility to inject selected persona's tone and style into OpenAI prompts
+  * Added comprehensive backend APIs for persona-based insight generation
+  * Integrated mentor persona system into profile settings with immediate updates
+  * Created fallback response systems for each persona type
+  * Fixed JavaScript errors in JournalEditor component for production stability
 ```
 
 ## User Preferences

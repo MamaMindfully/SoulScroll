@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   subscriptionExpiresAt: timestamp("subscription_expires_at"),
   streakCount: integer("streak_count").default(0),
   lastEntryDate: timestamp("last_entry_date"),
+  mentorPersona: varchar("mentor_persona").default("sage"), // Added for mentor personas
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

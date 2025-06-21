@@ -1584,6 +1584,121 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Mentor persona endpoint
+  app.patch('/api/user/mentor-persona', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { mentor_persona } = req.body;
+
+      // Validate persona
+      const validPersonas = ['sage', 'poet', 'coach', 'friend'];
+      if (!validPersonas.includes(mentor_persona)) {
+        return res.status(400).json({ error: 'Invalid mentor persona' });
+      }
+
+      // Update user mentor persona (would be done via storage interface in production)
+      const updatedUser = await storage.upsertUser({ 
+        id: userId,
+        mentorPersona: mentor_persona 
+      });
+
+      res.json({ success: true, mentor_persona });
+    } catch (error) {
+      logger.error('Error updating mentor persona:', error);
+      res.status(500).json({ error: 'Failed to update mentor persona' });
+    }
+  });
+
+  // Generate insight with persona
+  app.post('/api/generate-insight-with-persona', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entry_text, persona_key, system_prompt, context } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: system_prompt
+          },
+          {
+            role: "user",
+            content: `The user has written: "${entry_text}"\n\nProvide a thoughtful response that matches your persona and offers meaningful insight. ${context}`
+          }
+        ],
+        max_tokens: 400,
+        temperature: 0.85,
+      });
+
+      const insight = response.choices[0]?.message?.content || "Your words reflect a journey of growth and self-discovery.";
+      
+      res.json({ insight });
+    } catch (error) {
+      logger.error('Error generating insight with persona:', error);
+      res.status(500).json({ error: 'Failed to generate insight' });
+    }
+  });
+
+  // Generate personalized response with persona
+  app.post('/api/generate-personalized-response', isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt, persona_key, entry_text } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: prompt
+          },
+          {
+            role: "user",
+            content: entry_text
+          }
+        ],
+        max_tokens: 350,
+        temperature: 0.8,
+      });
+
+      const personalizedResponse = response.choices[0]?.message?.content || "Thank you for sharing your thoughts with me.";
+      
+      res.json({ response: personalizedResponse });
+    } catch (error) {
+      logger.error('Error generating personalized response:', error);
+      res.status(500).json({ error: 'Failed to generate personalized response' });
+    }
+  });
+
+  // Generate deep insight with persona
+  app.post('/api/generate-deep-insight', isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt, persona_key, depth_level, entry_text } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: prompt
+          },
+          {
+            role: "user",
+            content: `At depth level ${depth_level}, help me explore: "${entry_text}"`
+          }
+        ],
+        max_tokens: 450,
+        temperature: 0.8,
+      });
+
+      const deepInsight = response.choices[0]?.message?.content || "There are deeper layers to explore in your experience.";
+      
+      res.json({ insight: deepInsight });
+    } catch (error) {
+      logger.error('Error generating deep insight:', error);
+      res.status(500).json({ error: 'Failed to generate deep insight' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
