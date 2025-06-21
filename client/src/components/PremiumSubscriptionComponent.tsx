@@ -80,7 +80,7 @@ export default function PremiumSubscriptionComponent() {
     {
       id: "premium",
       name: "Premium",
-      price: 9.99,
+      price: 8.99,
       interval: "month",
       popular: true,
       features: [

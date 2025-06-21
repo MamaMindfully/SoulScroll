@@ -182,7 +182,7 @@ export default function Premium() {
   const plans = [
     {
       title: "Monthly",
-      price: "$9.99",
+      price: "$8.99",
       period: "month",
       planType: 'monthly' as const,
       features: [
@@ -196,9 +196,9 @@ export default function Premium() {
     },
     {
       title: "Yearly",
-      price: "$99.99",
+      price: "$89.99",
       period: "year",
-      savings: "Save $20 per year",
+      savings: "Save $18 per year",
       popular: true,
       planType: 'yearly' as const,
       features: [

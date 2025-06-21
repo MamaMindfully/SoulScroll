@@ -139,7 +139,7 @@ export function LimitedTimeOffer({ onAccept }: { onAccept: () => void }) {
             Limited Time Offer
           </Badge>
           <h3 className="text-xl font-bold">50% Off Premium</h3>
-          <p className="text-white/90">Just $4.99/month for your first 3 months</p>
+          <p className="text-white/90">Just $4.49/month for your first 3 months</p>
         </div>
 
         <div className="flex justify-center space-x-4 text-center">

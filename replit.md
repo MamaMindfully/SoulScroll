@@ -302,6 +302,10 @@ Changelog:
   * Added premium success page with feature overview and subscription management
   * Updated navigation to include Archive tab for easy access to saved reflections
   * Implemented complete payment flow from checkout to premium feature unlock
+- June 21, 2025: Updated pricing structure:
+  * Changed monthly plan from $9.99 to $8.99
+  * Changed yearly plan from $99.99 to $89.99 (maintaining 17% savings)
+  * Updated pricing across all components and pages consistently
 ```
 
 ## User Preferences

@@ -77,7 +77,7 @@ export function ValuePropDisplay({ planType }: { planType: 'basic' | 'premium' |
     },
     premium: {
       name: "Premium",
-      price: "$9.99/month",
+      price: "$8.99/month",
       features: [
         "Unlimited entries",
         "Advanced AI conversations", 

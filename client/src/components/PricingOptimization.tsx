@@ -32,8 +32,8 @@ const optimizedPlans: PricingPlan[] = [
   {
     id: "premium",
     name: "Premium",
-    monthlyPrice: 9.99,
-    annualPrice: 99.99, // 2 months free
+    monthlyPrice: 8.99,
+    annualPrice: 89.99, // 2 months free
     popular: true,
     badge: "Most Popular",
     features: [
