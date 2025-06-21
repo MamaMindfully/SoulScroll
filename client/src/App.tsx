@@ -22,15 +22,18 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Community from "@/pages/community";
-import Timeline from "@/pages/timeline";
-import Insights from "@/pages/insights";
-import Settings from "@/pages/settings";
-import Dreams from "@/pages/dreams";
-import Mantras from "@/pages/mantras";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
-import Pricing from "@/pages/pricing";
-import Feed from "@/pages/Feed";
+import { 
+  LazyFeed, 
+  LazyDreams, 
+  LazyMantras, 
+  LazyInsights, 
+  LazyTimeline, 
+  LazySettings, 
+  LazyPricing,
+  withLazyLoading 
+} from "@/components/LazyComponents";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -52,15 +55,15 @@ function Router() {
           <Route path="/evening" component={() => <EveningFlow />} />
           <Route path="/progress" component={() => <ProgressDashboard />} />
           <Route path="/community" component={Community} />
-          <Route path="/dreams" component={Dreams} />
-          <Route path="/mantras" component={Mantras} />
+          <Route path="/dreams" component={withLazyLoading(LazyDreams, "Dreams")} />
+          <Route path="/mantras" component={withLazyLoading(LazyMantras, "Mantras")} />
           <Route path="/mama-mindfully" component={MamaMindfully} />
           <Route path="/settings/privacy" component={SettingsPrivacy} />
-          <Route path="/timeline" component={Timeline} />
-          <Route path="/insights" component={Insights} />
-          <Route path="/settings" component={Settings} />
-          <Route path="/pricing" component={Pricing} />
-          <Route path="/feed" component={Feed} />
+          <Route path="/timeline" component={withLazyLoading(LazyTimeline, "Timeline")} />
+          <Route path="/insights" component={withLazyLoading(LazyInsights, "Insights")} />
+          <Route path="/settings" component={withLazyLoading(LazySettings, "Settings")} />
+          <Route path="/pricing" component={withLazyLoading(LazyPricing, "Pricing")} />
+          <Route path="/feed" component={withLazyLoading(LazyFeed, "Feed")} />
         </>
       )}
       <Route component={NotFound} />
