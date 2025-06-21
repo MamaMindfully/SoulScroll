@@ -137,7 +137,8 @@ const CommunityFeed = () => {
               <Button 
                 onClick={handlePost}
                 disabled={!userNote.trim()}
-                className="px-6"
+                className="px-6 cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 Share Anonymously
               </Button>
