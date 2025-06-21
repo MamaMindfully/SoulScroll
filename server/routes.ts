@@ -987,6 +987,95 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Stripe checkout session creation
+  app.post('/api/stripe/create-checkout-session', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { planType, successUrl, cancelUrl } = req.body;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Price IDs for different plans (these should match your Stripe dashboard)
+      const priceIds = {
+        monthly: process.env.STRIPE_PRICE_ID_MONTHLY || process.env.STRIPE_PRICE_ID,
+        yearly: process.env.STRIPE_PRICE_ID_YEARLY || process.env.STRIPE_PRICE_ID
+      };
+
+      const session = await stripe.checkout.sessions.create({
+        customer_email: user.email,
+        line_items: [{
+          price: priceIds[planType as keyof typeof priceIds],
+          quantity: 1,
+        }],
+        mode: 'subscription',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: {
+          userId: userId,
+          planType: planType
+        },
+        subscription_data: {
+          trial_period_days: 7, // 7-day free trial
+          metadata: {
+            userId: userId,
+            planType: planType
+          }
+        }
+      });
+
+      res.json({ 
+        clientSecret: session.client_secret,
+        sessionId: session.id,
+        url: session.url 
+      });
+    } catch (error) {
+      logger.error('Error creating checkout session:', error);
+      res.status(500).json({ error: 'Failed to create checkout session' });
+    }
+  });
+
+  // Save reflection endpoint
+  app.post('/api/reflections/save', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { reflectionText, action, archived, dismissed } = req.body;
+
+      // Use raw SQL since this table isn't in our Drizzle schema yet
+      const result = await db.execute(sql`
+        INSERT INTO saved_reflections (user_id, reflection_text, archived, dismissed)
+        VALUES (${userId}, ${reflectionText}, ${archived || false}, ${dismissed || false})
+        RETURNING *
+      `);
+
+      res.json({ success: true, reflection: result.rows[0] });
+    } catch (error) {
+      logger.error('Error saving reflection:', error);
+      res.status(500).json({ error: 'Failed to save reflection' });
+    }
+  });
+
+  // Get saved reflections
+  app.get('/api/reflections/saved', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const result = await db.execute(sql`
+        SELECT * FROM saved_reflections 
+        WHERE user_id = ${userId} AND archived = true 
+        ORDER BY created_at DESC 
+        LIMIT 50
+      `);
+
+      res.json(result.rows);
+    } catch (error) {
+      logger.error('Error fetching saved reflections:', error);
+      res.status(500).json({ error: 'Failed to fetch saved reflections' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
