@@ -924,8 +924,66 @@ End with a simple, poetic follow-up question.
       
       res.json(timelineData);
     } catch (error) {
-      console.error('Error fetching timeline data:', error);
+      logger.error('Error fetching timeline data:', error);
       res.status(500).json({ error: 'Failed to fetch timeline data' });
+    }
+  });
+
+  // Go Deeper endpoint for progressive depth exploration
+  app.post('/api/deeper', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entry, basePrompt, level, previousInsights } = req.body;
+      const userId = req.user.claims.sub;
+      
+      // Check premium status for deeper insights
+      const subscription = await storage.getUserSubscription(userId);
+      const isPremium = subscription?.status === 'active' && subscription?.planType !== 'free';
+      
+      if (!isPremium && level > 1) {
+        return res.status(403).json({ 
+          error: 'Premium subscription required for deeper exploration',
+          deeperReflection: 'Upgrade to premium to unlock unlimited depth exploration.'
+        });
+      }
+
+      const depthPrompts = [
+        "What layers of meaning might be hidden in this experience?",
+        "If this feeling had a voice, what would it be trying to tell you?",
+        "What patterns do you notice when you step back and observe this from a distance?",
+        "How might your future self view this situation with compassion?",
+        "What would happen if you followed this thread of insight even deeper?"
+      ];
+
+      const systemPrompt = `You are a depth explorer, helping users dive deeper into their reflections. 
+      Based on the level (${level}), provide increasingly profound insights. 
+      Be poetic, wise, and help them see connections they might miss.
+      Previous insights: ${previousInsights.join('; ')}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: `Entry: "${entry}"\nBase prompt: "${basePrompt}"\nDepth question: "${depthPrompts[level] || depthPrompts[0]}"`
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.8,
+      });
+
+      const deeperReflection = response.choices[0]?.message?.content || "This experience holds wisdom waiting to be discovered.";
+      
+      res.json({ deeperReflection });
+    } catch (error) {
+      logger.error('Error generating deeper insight:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate deeper insight',
+        deeperReflection: 'Your thoughts hold layers of wisdom waiting to be explored. What does your heart want to say about this?'
+      });
     }
   });
 
