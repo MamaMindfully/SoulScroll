@@ -15,8 +15,8 @@ interface JournalEntry {
 }
 
 export function exportJournalToPDF(entries: JournalEntry[] = []): boolean {
-  // Check premium status
-  if (!true // Demo mode) {
+  // Check premium status - Demo mode enabled
+  if (!true) {
     alert('PDF Export is a premium feature. Please upgrade to unlock this functionality.');
     return false;
   }
