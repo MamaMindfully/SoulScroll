@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { PremiumProvider } from "@/context/PremiumContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
@@ -28,6 +30,7 @@ import Mantras from "@/pages/mantras";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
 import Pricing from "@/pages/pricing";
+import Feed from "@/pages/Feed";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -57,6 +60,7 @@ function Router() {
           <Route path="/insights" component={Insights} />
           <Route path="/settings" component={Settings} />
           <Route path="/pricing" component={Pricing} />
+          <Route path="/feed" component={Feed} />
         </>
       )}
       <Route component={NotFound} />
@@ -68,11 +72,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AppStoreMetadata />
-        <MobileTouchOptimizations />
-        <Toaster />
-        <Router />
-        <FloatingStartButton />
+        <ThemeProvider>
+          <PremiumProvider>
+            <AppStoreMetadata />
+            <MobileTouchOptimizations />
+            <div className="app-container">
+              <Router />
+              <Toaster />
+              <FloatingStartButton />
+            </div>
+          </PremiumProvider>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
