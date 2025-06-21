@@ -53,6 +53,8 @@ export const journalEntries = pgTable("journal_entries", {
   isVoiceEntry: boolean("is_voice_entry").default(false),
   voiceTranscription: text("voice_transcription"),
   promptId: integer("prompt_id").references(() => dailyPrompts.id),
+  emotionScore: integer("emotion_score").default(0),
+  insightDepth: integer("insight_depth").default(1),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -435,6 +437,51 @@ export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserChallenge = z.infer<typeof insertUserChallengeSchema>;
 export type UserChallenge = typeof userChallenges.$inferSelect;
+
+// Secret Scrolls table
+export const secretScrolls = pgTable("secret_scrolls", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  scrollContent: text("scroll_content"),
+  milestone: varchar("milestone", { length: 255 }),
+  scrollType: varchar("scroll_type", { length: 100 }).default("wisdom"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Saved Reflections table
+export const savedReflections = pgTable("saved_reflections", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  reflectionContent: text("reflection_content"),
+  source: varchar("source", { length: 100 }).default("ai"),
+  savedAt: timestamp("saved_at").defaultNow(),
+});
+
+// Rituals table
+export const rituals = pgTable("rituals", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  ritualName: varchar("ritual_name", { length: 255 }),
+  ritualType: varchar("ritual_type", { length: 100 }),
+  status: varchar("status", { length: 50 }).default("pending"),
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+// Schema exports for new tables
+export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertSavedReflectionSchema = createInsertSchema(savedReflections).omit({
+  id: true,
+  savedAt: true
+});
+
+export const insertRitualSchema = createInsertSchema(rituals).omit({
+  id: true,
+  completedAt: true
+});
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 

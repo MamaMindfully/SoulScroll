@@ -14,6 +14,9 @@ import {
   pushSubscriptions,
   userAchievements,
   userChallenges,
+  secretScrolls,
+  savedReflections,
+  rituals,
   type User,
   type UpsertUser,
   type JournalEntry,
@@ -124,6 +127,18 @@ export interface IStorage {
   createUserChallenge(userId: string, challenge: InsertUserChallenge): Promise<UserChallenge>;
   getUserChallenges(userId: string, status?: string): Promise<UserChallenge[]>;
   updateUserChallenge(id: number, updates: Partial<InsertUserChallenge>): Promise<UserChallenge>;
+
+  // Secret scroll operations
+  createSecretScroll(userId: string, scroll: any): Promise<any>;
+  getSecretScrolls(userId: string): Promise<any[]>;
+  
+  // Saved reflection operations
+  saveReflection(userId: string, reflection: any): Promise<any>;
+  getSavedReflections(userId: string): Promise<any[]>;
+  
+  // Ritual operations
+  createRitual(userId: string, ritual: any): Promise<any>;
+  getUserRituals(userId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
