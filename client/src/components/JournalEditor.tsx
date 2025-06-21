@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { PenTool, Mic, Save, Check, CheckCircle, LoaderCircle, Lightbulb, MessageCircle } from "lucide-react";
 import { useUserProfile } from '../hooks/useUserProfile';
+import TapToGoDeeper from './TapToGoDeeper';
+import ReflectionFeedback from './ReflectionFeedback';
 
 interface JournalEntryData {
   content: string;

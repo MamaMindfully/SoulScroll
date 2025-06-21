@@ -1,49 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Brain, Sparkles, LoaderCircle, Eye } from "lucide-react";
-// Premium features now handled by PremiumContext
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown, Brain, Sparkles, LoaderCircle, Eye, ArrowRight, MessageSquare } from "lucide-react";
+import { usePremium } from '@/context/PremiumContext';
+import { apiRequest } from '@/lib/queryClient';
 
 interface TapToGoDeeperProps {
   originalPrompt: string;
   userEntry: string;
   onDeepInsight?: (insight: string) => void;
+  className?: string;
+}
+
+interface ConversationThread {
+  userInput: string;
+  aiResponse: string;
+  level: number;
+  timestamp: Date;
 }
 
 const TapToGoDeeper: React.FC<TapToGoDeeperProps> = ({
   originalPrompt,
   userEntry,
-  onDeepInsight
+  onDeepInsight,
+  className = ''
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [deeperInsights, setDeeperInsights] = useState<string[]>([]);
+  const [conversationThread, setConversationThread] = useState<ConversationThread[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentLevel, setCurrentLevel] = useState(0);
-  const isPremium = true; // Demo mode
+  const [userResponse, setUserResponse] = useState('');
+  const [showUserInput, setShowUserInput] = useState(false);
+  const { isPremium } = usePremium();
+  const componentRef = useRef<HTMLDivElement>(null);
+  const userInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const getDeeperPrompt = async (entry: string, basePrompt: string, level: number = 0) => {
+  // Scroll component into view when expanded
+  useEffect(() => {
+    if (isExpanded && componentRef.current) {
+      componentRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  }, [isExpanded]);
+
+  // Focus user input when it becomes visible
+  useEffect(() => {
+    if (showUserInput && userInputRef.current) {
+      userInputRef.current.focus();
+    }
+  }, [showUserInput]);
+
+  const getDeeperInsight = async (userInput: string, threadHistory: ConversationThread[], level: number) => {
     try {
-      const response = await fetch('/api/deeper', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          entry: entry, 
-          basePrompt: basePrompt,
-          level: level,
-          previousInsights: deeperInsights
-        })
+      // Build context from conversation thread
+      const threadContext = threadHistory.map((thread, index) => 
+        `Round ${index + 1}:\nUser: ${thread.userInput}\nAI: ${thread.aiResponse}`
+      ).join('\n\n');
+
+      const contextualPrompt = threadHistory.length > 0 
+        ? `Original entry: "${userEntry}"\n\nConversation so far:\n${threadContext}\n\nUser's latest response: "${userInput}"`
+        : `Original entry: "${userEntry}"\nUser wants to explore: "${userInput}"`;
+
+      const response = await apiRequest('POST', '/api/deeper-thread', {
+        prompt: contextualPrompt,
+        level: level,
+        isPremium: isPremium,
+        originalPrompt: originalPrompt
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get deeper insight');
-      }
-
       const data = await response.json();
-      return data.deeperReflection || "No further insights found at this time.";
+      return data.deeperReflection || "Your thoughts hold layers of wisdom waiting to be explored. What resonates with you from this reflection?";
     } catch (error) {
-      console.error('Error getting deeper prompt:', error);
-      return "Your thoughts hold layers of wisdom waiting to be explored. What does your heart want to say about this?";
+      console.error('Error getting deeper insight:', error);
+      return "There's something profound waiting to be discovered here. What aspect of this feels most significant to you right now?";
     }
   };
 

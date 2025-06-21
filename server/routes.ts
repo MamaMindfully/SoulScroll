@@ -987,6 +987,73 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Multi-round deeper exploration with conversation threading
+  app.post('/api/deeper-thread', isAuthenticated, async (req: any, res) => {
+    try {
+      const { prompt, level, isPremium, originalPrompt } = req.body;
+      const userId = req.user.claims.sub;
+      
+      // Check premium status for deeper insights
+      if (!isPremium && level > 0) {
+        return res.status(403).json({ 
+          error: 'Premium subscription required for deeper exploration',
+          deeperReflection: 'Upgrade to premium to unlock unlimited depth exploration and multi-round conversations.'
+        });
+      }
+
+      // Progressive depth system prompts
+      const depthSystemPrompts = [
+        `You are Arc, a gentle depth explorer. The user is beginning to explore their thoughts more deeply. 
+        Ask questions that help them see patterns or emotions they might not have noticed. 
+        Be curious and supportive. Keep responses 2-3 sentences.`,
+        
+        `You are Arc, guiding someone deeper into self-discovery. They're ready for more meaningful insights. 
+        Help them connect this experience to broader themes in their life. 
+        Use gentle metaphors and invite them to explore the "why" behind their feelings.`,
+        
+        `You are Arc, working with someone at a core level of reflection. They're touching something significant. 
+        Help them understand the deeper meaning and how this connects to their values or fears. 
+        Be profound but accessible.`,
+        
+        `You are Arc, supporting someone in soul-level exploration. They're accessing deep wisdom. 
+        Help them see how this insight might transform their perspective or guide future decisions. 
+        Honor the depth they've reached.`,
+        
+        `You are Arc, witnessing transcendent-level insight. This is sacred territory. 
+        Help them integrate this wisdom and see how it connects to their larger journey. 
+        Be reverent and deeply supportive.`
+      ];
+
+      const systemPrompt = depthSystemPrompts[level] || depthSystemPrompts[0];
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 400,
+        temperature: 0.7,
+      });
+
+      const deeperReflection = response.choices[0]?.message?.content || "There's something profound here waiting to be discovered. What feels most alive in this exploration for you?";
+      
+      res.json({ deeperReflection });
+    } catch (error) {
+      logger.error('Error generating threaded deeper insight:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate deeper insight',
+        deeperReflection: 'Your thoughts hold layers of wisdom waiting to be explored. What aspect of this feels most significant to you right now?'
+      });
+    }
+  });
+
   // Stripe checkout session creation
   app.post('/api/stripe/create-checkout-session', isAuthenticated, async (req: any, res) => {
     try {
