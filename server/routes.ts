@@ -6,6 +6,7 @@ import { z } from "zod";
 import { insertJournalEntrySchema, insertDailyPromptSchema } from "@shared/schema";
 import { journalService } from "./services/journalService";
 import OpenAI from "openai";
+import premiumRoutes from "./routes/premiumFeatures.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 

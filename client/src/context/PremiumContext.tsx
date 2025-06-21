@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { getPremiumFeatures, type PremiumFeatures } from '@/utils/getPremiumFeatures';
+import { fetchPremiumStatus } from '@/utils/getPremiumStatus';
 
 interface PremiumContextType {
   isPremium: boolean;
@@ -40,7 +41,7 @@ export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children }) =>
   });
   const { isAuthenticated, user } = useAuth();
 
-  const fetchPremiumStatus = async () => {
+  const fetchPremiumStatusFromAPI = async () => {
     if (!isAuthenticated || !user) {
       setIsPremium(false);
       setPremiumFeatures(await getPremiumFeatures());
@@ -49,10 +50,8 @@ export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children }) =>
     }
 
     try {
-      const response = await apiRequest('GET', '/api/user/premium-status');
-      const data = await response.json();
-      const premiumStatus = data?.isPremium || false;
-      
+      // Use the new premium API route
+      const premiumStatus = await fetchPremiumStatus(user.id);
       setIsPremium(premiumStatus);
       
       // Fetch detailed premium features
@@ -69,11 +68,11 @@ export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children }) =>
 
   const refreshPremiumStatus = async () => {
     setIsLoading(true);
-    await fetchPremiumStatus();
+    await fetchPremiumStatusFromAPI();
   };
 
   useEffect(() => {
-    fetchPremiumStatus();
+    fetchPremiumStatusFromAPI();
   }, [isAuthenticated, user]);
 
   const contextValue = {
