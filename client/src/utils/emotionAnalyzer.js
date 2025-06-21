@@ -1,4 +1,4 @@
-import { openaiClient } from './openaiClient';
+import { openaiClient } from './openaiClient.js';
 
 export class EmotionAnalyzer {
   constructor() {
@@ -8,12 +8,12 @@ export class EmotionAnalyzer {
 
   async analyzeEmotion(text, entryId = null) {
     try {
-      console.log('🧠 Analyzing emotion for text:', text.substring(0, 50) + '...');
+      console.log('Analyzing emotion for text:', text.substring(0, 50) + '...');
       
       const result = await openaiClient.scoreEmotion(text, entryId);
       
       if (result.success) {
-        console.log('✅ Emotion analysis successful:', result.score);
+        console.log('Emotion analysis successful:', result.score);
         return {
           score: result.score,
           label: this.getEmotionLabel(result.score),
@@ -21,7 +21,7 @@ export class EmotionAnalyzer {
           success: true
         };
       } else {
-        console.warn('⚠️ OpenAI emotion analysis failed, using fallback');
+        console.warn('OpenAI emotion analysis failed, using fallback');
         const fallbackScore = this.calculateFallbackScore(text);
         return {
           score: fallbackScore,
@@ -32,7 +32,7 @@ export class EmotionAnalyzer {
         };
       }
     } catch (error) {
-      console.error('❌ Emotion analysis error:', error);
+      console.error('Emotion analysis error:', error);
       const fallbackScore = this.calculateFallbackScore(text);
       return {
         score: fallbackScore,
@@ -83,96 +83,14 @@ export class EmotionAnalyzer {
     return { label: 'Peaceful', color: 'blue', description: 'Very calm and centered' };
   }
 
-  async analyzeEmotionalTrends(entries) {
-    try {
-      console.log('📊 Analyzing emotional trends for', entries.length, 'entries');
-      
-      const scores = entries.map(entry => ({
-        date: entry.createdAt,
-        score: entry.emotion_score || this.calculateFallbackScore(entry.content),
-        content_preview: entry.content.substring(0, 100)
-      }));
-
-      const analysis = this.calculateTrendMetrics(scores);
-      console.log('✅ Trend analysis complete:', analysis);
-      
-      return {
-        success: true,
-        ...analysis
-      };
-    } catch (error) {
-      console.error('❌ Trend analysis error:', error);
-      return {
-        success: false,
-        error: error.message,
-        average_intensity: 5,
-        trend_direction: 'stable',
-        volatility: 1
-      };
-    }
-  }
-
-  calculateTrendMetrics(scores) {
-    if (scores.length === 0) {
-      return {
-        average_intensity: 5,
-        highest_intensity: 5,
-        lowest_intensity: 5,
-        volatility: 0,
-        trend_direction: 'insufficient_data',
-        emotional_range: 0,
-        total_entries: 0
-      };
-    }
-
-    const values = scores.map(s => s.score);
-    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const highest = Math.max(...values);
-    const lowest = Math.min(...values);
-    
-    // Calculate volatility (standard deviation)
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / values.length;
-    const volatility = Math.sqrt(variance);
-
-    // Calculate trend direction
-    const trendDirection = this.calculateTrendDirection(scores);
-
-    return {
-      average_intensity: Math.round(average * 10) / 10,
-      highest_intensity: highest,
-      lowest_intensity: lowest,
-      volatility: Math.round(volatility * 10) / 10,
-      trend_direction: trendDirection,
-      emotional_range: highest - lowest,
-      total_entries: scores.length
-    };
-  }
-
-  calculateTrendDirection(scores) {
-    if (scores.length < 3) return 'insufficient_data';
-    
-    const recent = scores.slice(-7); // Last 7 entries
-    const earlier = scores.slice(-14, -7); // Previous 7 entries
-    
-    if (recent.length === 0 || earlier.length === 0) return 'insufficient_data';
-    
-    const recentAvg = recent.reduce((sum, item) => sum + item.score, 0) / recent.length;
-    const earlierAvg = earlier.reduce((sum, item) => sum + item.score, 0) / earlier.length;
-    
-    const difference = recentAvg - earlierAvg;
-    
-    if (Math.abs(difference) < 0.5) return 'stable';
-    return difference > 0 ? 'increasing' : 'decreasing';
-  }
-
   async testConnection() {
     try {
-      console.log('🧪 Testing emotion analyzer connection...');
+      console.log('Testing emotion analyzer connection...');
       const testResult = await this.analyzeEmotion('I feel happy and content today.');
-      console.log('✅ Emotion analyzer test passed:', testResult);
+      console.log('Emotion analyzer test passed:', testResult);
       return testResult.success;
     } catch (error) {
-      console.error('❌ Emotion analyzer test failed:', error);
+      console.error('Emotion analyzer test failed:', error);
       return false;
     }
   }
@@ -183,5 +101,4 @@ export const emotionAnalyzer = new EmotionAnalyzer();
 
 // Export convenience functions
 export const analyzeEmotion = (text, entryId) => emotionAnalyzer.analyzeEmotion(text, entryId);
-export const analyzeEmotionalTrends = (entries) => emotionAnalyzer.analyzeEmotionalTrends(entries);
 export const testEmotionConnection = () => emotionAnalyzer.testConnection();

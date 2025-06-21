@@ -13,12 +13,11 @@ import {
   TrendingUp
 } from "lucide-react";
 import { 
-  getRitual, 
-  getTimeAwareRitual, 
   getPersonalizedRitual,
   getRitualWithTracking,
-  getRitualStats 
-} from '../utils/dailyRitualEngine';
+  getRitualStats,
+  getCurrentTimeType
+} from '../utils/dailyRitualEngine.js';
 
 interface DailyRitualCardProps {
   type?: 'morning' | 'evening' | 'auto';
@@ -45,16 +44,28 @@ const DailyRitualCard: React.FC<DailyRitualCardProps> = ({
     checkTodayCompletion();
   }, [type, category, userProfile]);
 
-  const loadRitual = () => {
+  const loadRitual = async () => {
     let ritual = '';
     let detectedType: 'morning' | 'evening' = 'morning';
 
     if (type === 'auto') {
-      ritual = getPersonalizedRitual(userProfile);
-      detectedType = getCurrentTimeType();
+      try {
+        const ritualResult = await getPersonalizedRitual(userProfile?.id || 'guest', getCurrentTimeType(), userProfile);
+        ritual = ritualResult?.ritual?.title || 'Take a moment for mindful reflection.';
+        detectedType = getCurrentTimeType();
+      } catch (error) {
+        console.error('Error getting personalized ritual:', error);
+        ritual = 'Take a moment for mindful reflection.';
+        detectedType = getCurrentTimeType();
+      }
     } else {
-      detectedType = type;
-      ritual = getRitualWithTracking(type);
+      detectedType = type as 'morning' | 'evening';
+      try {
+        ritual = getRitualWithTracking(type);
+      } catch (error) {
+        console.error('Error getting ritual with tracking:', error);
+        ritual = 'Take a moment to connect with yourself and set a positive intention.';
+      }
     }
 
     setCurrentRitual(ritual);
@@ -62,8 +73,19 @@ const DailyRitualCard: React.FC<DailyRitualCardProps> = ({
   };
 
   const loadStats = () => {
-    const ritualStats = getRitualStats();
-    setStats(ritualStats);
+    try {
+      const ritualStats = getRitualStats(userProfile?.id);
+      setStats(ritualStats);
+    } catch (error) {
+      console.error('Error loading ritual stats:', error);
+      setStats({
+        total_completed: 0,
+        streak_days: 0,
+        favorite_ritual: 'gratitude',
+        completion_rate: 0,
+        weekly_completions: 0
+      });
+    }
   };
 
   const checkTodayCompletion = () => {
