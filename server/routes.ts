@@ -1699,6 +1699,40 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Test OpenAI connection
+  app.get('/api/test-openai', isAuthenticated, async (req: any, res) => {
+    try {
+      console.log('🧪 Testing OpenAI connection...');
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: "Respond with a simple confirmation that the API is working."
+          }
+        ],
+        max_tokens: 50,
+        temperature: 0.3,
+      });
+
+      const testResponse = response.choices[0]?.message?.content || "API is working";
+      
+      res.json({ 
+        success: true, 
+        message: testResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      logger.error('OpenAI connection test failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'OpenAI connection failed',
+        details: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
