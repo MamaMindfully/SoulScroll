@@ -33,7 +33,7 @@ import DeploymentOptimizations from "@/components/DeploymentOptimizations";
 export default function Settings() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [isPremium, setIsPremium] = useState(true // Demo mode);
+  const [isPremium, setIsPremium] = useState(true); // Demo mode
 
   // Redirect to home if not authenticated
   useEffect(() => {
