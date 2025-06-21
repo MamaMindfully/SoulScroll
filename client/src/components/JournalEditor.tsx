@@ -414,6 +414,26 @@ export default function JournalEditor() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Reflection Feedback */}
+              <ReflectionFeedback 
+                reflectionText={reflection.insight}
+                onAskForAnother={() => {
+                  // Trigger reflection regeneration
+                  setReflection(null);
+                  setLoadingReflection(true);
+                  // Could implement regeneration API call here
+                }}
+              />
+
+              {/* Tap to Go Deeper */}
+              <TapToGoDeeper
+                originalPrompt={reflection.followUpPrompt || ""}
+                userEntry={content}
+                onDeepInsight={(insight) => {
+                  console.log('Deep insight generated:', insight);
+                }}
+              />
             </div>
           )}
         </div>
@@ -421,21 +441,43 @@ export default function JournalEditor() {
 
       {/* Legacy AI Output Display (keeping for compatibility) */}
       {aiOutput && !hasSubmitted && (
-        <Card className="mt-6">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-primary">SoulScroll Reflection</span>
-            </div>
-            <div className="prose prose-sm max-w-none text-wisdom/80 leading-relaxed">
-              {aiOutput.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-3 last:mb-0">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mt-6 space-y-4">
+          {/* AI Response */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-primary">SoulScroll Reflection</span>
+              </div>
+              <div className="prose prose-sm max-w-none text-wisdom/80 leading-relaxed">
+                {aiOutput.split('\n').map((paragraph, index) => (
+                  <p key={index} className="mb-3 last:mb-0">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Reflection Feedback */}
+          <ReflectionFeedback 
+            reflectionText={aiOutput}
+            onAskForAnother={() => {
+              // Clear current AI output to trigger regeneration
+              setAIOutput('');
+              // Could implement regeneration logic here
+            }}
+          />
+
+          {/* Tap to Go Deeper */}
+          <TapToGoDeeper
+            originalPrompt=""
+            userEntry={content}
+            onDeepInsight={(insight) => {
+              console.log('Deep insight generated:', insight);
+            }}
+          />
+        </div>
       )}
     </section>
   );

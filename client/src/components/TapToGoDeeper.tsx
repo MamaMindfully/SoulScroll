@@ -81,211 +81,174 @@ const TapToGoDeeper: React.FC<TapToGoDeeperProps> = ({
   };
 
   const handleGoDeeper = async () => {
-    if (!isPremium) {
+    if (!isPremium && currentLevel >= 1) {
+      // Free users get 1 level, premium gets unlimited
       return;
     }
 
+    if (currentLevel >= 5) {
+      return; // Max depth reached
+    }
+
+    setIsExpanded(true);
+    setShowUserInput(true);
+  };
+
+  const handleUserSubmit = async () => {
+    if (!userResponse.trim()) return;
+
     setIsLoading(true);
-    
+    setShowUserInput(false);
+
     try {
-      const newInsight = await getDeeperPrompt(userEntry, originalPrompt, currentLevel);
-      const updatedInsights = [...deeperInsights, newInsight];
+      const insight = await getDeeperInsight(userResponse, conversationThread, currentLevel);
       
-      setDeeperInsights(updatedInsights);
-      setCurrentLevel(currentLevel + 1);
-      setIsExpanded(true);
+      const newThread: ConversationThread = {
+        userInput: userResponse,
+        aiResponse: insight,
+        level: currentLevel,
+        timestamp: new Date()
+      };
+
+      setConversationThread(prev => [...prev, newThread]);
+      setCurrentLevel(prev => prev + 1);
+      setUserResponse('');
       
       if (onDeepInsight) {
-        onDeepInsight(newInsight);
+        onDeepInsight(insight);
+      }
+
+      // After AI responds, show input for next round (if not at max)
+      if (currentLevel < 4) {
+        setTimeout(() => setShowUserInput(true), 1000);
       }
     } catch (error) {
-      console.error('Error in handleGoDeeper:', error);
+      console.error('Error in handleUserSubmit:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getButtonText = () => {
-    if (currentLevel === 0) return "Go Deeper";
-    if (currentLevel === 1) return "Explore Further";
-    if (currentLevel === 2) return "Dive Deeper";
-    return "Continue Exploring";
-  };
-
-  const getInsightTitle = (level: number) => {
-    const titles = [
-      "🔍 Deeper Reflection",
-      "💡 Further Insight", 
-      "🌊 Profound Understanding",
-      "✨ Soul-Level Wisdom",
-      "🌟 Transcendent Clarity"
-    ];
-    return titles[level] || "🌟 Deep Wisdom";
-  };
-
-  if (!isPremium) {
-    return (
-      <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 mt-4">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Brain className="w-5 h-5 text-indigo-500" />
-              <div>
-                <div className="font-medium text-indigo-800 text-sm">
-                  Go Deeper
-                </div>
-                <div className="text-xs text-indigo-600">
-                  Unlock progressive AI insights
-                </div>
-              </div>
-            </div>
-            <div className="text-center">
-              <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300 mb-2">
-                Premium
-              </Badge>
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-              >
-                Upgrade
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="mt-4 space-y-3">
-      {/* Main Go Deeper Button */}
-      <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50">
+    <div ref={componentRef} className={`mt-4 ${className}`}>
+      <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200 hover:shadow-md transition-shadow">
         <CardContent className="p-4">
           <Button
             onClick={handleGoDeeper}
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600"
-            style={{ minHeight: '44px' }}
+            disabled={isLoading || currentLevel >= 5 || (!isPremium && currentLevel >= 1)}
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
           >
             {isLoading ? (
-              <>
-                <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
-                <span style={{ fontSize: 'clamp(0.9rem, 2.2vw, 1rem)' }}>
-                  Reflecting deeper...
-                </span>
-              </>
+              <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
             ) : (
-              <>
-                <Brain className="w-4 h-4 mr-2" />
-                <span style={{ fontSize: 'clamp(0.9rem, 2.2vw, 1rem)' }}>
-                  {getButtonText()}
-                </span>
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </>
+              <Eye className="w-4 h-4 mr-2" />
+            )}
+            {currentLevel === 0 ? "Tap to Go Deeper" : `Continue Exploration (Level ${currentLevel + 1})`}
+            {!isPremium && currentLevel >= 1 && (
+              <Badge className="ml-2 bg-amber-500">Premium</Badge>
             )}
           </Button>
-          
-          {currentLevel > 0 && (
-            <div className="flex items-center justify-center mt-2 space-x-2">
-              <Eye className="w-3 h-3 text-indigo-500" />
-              <span className="text-xs text-indigo-600">
-                Depth Level: {currentLevel}
-              </span>
-              <div className="flex space-x-1">
-                {Array.from({ length: Math.min(currentLevel, 5) }).map((_, i) => (
-                  <div 
-                    key={i}
-                    className="w-1.5 h-1.5 rounded-full bg-indigo-400"
+
+          {isExpanded && (
+            <div className="mt-4 space-y-4">
+              {/* Conversation Thread */}
+              {conversationThread.map((thread, index) => (
+                <div key={index} className="space-y-3">
+                  {/* User Input */}
+                  <div className="p-3 bg-slate-100 rounded-lg border-l-4 border-slate-400">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <MessageSquare className="w-4 h-4 text-slate-600" />
+                      <span className="text-sm font-medium text-slate-700">Your Response</span>
+                    </div>
+                    <p className="text-sm text-slate-700">
+                      {thread.userInput}
+                    </p>
+                  </div>
+
+                  {/* AI Response */}
+                  <div className="p-4 bg-white/80 rounded-lg border border-purple-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Brain className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Level {thread.level + 1} Insight</span>
+                      <Badge variant="outline" className="text-xs">
+                        {thread.level === 0 ? 'Surface' : 
+                         thread.level === 1 ? 'Deeper' : 
+                         thread.level === 2 ? 'Core' : 
+                         thread.level === 3 ? 'Soul' : 'Transcendent'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-slate-700 leading-relaxed italic">
+                      {thread.aiResponse}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* User Input Area */}
+              {showUserInput && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <ArrowRight className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">Your Turn</span>
+                  </div>
+                  <Textarea
+                    ref={userInputRef}
+                    placeholder="What resonates with you? What would you like to explore further?"
+                    value={userResponse}
+                    onChange={(e) => setUserResponse(e.target.value)}
+                    className="min-h-[80px] border-blue-200 focus:border-blue-400"
                   />
-                ))}
-              </div>
+                  <div className="flex space-x-2 mt-3">
+                    <Button
+                      onClick={handleUserSubmit}
+                      disabled={!userResponse.trim() || isLoading}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isLoading ? (
+                        <LoaderCircle className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4 mr-2" />
+                      )}
+                      Explore Further
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowUserInput(false);
+                        setUserResponse('');
+                      }}
+                    >
+                      Skip
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Continue Button (when not showing input) */}
+              {!showUserInput && currentLevel < 5 && !isLoading && conversationThread.length > 0 && (
+                <Button
+                  onClick={() => setShowUserInput(true)}
+                  variant="outline"
+                  className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Continue This Thread
+                </Button>
+              )}
+
+              {/* Max depth reached */}
+              {currentLevel >= 5 && (
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border border-amber-200 text-center">
+                  <Sparkles className="w-6 h-6 mx-auto text-amber-600 mb-2" />
+                  <p className="text-sm text-amber-800 font-medium">
+                    You've reached the deepest level of exploration. Take a moment to integrate these insights.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Deeper Insights */}
-      {isExpanded && deeperInsights.length > 0 && (
-        <div className="space-y-3">
-          {deeperInsights.map((insight, index) => (
-            <Card 
-              key={index}
-              className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 animate-in slide-in-from-bottom duration-500"
-              style={{ animationDelay: `${index * 200}ms` }}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start space-x-3">
-                  <div className="bg-purple-100 p-2 rounded-full">
-                    <Sparkles className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-purple-800 text-sm">
-                        {getInsightTitle(index)}
-                      </h4>
-                      <Badge 
-                        variant="outline" 
-                        className="border-purple-300 text-purple-700 text-xs"
-                      >
-                        Level {index + 1}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-800 text-sm leading-relaxed italic">
-                      {insight}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Continue Prompt */}
-      {deeperInsights.length > 0 && currentLevel < 5 && (
-        <Card className="border-gray-200 bg-gradient-to-br from-gray-50 to-blue-50">
-          <CardContent className="p-3">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">
-                Ready to explore even deeper layers of understanding?
-              </p>
-              <Button
-                onClick={handleGoDeeper}
-                disabled={isLoading}
-                variant="outline"
-                size="sm"
-                className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-              >
-                {isLoading ? (
-                  <LoaderCircle className="w-3 h-3 mr-1 animate-spin" />
-                ) : (
-                  <Brain className="w-3 h-3 mr-1" />
-                )}
-                {getButtonText()}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Maximum Depth Reached */}
-      {currentLevel >= 5 && (
-        <Card className="border-gold-200 bg-gradient-to-br from-yellow-50 to-amber-50">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <Sparkles className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-              <h4 className="font-medium text-amber-800 mb-1">
-                🌟 Maximum Depth Reached
-              </h4>
-              <p className="text-sm text-amber-700">
-                You've journeyed through the deepest layers of reflection. 
-                Take time to integrate these profound insights.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
