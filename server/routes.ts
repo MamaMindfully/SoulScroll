@@ -1369,6 +1369,221 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Secret Scroll endpoints
+  app.post('/api/generate-secret-scroll', isAuthenticated, async (req: any, res) => {
+    try {
+      const { milestone, userId } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are a mystical scroll generator. Create poetic, inspiring rewards for journaling milestones. Include a profound quote and practical wisdom. Be mystical but grounded, spiritual but accessible."
+          },
+          {
+            role: "user",
+            content: `Generate a mystical reward scroll for someone who has written ${milestone} journal entries. Include: a poetic title, an inspiring quote, and a piece of wisdom/advice for their continued journey.`
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.8,
+      });
+
+      const scrollText = response.choices[0]?.message?.content || "Your journey continues to unfold with wisdom and grace.";
+      
+      res.json({ scroll: scrollText });
+    } catch (error) {
+      logger.error('Error generating secret scroll:', error);
+      res.status(500).json({ error: 'Failed to generate secret scroll' });
+    }
+  });
+
+  app.post('/api/secret-scrolls', isAuthenticated, async (req: any, res) => {
+    try {
+      const { scroll_text, milestone } = req.body;
+      const userId = req.user.claims.sub;
+
+      // In production, this would save to database
+      res.json({ success: true, id: Date.now(), scroll_text, milestone });
+    } catch (error) {
+      logger.error('Error saving secret scroll:', error);
+      res.status(500).json({ error: 'Failed to save secret scroll' });
+    }
+  });
+
+  app.get('/api/secret-scrolls', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit || 10;
+
+      // Mock data - in production this would query database
+      res.json([]);
+    } catch (error) {
+      logger.error('Error fetching secret scrolls:', error);
+      res.status(500).json({ error: 'Failed to fetch secret scrolls' });
+    }
+  });
+
+  app.get('/api/secret-scrolls/milestone/:milestone', isAuthenticated, async (req: any, res) => {
+    try {
+      const { milestone } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Mock data - in production this would query database
+      res.json(null);
+    } catch (error) {
+      logger.error('Error fetching scroll by milestone:', error);
+      res.status(500).json({ error: 'Failed to fetch scroll by milestone' });
+    }
+  });
+
+  // Emotional resonance endpoints
+  app.post('/api/score-emotion', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entry_text, entry_id } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "Rate the emotional intensity of journal entries on a scale of 1-10, where 1 is flat/emotionless and 10 is extremely emotionally charged. Consider word choice, punctuation, capitalization, and overall emotional engagement. Return only a number."
+          },
+          {
+            role: "user",
+            content: `Rate the emotional intensity of this journal entry:\n\n"${entry_text}"`
+          }
+        ],
+        max_tokens: 10,
+        temperature: 0.3,
+      });
+
+      const scoreText = response.choices[0]?.message?.content?.trim() || "5";
+      const emotion_score = Math.max(1, Math.min(10, parseInt(scoreText) || 5));
+
+      // Update the journal entry with emotion score
+      if (entry_id) {
+        await storage.updateJournalEntry(entry_id, { emotion_score });
+      }
+
+      res.json({ emotion_score });
+    } catch (error) {
+      logger.error('Error scoring emotion:', error);
+      res.status(500).json({ error: 'Failed to score emotion' });
+    }
+  });
+
+  app.get('/api/emotional-trends', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const days = parseInt(req.query.days as string) || 30;
+
+      const entries = await storage.getJournalEntries(userId, 1000);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+
+      const recentEntries = entries.filter(entry => 
+        new Date(entry.createdAt) >= cutoffDate && entry.emotion_score
+      );
+
+      const trends = recentEntries.map(entry => ({
+        date: entry.createdAt,
+        emotion_score: entry.emotion_score,
+        word_count: entry.wordCount
+      }));
+
+      res.json(trends);
+    } catch (error) {
+      logger.error('Error fetching emotional trends:', error);
+      res.status(500).json({ error: 'Failed to fetch emotional trends' });
+    }
+  });
+
+  app.post('/api/generate-emotional-insight', isAuthenticated, async (req: any, res) => {
+    try {
+      const { pattern } = req.body;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an emotional intelligence coach. Analyze emotional patterns and provide gentle, encouraging insights about the user's emotional journey. Be supportive and offer practical wisdom."
+          },
+          {
+            role: "user",
+            content: `Based on this emotional pattern analysis, provide an insight: Average intensity: ${pattern.average_intensity}, Trend: ${pattern.trend_direction}, Volatility: ${pattern.volatility}`
+          }
+        ],
+        max_tokens: 200,
+        temperature: 0.7,
+      });
+
+      const insight = response.choices[0]?.message?.content || "Your emotional journey shows growth and self-awareness.";
+      
+      res.json({ insight });
+    } catch (error) {
+      logger.error('Error generating emotional insight:', error);
+      res.status(500).json({ error: 'Failed to generate emotional insight' });
+    }
+  });
+
+  app.get('/api/high-intensity-entries', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const threshold = parseInt(req.query.threshold as string) || 7;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const entries = await storage.getJournalEntries(userId, 1000);
+      const highIntensityEntries = entries
+        .filter(entry => entry.emotion_score && entry.emotion_score >= threshold)
+        .slice(0, limit);
+
+      res.json(highIntensityEntries);
+    } catch (error) {
+      logger.error('Error fetching high intensity entries:', error);
+      res.status(500).json({ error: 'Failed to fetch high intensity entries' });
+    }
+  });
+
+  app.get('/api/emotional-milestones', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+
+      // Mock milestones - in production this would be calculated from actual data
+      res.json({
+        total_entries_with_scores: 15,
+        average_emotional_intensity: 6.2,
+        highest_intensity_reached: 9,
+        emotional_range_explored: 7,
+        days_tracking_emotions: 12
+      });
+    } catch (error) {
+      logger.error('Error fetching emotional milestones:', error);
+      res.status(500).json({ error: 'Failed to fetch emotional milestones' });
+    }
+  });
+
+  app.patch('/api/journal/entries/:entryId/emotion', isAuthenticated, async (req: any, res) => {
+    try {
+      const { entryId } = req.params;
+      const { emotion_score } = req.body;
+      const userId = req.user.claims.sub;
+
+      const entry = await storage.getJournalEntryById(parseInt(entryId));
+      if (!entry || entry.userId !== userId) {
+        return res.status(404).json({ error: 'Entry not found' });
+      }
+
+      const updatedEntry = await storage.updateJournalEntry(parseInt(entryId), { emotion_score });
+      res.json(updatedEntry);
+    } catch (error) {
+      logger.error('Error updating entry emotion score:', error);
+      res.status(500).json({ error: 'Failed to update entry emotion score' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

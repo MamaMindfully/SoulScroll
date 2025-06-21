@@ -18,6 +18,9 @@ import { PenTool, Mic, Save, Check, CheckCircle, LoaderCircle, Lightbulb, Messag
 import { useUserProfile } from '../hooks/useUserProfile';
 import TapToGoDeeper from './TapToGoDeeper';
 import ReflectionFeedback from './ReflectionFeedback';
+import SecretScrollModal from './SecretScrollModal';
+import { scoreEntryEmotion } from '@/utils/emotionalResonance';
+import { checkScrollUnlockAfterEntry } from '@/utils/secretScrollEngine';
 
 interface JournalEntryData {
   content: string;
@@ -479,6 +482,16 @@ export default function JournalEditor() {
           />
         </div>
       )}
+
+      {/* Secret Scroll Modal */}
+      <SecretScrollModal
+        scroll={secretScroll}
+        isVisible={showSecretScroll}
+        onClose={() => {
+          setShowSecretScroll(false);
+          setSecretScroll(null);
+        }}
+      />
     </section>
   );
 }

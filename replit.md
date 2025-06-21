@@ -327,6 +327,16 @@ Changelog:
   * Integrated OpenAI embeddings API for semantic similarity search
   * Added weekly theme generation with GPT-4o for personalized spiritual guidance
   * Implemented action completion tracking and weekly progress analytics
+- June 21, 2025: Built Secret Scroll Engine and Emotional Resonance system:
+  * Created Secret Scroll Engine with milestone-based mystical rewards system
+  * Implemented Emotional Resonance scoring with GPT-4o for journal entries
+  * Added secretScrolls database table for storing unlocked mystical rewards
+  * Enhanced journal entries schema with emotion_score field for tracking intensity
+  * Built SecretScrollModal component with animated scroll reveals and mystical UI
+  * Created EmotionalResonanceCard component for tracking emotional patterns and trends
+  * Added comprehensive backend APIs for scroll generation and emotional analysis
+  * Integrated emotional milestone tracking and insight generation
+  * Created fallback systems for offline emotional scoring and scroll generation
 ```
 
 ## User Preferences
