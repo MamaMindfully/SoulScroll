@@ -434,3 +434,5 @@ export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
 export type UserAchievement = typeof userAchievements.$inferSelect;
 export type InsertUserChallenge = z.infer<typeof insertUserChallengeSchema>;
 export type UserChallenge = typeof userChallenges.$inferSelect;
+export type InsertReflection = z.infer<typeof insertReflectionSchema>;
+export type Reflection = typeof reflections.$inferSelect;

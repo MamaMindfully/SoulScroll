@@ -274,6 +274,12 @@ Changelog:
   * Added PWA manifest with app shortcuts and iOS optimizations
   * Implemented lazy loading for heavy components to improve performance
   * Added production logger and cleaned up console statements
+  * Created Supabase reflections table for community wisdom sharing
+  * Enhanced WisdomFeed with premium gating and real-time community content
+  * Built daily ritual engine with morning/evening practices
+  * Added Inner Compass system for daily emotional themes and archetypes
+  * Implemented feedback modal system for user experience improvement
+  * Added premium feature gating for Ask Arc multi-response and Feed access
 ```
 
 ## User Preferences

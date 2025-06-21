@@ -1,48 +1,20 @@
 {
-  "name": "SoulScroll - AI Journaling Companion",
+  "name": "SoulScroll",
   "short_name": "SoulScroll",
-  "description": "A journaling app powered by AI that helps you grow, reflect, and stay connected to your inner compass.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#6B73FF",
-  "orientation": "portrait-primary",
-  "scope": "/",
-  "categories": ["lifestyle", "wellness", "productivity"],
   "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
+      "type": "image/png"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
+      "type": "image/png"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "New Journal Entry",
-      "short_name": "Write",
-      "description": "Start a new journal entry",
-      "url": "/",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Ask Arc",
-      "short_name": "Ask Arc",
-      "description": "Get guidance from your AI companion",
-      "url": "/ask-arc",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    }
-  ],
-  "prefer_related_applications": false
+  ]
 }
