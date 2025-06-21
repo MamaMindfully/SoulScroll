@@ -1,9 +1,9 @@
+/* Import premium styles */
+@import './styles/premium.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import premium styles */
-@import './styles/premium.css';
 
 /* Mobile-First Responsive Design */
 :root {
