@@ -17,7 +17,7 @@ import ReflectionResponse from "@/components/ReflectionResponse";
 import LoadingState from "@/components/LoadingState";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import PerformanceOptimizer from "@/components/PerformanceOptimizer";
-import { usePremium } from "@/hooks/usePremium";
+import { usePremium } from "@/context/PremiumContext";
 import { PremiumGate } from "@/components/PremiumGate";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -27,7 +27,7 @@ export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const { isPremium } = usePremium();
+  const { isPremium, refreshPremiumStatus } = usePremium();
 
   const togglePremiumMutation = useMutation({
     mutationFn: async () => {
@@ -35,7 +35,7 @@ export default function Home() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/premium-status"] });
+      refreshPremiumStatus();
       toast({
         title: "Premium Status Updated",
         description: "Your premium status has been toggled for testing.",
