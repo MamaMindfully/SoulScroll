@@ -6,12 +6,50 @@ import { captureError } from "../utils/errorHandler";
 
 const router = Router();
 
-// Get comprehensive user status
-router.get('/api/user/status', isAuthenticated, async (req: Request, res: Response) => {
+// Simplified user status (following your pattern)
+router.get('/api/user/status', async (req: Request, res: Response) => {
+  try {
+    const userId = req.query.userId as string;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId parameter required' });
+    }
+
+    logger.info('Fetching user status', { userId });
+
+    // Fetch essential user data (simplified pattern)
+    const userStatus = await getUserStatus(userId);
+
+    if (!userStatus) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(userStatus);
+
+  } catch (error: any) {
+    captureError(error, {
+      userId: req.query.userId as string,
+      operation: 'fetch_user_status'
+    });
+
+    logger.error('Failed to fetch user status', {
+      error: error.message,
+      userId: req.query.userId
+    });
+
+    res.status(500).json({
+      error: 'Failed to fetch user status',
+      details: error.message
+    });
+  }
+});
+
+// Authenticated comprehensive status endpoint
+router.get('/api/user/status/detailed', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const user = req.user;
     
-    logger.info('Fetching user status', { userId: user.id });
+    logger.info('Fetching detailed user status', { userId: user.id });
 
     // Fetch all user data in parallel
     const [
@@ -65,7 +103,7 @@ router.get('/api/user/status', isAuthenticated, async (req: Request, res: Respon
       }
     };
 
-    logger.info('User status calculated', {
+    logger.info('Detailed user status calculated', {
       userId: user.id,
       subscriptionTier: subscriptionInfo.tier,
       currentStreak: userStats.currentStreak,
@@ -77,16 +115,16 @@ router.get('/api/user/status', isAuthenticated, async (req: Request, res: Respon
   } catch (error: any) {
     captureError(error, {
       userId: req.user?.id,
-      operation: 'fetch_user_status'
+      operation: 'fetch_detailed_user_status'
     });
 
-    logger.error('Failed to fetch user status', {
+    logger.error('Failed to fetch detailed user status', {
       error: error.message,
       userId: req.user?.id
     });
 
     res.status(500).json({
-      error: 'Failed to fetch user status',
+      error: 'Failed to fetch detailed user status',
       details: error.message
     });
   }
@@ -173,6 +211,37 @@ async function getMemoryPatterns(userId: string) {
       emergentThemes: [],
       lastUpdate: null
     };
+  }
+}
+
+// Simplified getUserStatus function (following your pattern)
+async function getUserStatus(userId: string) {
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return null;
+    }
+
+    const [subscription, userStats, recentEntries] = await Promise.all([
+      storage.getUserSubscription(userId).catch(() => null),
+      storage.getUserStats(userId).catch(() => ({ totalEntries: 0, currentStreak: 0, longestStreak: 0, averageMood: 5 })),
+      storage.getJournalEntries(userId, 1, 0).catch(() => [])
+    ]);
+
+    const lastEntry = recentEntries[0];
+
+    return {
+      subscription_status: subscription?.status || 'inactive',
+      subscription_tier: subscription?.planType || 'free',
+      last_journal_entry: lastEntry?.createdAt?.toISOString() || null,
+      journal_count: userStats.totalEntries,
+      current_streak: userStats.currentStreak,
+      average_mood: userStats.averageMood,
+      premium_status: subscription?.status === 'active' && subscription?.planType !== 'free'
+    };
+  } catch (error) {
+    logger.error('Failed to get user status', { userId, error: error.message });
+    throw error;
   }
 }
 

@@ -604,6 +604,39 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return userChallenge;
   }
+
+  // Secret scroll operations (simplified implementation)
+  async createSecretScroll(userId: string, scroll: any): Promise<any> {
+    // Placeholder implementation - would store in database
+    return { id: Date.now(), userId, ...scroll, createdAt: new Date() };
+  }
+
+  async getSecretScrolls(userId: string): Promise<any[]> {
+    // Placeholder implementation - would fetch from database
+    return [];
+  }
+  
+  // Saved reflection operations (simplified implementation)
+  async saveReflection(userId: string, reflection: any): Promise<any> {
+    // Placeholder implementation - would store in database
+    return { id: Date.now(), userId, ...reflection, createdAt: new Date() };
+  }
+
+  async getSavedReflections(userId: string): Promise<any[]> {
+    // Placeholder implementation - would fetch from database
+    return [];
+  }
+  
+  // Ritual operations (simplified implementation)
+  async createRitual(userId: string, ritual: any): Promise<any> {
+    // Placeholder implementation - would store in database
+    return { id: Date.now(), userId, ...ritual, createdAt: new Date() };
+  }
+
+  async getUserRituals(userId: string): Promise<any[]> {
+    // Placeholder implementation - would fetch from database
+    return [];
+  }
 }
 
 export const storage = new DatabaseStorage();

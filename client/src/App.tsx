@@ -12,6 +12,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
 import Fallback404 from "@/components/Fallback404";
+import { useUserStatusSync } from "@/hooks/useUserStatusSync";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import { fetchSoulScrollReply } from './utils/gptAPI';

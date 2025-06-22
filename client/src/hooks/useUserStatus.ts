@@ -44,19 +44,19 @@ export const useUserStatus = (pollingInterval: number = 60000) => {
   const setSubscriptionStatus = useAppStore(state => state.setSubscriptionStatus);
   const { isLoggedIn } = useAppStore();
 
-  // Fetch user status with polling
+  // Fetch detailed user status with polling
   const { data: userStatus, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/user/status'],
+    queryKey: ['/api/user/status/detailed'],
     queryFn: async (): Promise<UserStatus> => {
-      const response = await apiRequest('GET', '/api/user/status');
+      const response = await apiRequest('GET', '/api/user/status/detailed');
       
       if (!response.ok) {
-        throw new Error('Failed to fetch user status');
+        throw new Error('Failed to fetch detailed user status');
       }
 
       const data = await response.json();
       
-      addBreadcrumb('User status fetched', 'status', {
+      addBreadcrumb('Detailed user status fetched', 'status', {
         subscriptionTier: data.subscription?.tier,
         unreadInsights: data.insights?.unread,
         currentStreak: data.journal?.currentStreak

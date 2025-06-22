@@ -428,6 +428,10 @@ Changelog:
   * Implemented memory loop visualization with emotional pattern recognition and narrative thread tracking
   * Created comprehensive user status dashboard with streak tracking, unread insights, and emergent themes
   * Enhanced user experience with decoupled UI rendering and intelligent background processing
+  * Simplified user status API with environment-based queue selection (memory queues for development, BullMQ for production)
+  * Implemented unified journal bundle worker pattern following simplified OpenAI processing approach
+  * Added real-time user status synchronization with polling and window focus updates
+  * Created useUserStatusSync hook for automatic subscription status management across the application
 ```
 
 ## User Preferences
