@@ -9,6 +9,8 @@ export const LazyInsights = lazy(() => import('@/pages/insights'));
 export const LazyTimeline = lazy(() => import('@/pages/timeline'));
 export const LazySettings = lazy(() => import('@/pages/settings'));
 export const LazyPricing = lazy(() => import('@/pages/pricing'));
+export const LazyProgress = lazy(() => import('@/pages/progress'));
+export const LazyCommunity = lazy(() => import('@/pages/community'));
 
 // Lazy load heavy components - components
 export const LazyAskArc = lazy(() => import('@/components/AskArc'));

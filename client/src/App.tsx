@@ -25,8 +25,7 @@ import Home from "@/pages/home";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
-import PremiumPage from "@/pages/premium";
-import PremiumSuccessPage from "@/pages/premium-success";
+
 import { 
   LazyFeed, 
   LazyDreams, 
@@ -38,6 +37,8 @@ import {
   LazyAskArc,
   LazyExportManager,
   LazyArcArchive,
+  LazyProgress,
+  LazyCommunity,
   withLazyLoading 
 } from "@/components/LazyComponents";
 
@@ -59,8 +60,8 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/morning" component={() => <MorningFlow />} />
           <Route path="/evening" component={() => <EveningFlow />} />
-          <Route path="/progress" component={withLazyLoading(() => import('@/pages/progress'), "Progress")} />
-          <Route path="/community" component={withLazyLoading(() => import('@/pages/community'), "Community")} />
+          <Route path="/progress" component={withLazyLoading(LazyProgress, "Progress")} />
+          <Route path="/community" component={withLazyLoading(LazyCommunity, "Community")} />
           <Route path="/dreams" component={withLazyLoading(LazyDreams, "Dreams")} />
           <Route path="/mantras" component={withLazyLoading(LazyMantras, "Mantras")} />
           <Route path="/mama-mindfully" component={MamaMindfully} />
@@ -73,8 +74,8 @@ function Router() {
           <Route path="/export" component={withLazyLoading(LazyExportManager, "Export Manager")} />
           <Route path="/ask-arc" component={withLazyLoading(LazyAskArc, "Ask Arc")} />
           <Route path="/arc-archive" component={withLazyLoading(LazyArcArchive, "Arc Archive")} />
-          <Route path="/premium" component={PremiumPage} />
-          <Route path="/premium-success" component={PremiumSuccessPage} />
+          <Route path="/premium" component={withLazyLoading(() => import('@/pages/premium'), "Premium")} />
+          <Route path="/premium-success" component={withLazyLoading(() => import('@/pages/premium-success'), "Premium Success")} />
         </>
       )}
       <Route component={NotFound} />
