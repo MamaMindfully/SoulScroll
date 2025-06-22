@@ -23,6 +23,8 @@ import arcProfile from "./routes/arcProfile";
 import askArc from "./routes/askArc";
 import insightGraph from "./routes/insightGraph";
 import monthlyConstellations from "./routes/monthlyConstellations";
+import innerCompass from "./routes/innerCompass";
+import memoryLoop from "./routes/memoryLoop";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
