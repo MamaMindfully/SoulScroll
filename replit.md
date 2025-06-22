@@ -457,6 +457,14 @@ Changelog:
   * Built complete Chapters page with generation status, manual trigger, and chronological chapter display
   * Added chapter generation hints to demo page and integrated into main navigation
   * Complete autobiographical system that creates poetic life chapter summaries capturing emotional growth arcs
+- June 22, 2025: Arc persona customization system implementation:
+  * Added Arc persona fields to users table (arcTone, arcPromptStyle, arcDepth) with intelligent defaults
+  * Built arcPromptBuilder utility to generate personalized AI prompts based on user preferences
+  * Created comprehensive Arc profile API with validation and settings management
+  * Built ArcPersonaSettings component with elegant UI for tone, style, and depth selection
+  * Integrated personalized Arc profiles into AI insight generation for customized responses
+  * Enhanced AI journal engine to use user-specific Arc personality in all interactions
+  * Complete personalization system allows users to customize Arc's communication style and spiritual depth
 ```
 
 ## User Preferences
