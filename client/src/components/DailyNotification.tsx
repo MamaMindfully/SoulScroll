@@ -6,6 +6,29 @@ import { useDailyReminder } from '@/hooks/useDailyReminder';
 
 const DailyNotification: React.FC = () => {
   const { message, dismissReminder } = useDailyReminder();
+  const [feedbackSent, setFeedbackSent] = React.useState(false);
+  const { userId } = useAppStore();
+
+  const sendFeedback = async (feedback: 'liked' | 'skipped') => {
+    try {
+      const userIdToUse = userId || localStorage.getItem('userId') || 'demo-user';
+      await fetch('/api/daily-prompt/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: userIdToUse, feedback })
+      });
+      
+      setFeedbackSent(true);
+      if (feedback === 'liked') {
+        setTimeout(() => dismissReminder(), 3000); // Auto-dismiss after 3 seconds if liked
+      } else {
+        dismissReminder(); // Dismiss immediately if skipped
+      }
+    } catch (error) {
+      console.error('Failed to send feedback:', error);
+      dismissReminder(); // Dismiss on error to prevent stuck notification
+    }
+  };
 
   if (!message) return null;
 
@@ -32,16 +55,30 @@ const DailyNotification: React.FC = () => {
             "{message}"
           </p>
           
-          <div className="mt-3 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={dismissReminder}
-              className="text-xs"
-            >
-              Reflect Later
-            </Button>
-          </div>
+          {!feedbackSent ? (
+            <div className="mt-3 flex justify-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => sendFeedback('liked')}
+                className="text-xs text-green-600 border-green-200 hover:bg-green-50"
+              >
+                Love it
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => sendFeedback('skipped')}
+                className="text-xs text-gray-500 border-gray-200 hover:bg-gray-50"
+              >
+                Skip
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-3 text-center text-green-600 text-xs">
+              Thanks! This helps us personalize your experience.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

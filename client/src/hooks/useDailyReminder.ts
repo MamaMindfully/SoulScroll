@@ -21,8 +21,8 @@ export const useDailyReminder = () => {
         const response = await fetch(`/api/daily-prompt?userId=${userIdToUse}`);
         const data = await response.json();
         
-        if (data.dailyMessage) {
-          setMessage(data.dailyMessage);
+        if (data.message || data.dailyMessage) {
+          setMessage(data.message || data.dailyMessage);
           localStorage.setItem('dailyPromptDate', today);
         }
       } catch (error) {

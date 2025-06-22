@@ -36,17 +36,6 @@ router.get('/api/daily-prompt', async (req: Request, res: Response) => {
       if (!insights) {
         // Return a generic prompt if no insights available
         return res.json({ 
-          dailyMessage: "What is one thing you're grateful for in this moment?" 
-        });
-      }
-      const insights = journalEntries
-        .map(entry => entry.aiResponse)
-        .filter(Boolean)
-        .join('\n');
-
-      if (!insights) {
-        // Return a generic prompt if no insights available
-        return res.json({ 
           type: "reflection",
           message: "What is one thing you're grateful for in this moment?" 
         });

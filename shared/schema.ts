@@ -427,7 +427,7 @@ export const echoArchive = pgTable("echo_archive", {
 export const promptFeedback = pgTable("prompt_feedback", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(),
-  date: date("date").notNull(),
+  date: text("date").notNull(), // Using text for date to avoid import issues
   type: text("type").notNull(), // 'affirmation' or 'reflection'
   feedback: text("feedback"), // 'liked', 'skipped', null
   createdAt: timestamp("created_at").defaultNow(),
