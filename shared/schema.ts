@@ -10,6 +10,7 @@ import {
   boolean,
   real,
   decimal,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
