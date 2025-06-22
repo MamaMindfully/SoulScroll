@@ -631,6 +631,17 @@ export const innerCompassPrompts = pgTable("inner_compass_prompts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User traits table
+export const userTraits = pgTable("user_traits", {
+  userId: varchar("user_id", { length: 255 }).primaryKey().references(() => users.id),
+  writingStyle: varchar("writing_style", { length: 100 }).default("balanced"),
+  moodBaseline: real("mood_baseline").default(50.0),
+  likesAffirmations: boolean("likes_affirmations").default(false),
+  likesQuestions: boolean("likes_questions").default(true),
+  peakHours: text("peak_hours").array().default(['09:00', '21:00']),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schema exports for new tables
 export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
   id: true,
@@ -657,6 +668,10 @@ export const insertInnerCompassPromptSchema = createInsertSchema(innerCompassPro
   createdAt: true
 });
 
+export const insertUserTraitsSchema = createInsertSchema(userTraits).omit({
+  updatedAt: true
+});
+
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 
@@ -671,3 +686,5 @@ export type InsertMemoryLoop = z.infer<typeof insertMemoryLoopSchema>;
 export type MemoryLoop = typeof memoryLoops.$inferSelect;
 export type InsertInnerCompassPrompt = z.infer<typeof insertInnerCompassPromptSchema>;
 export type InnerCompassPrompt = typeof innerCompassPrompts.$inferSelect;
+export type InsertUserTraits = z.infer<typeof insertUserTraitsSchema>;
+export type UserTraits = typeof userTraits.$inferSelect;

@@ -212,6 +212,11 @@ export interface IStorage {
   createInnerCompassPrompt(userId: string, prompt: InsertInnerCompassPrompt): Promise<InnerCompassPrompt>;
   getTodaysPrompt(userId: string): Promise<InnerCompassPrompt | undefined>;
   getInnerCompassPrompts(userId: string, limit?: number): Promise<InnerCompassPrompt[]>;
+
+  // User traits operations
+  getUserTraits(userId: string): Promise<UserTraits | undefined>;
+  upsertUserTraits(userId: string, traits: Partial<InsertUserTraits>): Promise<UserTraits>;
+  updateBehaviorMetrics(userId: string, event: string, data: any): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1068,6 +1073,79 @@ export class DatabaseStorage implements IStorage {
       .where(eq(innerCompassPrompts.userId, userId))
       .orderBy(desc(innerCompassPrompts.createdAt))
       .limit(limit);
+  }
+
+  // User traits operations
+  async getUserTraits(userId: string): Promise<UserTraits | undefined> {
+    const [traits] = await db
+      .select()
+      .from(userTraits)
+      .where(eq(userTraits.userId, userId));
+    return traits;
+  }
+
+  async upsertUserTraits(userId: string, traitsData: Partial<InsertUserTraits>): Promise<UserTraits> {
+    const [traits] = await db
+      .insert(userTraits)
+      .values({
+        userId,
+        ...traitsData,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: userTraits.userId,
+        set: {
+          ...traitsData,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return traits;
+  }
+
+  async updateBehaviorMetrics(userId: string, event: string, data: any): Promise<void> {
+    // Update user traits based on behavior patterns
+    const currentTraits = await this.getUserTraits(userId);
+    const updates: Partial<InsertUserTraits> = {};
+
+    switch (event) {
+      case 'tap_to_deepen':
+        updates.likesQuestions = true;
+        break;
+      case 'skip_deeper_prompt':
+        updates.likesAffirmations = true;
+        updates.likesQuestions = false;
+        break;
+      case 'journal_entry_time':
+        // Track writing times to determine peak hours
+        const hour = new Date(data.timestamp).getHours();
+        const hourString = `${hour.toString().padStart(2, '0')}:00`;
+        const currentPeakHours = currentTraits?.peakHours || ['09:00', '21:00'];
+        if (!currentPeakHours.includes(hourString)) {
+          updates.peakHours = [...currentPeakHours.slice(-1), hourString];
+        }
+        break;
+      case 'journal_word_count':
+        // Update writing style based on word count patterns
+        if (data.wordCount > 200) {
+          updates.writingStyle = 'reflective';
+        } else if (data.wordCount < 50) {
+          updates.writingStyle = 'concise';
+        }
+        break;
+      case 'emotion_score':
+        // Update mood baseline based on recent entries
+        if (currentTraits?.moodBaseline) {
+          updates.moodBaseline = (currentTraits.moodBaseline * 0.8) + (data.score * 0.2);
+        } else {
+          updates.moodBaseline = data.score;
+        }
+        break;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await this.upsertUserTraits(userId, updates);
+    }
   }
 }
 

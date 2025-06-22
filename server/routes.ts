@@ -26,6 +26,8 @@ import monthlyConstellations from "./routes/monthlyConstellations";
 import innerCompass from "./routes/innerCompass";
 import memoryLoop from "./routes/memoryLoop";
 import emotionHistory from "./routes/emotionHistory";
+import userTraits from "./routes/userTraits";
+import personalizedInsights from "./routes/personalizedInsights";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1839,6 +1841,12 @@ End with a simple, poetic follow-up question.
 
   // Use emotion history routes
   app.use('/', emotionHistory);
+
+  // Use user traits routes
+  app.use('/', userTraits);
+
+  // Use personalized insights routes
+  app.use('/', personalizedInsights);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);
