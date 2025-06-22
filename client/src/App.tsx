@@ -91,6 +91,9 @@ function Router() {
 }
 
 function App() {
+  // Initialize user status synchronization
+  useUserStatusSync();
+  
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
