@@ -62,44 +62,8 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       nodesByConstellation.get(constellationId).push(node);
     });
 
-    // Create constellation background circles
-    const constellationGroups = svg.append('g').attr('class', 'constellations');
-    
-    if (data.constellations && data.constellations.length > 0) {
-      data.constellations.forEach((constellation, index) => {
-        const nodesInConstellation = data.nodes.filter(n => n.constellationId === constellation.id);
-        
-        if (nodesInConstellation.length > 0) {
-          const angle = (index / data.constellations.length) * 2 * Math.PI;
-          const radius = Math.min(width, height) * 0.25;
-          const centerX = width / 2 + Math.cos(angle) * radius * 0.5;
-          const centerY = height / 2 + Math.sin(angle) * radius * 0.5;
-          const constellationRadius = Math.max(80, nodesInConstellation.length * 15);
-          
-          // Background circle for constellation
-          constellationGroups.append('circle')
-            .attr('cx', centerX)
-            .attr('cy', centerY)
-            .attr('r', constellationRadius)
-            .attr('fill', getConstellationColor(constellation.themes[0]))
-            .attr('fill-opacity', 0.1)
-            .attr('stroke', getConstellationColor(constellation.themes[0]))
-            .attr('stroke-opacity', 0.3)
-            .attr('stroke-width', 2)
-            .attr('stroke-dasharray', '5,5');
-          
-          // Constellation label
-          constellationGroups.append('text')
-            .attr('x', centerX)
-            .attr('y', centerY - constellationRadius - 10)
-            .attr('text-anchor', 'middle')
-            .attr('fill', '#e5e7eb')
-            .attr('font-size', '12px')
-            .attr('font-weight', 'bold')
-            .text(constellation.title);
-        }
-      });
-    }
+    // Initialize constellation groups container (will be populated dynamically in tick)
+    const constellationContainer = svg.append('g').attr('class', 'constellations');
 
     // Create simulation with constellation clustering
     const simulation = d3.forceSimulation(data.nodes as any)
@@ -277,6 +241,110 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       label
         .attr('x', (d: any) => d.x)
         .attr('y', (d: any) => d.y);
+
+      // Dynamic constellation clustering
+      const uniqueConstellations = [...new Set(data.nodes.map(n => n.constellationId).filter(Boolean))];
+
+      const constellationGroups = uniqueConstellations.map(id => {
+        const members = data.nodes.filter(n => n.constellationId === id);
+        const cx = d3.mean(members, (n: any) => n.x) || 0;
+        const cy = d3.mean(members, (n: any) => n.y) || 0;
+        const r = Math.max(60, (d3.max(members.map((n: any) => Math.sqrt((n.x - cx)**2 + (n.y - cy)**2))) || 0) + 50);
+        const constellation = data.constellations?.find(c => c.id === id);
+        const themeColor = getConstellationColor(constellation?.themes?.[0]);
+        return { id, cx, cy, r, constellation, themeColor };
+      });
+
+      // Render soft glowing constellation clusters
+      svg.selectAll('circle.constellation')
+        .data(constellationGroups)
+        .join('circle')
+        .attr('class', 'constellation')
+        .attr('cx', d => d.cx)
+        .attr('cy', d => d.cy)
+        .attr('r', d => d.r)
+        .attr('fill', d => d.themeColor)
+        .attr('fill-opacity', 0.05)
+        .attr('stroke', d => d.themeColor)
+        .attr('stroke-dasharray', '4 2')
+        .attr('stroke-opacity', 0.2)
+        .attr('stroke-width', 2)
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr('fill-opacity', 0.15)
+            .attr('stroke-opacity', 0.5);
+        })
+        .on('mouseout', function(event, d) {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr('fill-opacity', 0.05)
+            .attr('stroke-opacity', 0.2);
+        })
+        .on('click', function(event, d) {
+          if (d.constellation) {
+            // Show constellation overview modal
+            d3.selectAll('.constellation-overview').remove();
+            
+            const overview = d3.select('body').append('div')
+              .attr('class', 'constellation-overview')
+              .style('position', 'fixed')
+              .style('top', '50%')
+              .style('left', '50%')
+              .style('transform', 'translate(-50%, -50%)')
+              .style('background', 'rgba(0, 0, 0, 0.95)')
+              .style('color', 'white')
+              .style('padding', '24px')
+              .style('border-radius', '16px')
+              .style('max-width', '500px')
+              .style('z-index', '2000')
+              .style('border', '2px solid ' + d.themeColor)
+              .style('box-shadow', '0 20px 40px rgba(0,0,0,0.3)');
+
+            const memberCount = data.nodes.filter(n => n.constellationId === d.id).length;
+            
+            overview.html(`
+              <div style="text-align: center;">
+                <h2 style="margin: 0 0 12px 0; color: #f3f4f6; font-size: 1.5rem;">${d.constellation.title}</h2>
+                <div style="margin: 12px 0; font-size: 0.9rem; color: #d1d5db;">
+                  <span style="color: ${d.themeColor};">●</span> ${memberCount} insights in this constellation
+                </div>
+                <p style="margin: 16px 0; font-style: italic; color: #e5e7eb; line-height: 1.5;">
+                  "${d.constellation.summary}"
+                </p>
+                ${d.constellation.guidingQuestion ? `
+                  <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 8px; margin: 16px 0;">
+                    <p style="margin: 0; font-style: italic; color: #f9fafb; font-weight: 500;">
+                      "${d.constellation.guidingQuestion}"
+                    </p>
+                  </div>
+                ` : ''}
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="margin-top: 20px; padding: 10px 20px; background: ${d.themeColor}; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                  Close Overview
+                </button>
+              </div>
+            `);
+          }
+        });
+
+      // Add constellation titles as floating labels
+      svg.selectAll('text.constellation-title')
+        .data(constellationGroups)
+        .join('text')
+        .attr('class', 'constellation-title')
+        .attr('x', d => d.cx)
+        .attr('y', d => d.cy - d.r - 15)
+        .attr('text-anchor', 'middle')
+        .attr('fill', d => d.themeColor)
+        .attr('font-size', '11px')
+        .attr('font-weight', 'bold')
+        .attr('opacity', 0.8)
+        .style('pointer-events', 'none')
+        .text(d => d.constellation?.title || `Constellation ${d.id}`);
     });
 
     // Drag behavior
