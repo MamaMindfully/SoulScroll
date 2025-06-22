@@ -67,12 +67,28 @@ export async function insertInsightNode(data: InsightNodeData): Promise<number |
       theme 
     });
 
+    // Find the latest constellation to associate this node with
+    const latestConstellation = await storage.getLatestConstellation(userId);
+    let constellationId = null;
+
+    if (latestConstellation) {
+      // Check if the constellation is recent (within last 35 days)
+      const daysSinceConstellation = Math.floor(
+        (Date.now() - new Date(latestConstellation.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      
+      if (daysSinceConstellation <= 35) {
+        constellationId = latestConstellation.id;
+      }
+    }
+
     // Create the insight node
     const savedNode = await storage.createInsightNode(userId, {
       entryId,
       label: label.slice(0, 200), // Truncate for display
       emotion,
-      theme
+      theme,
+      constellationId
     });
 
     // Get recent nodes for edge creation

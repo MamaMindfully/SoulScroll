@@ -468,6 +468,7 @@ export const insightNodes = pgTable("insight_nodes", {
   label: text("label").notNull(),
   theme: text("theme"),
   emotion: text("emotion"),
+  constellationId: integer("constellation_id").references(() => monthlyConstellations.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

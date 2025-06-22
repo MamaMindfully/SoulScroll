@@ -17,6 +17,7 @@ router.get('/api/insight-graph', async (req: Request, res: Response) => {
     logger.info('Fetching insight graph', { userId });
 
     const graphData = await storage.getInsightGraph(userId as string);
+    const constellations = await storage.getMonthlyConstellations(userId as string, 12);
 
     // Format nodes for D3 visualization
     const formattedNodes = graphData.nodes.map(node => ({
@@ -25,6 +26,7 @@ router.get('/api/insight-graph', async (req: Request, res: Response) => {
       theme: node.theme,
       emotion: node.emotion,
       entryId: node.entryId,
+      constellationId: node.constellationId,
       createdAt: node.createdAt
     }));
 
@@ -35,9 +37,20 @@ router.get('/api/insight-graph', async (req: Request, res: Response) => {
       type: edge.type
     }));
 
+    // Format constellations for visualization
+    const formattedConstellations = constellations.map(constellation => ({
+      id: constellation.id,
+      title: constellation.title,
+      themes: constellation.themes || [],
+      summary: constellation.summary,
+      guidingQuestion: constellation.guidingQuestion,
+      createdAt: constellation.createdAt
+    }));
+
     res.json({
       nodes: formattedNodes,
-      edges: formattedEdges
+      edges: formattedEdges,
+      constellations: formattedConstellations
     });
 
   } catch (error: any) {

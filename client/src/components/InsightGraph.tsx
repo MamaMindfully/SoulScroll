@@ -7,6 +7,7 @@ interface Node {
   theme?: string;
   emotion?: string;
   entryId?: number;
+  constellationId?: number;
   createdAt?: string;
 }
 
@@ -16,9 +17,19 @@ interface Edge {
   type: string;
 }
 
+interface Constellation {
+  id: number;
+  title: string;
+  themes: string[];
+  summary: string;
+  guidingQuestion?: string;
+  createdAt: string;
+}
+
 interface GraphData {
   nodes: Node[];
   edges: Edge[];
+  constellations: Constellation[];
 }
 
 interface InsightGraphProps {
@@ -41,12 +52,61 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     // Clear previous content
     svg.selectAll('*').remove();
 
-    // Create simulation
+    // Group nodes by constellation
+    const nodesByConstellation = new Map();
+    data.nodes.forEach(node => {
+      const constellationId = node.constellationId || 'unassigned';
+      if (!nodesByConstellation.has(constellationId)) {
+        nodesByConstellation.set(constellationId, []);
+      }
+      nodesByConstellation.get(constellationId).push(node);
+    });
+
+    // Create constellation background circles
+    const constellationGroups = svg.append('g').attr('class', 'constellations');
+    
+    if (data.constellations && data.constellations.length > 0) {
+      data.constellations.forEach((constellation, index) => {
+        const nodesInConstellation = data.nodes.filter(n => n.constellationId === constellation.id);
+        
+        if (nodesInConstellation.length > 0) {
+          const angle = (index / data.constellations.length) * 2 * Math.PI;
+          const radius = Math.min(width, height) * 0.25;
+          const centerX = width / 2 + Math.cos(angle) * radius * 0.5;
+          const centerY = height / 2 + Math.sin(angle) * radius * 0.5;
+          const constellationRadius = Math.max(80, nodesInConstellation.length * 15);
+          
+          // Background circle for constellation
+          constellationGroups.append('circle')
+            .attr('cx', centerX)
+            .attr('cy', centerY)
+            .attr('r', constellationRadius)
+            .attr('fill', getConstellationColor(constellation.themes[0]))
+            .attr('fill-opacity', 0.1)
+            .attr('stroke', getConstellationColor(constellation.themes[0]))
+            .attr('stroke-opacity', 0.3)
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '5,5');
+          
+          // Constellation label
+          constellationGroups.append('text')
+            .attr('x', centerX)
+            .attr('y', centerY - constellationRadius - 10)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#e5e7eb')
+            .attr('font-size', '12px')
+            .attr('font-weight', 'bold')
+            .text(constellation.title);
+        }
+      });
+    }
+
+    // Create simulation with constellation clustering
     const simulation = d3.forceSimulation(data.nodes as any)
-      .force('link', d3.forceLink(data.edges).id((d: any) => d.id).distance(80))
-      .force('charge', d3.forceManyBody().strength(-200))
+      .force('link', d3.forceLink(data.edges).id((d: any) => d.id).distance(60))
+      .force('charge', d3.forceManyBody().strength(-150))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(15));
+      .force('collision', d3.forceCollide().radius(12));
 
     // Add gradient definitions
     const defs = svg.append('defs');
@@ -122,16 +182,18 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('dy', 25)
       .style('pointer-events', 'none');
 
-    // Add hover effects
+    // Add hover and click effects
     node
       .on('mouseover', function(event, d) {
         d3.select(this)
           .transition()
           .duration(200)
           .attr('r', 14)
-          .attr('stroke-width', 3);
+          .attr('stroke-width', 3)
+          .style('filter', 'drop-shadow(0 0 8px ' + getThemeColor(d.theme) + ')');
 
         // Show tooltip
+        const constellation = data.constellations?.find(c => c.id === d.constellationId);
         const tooltip = d3.select('body').append('div')
           .attr('class', 'insight-tooltip')
           .style('position', 'absolute')
@@ -142,12 +204,14 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
           .style('font-size', '12px')
           .style('pointer-events', 'none')
           .style('z-index', '1000')
-          .style('opacity', 0);
+          .style('opacity', 0)
+          .style('max-width', '300px');
 
         tooltip.html(`
           <div><strong>${d.label}</strong></div>
           <div>Theme: ${d.theme || 'Unknown'}</div>
           <div>Emotion: ${d.emotion || 'Unknown'}</div>
+          ${constellation ? `<div style="margin-top: 4px; font-style: italic;">Part of: ${constellation.title}</div>` : ''}
         `)
           .style('left', (event.pageX + 10) + 'px')
           .style('top', (event.pageY - 10) + 'px')
@@ -160,9 +224,42 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
           .transition()
           .duration(200)
           .attr('r', 10)
-          .attr('stroke-width', 2);
+          .attr('stroke-width', 2)
+          .style('filter', 'none');
 
         d3.selectAll('.insight-tooltip').remove();
+      })
+      .on('click', function(event, d) {
+        const constellation = data.constellations?.find(c => c.id === d.constellationId);
+        if (constellation && constellation.guidingQuestion) {
+          // Show constellation details in a modal-like tooltip
+          d3.selectAll('.constellation-detail').remove();
+          
+          const detail = d3.select('body').append('div')
+            .attr('class', 'constellation-detail')
+            .style('position', 'fixed')
+            .style('top', '50%')
+            .style('left', '50%')
+            .style('transform', 'translate(-50%, -50%)')
+            .style('background', 'rgba(0, 0, 0, 0.95)')
+            .style('color', 'white')
+            .style('padding', '20px')
+            .style('border-radius', '12px')
+            .style('max-width', '400px')
+            .style('z-index', '2000')
+            .style('border', '2px solid ' + getThemeColor(d.theme));
+
+          detail.html(`
+            <div style="text-align: center;">
+              <h3 style="margin: 0 0 10px 0; color: #f3f4f6;">${constellation.title}</h3>
+              <p style="margin: 10px 0; font-style: italic; color: #d1d5db;">"${constellation.guidingQuestion}"</p>
+              <button onclick="this.parentElement.parentElement.remove()" 
+                      style="margin-top: 15px; padding: 8px 16px; background: #374151; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Close
+              </button>
+            </div>
+          `);
+        }
       });
 
     // Update positions on simulation tick
@@ -212,6 +309,26 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       return validThemes.includes(theme || '') ? theme! : 'default';
     }
 
+    function getThemeColor(theme?: string): string {
+      const colors = {
+        grief: '#8b5cf6',
+        joy: '#10b981', 
+        control: '#f59e0b',
+        identity: '#ec4899',
+        release: '#38bdf8',
+        love: '#f87171',
+        uncertainty: '#a855f7',
+        peace: '#06b6d4',
+        transformation: '#84cc16',
+        healing: '#22c55e'
+      };
+      return colors[theme || 'default'] || '#64748b';
+    }
+
+    function getConstellationColor(theme?: string): string {
+      return getThemeColor(theme);
+    }
+
     function getEdgeColor(type: string): string {
       const colors = {
         theme: '#8b5cf6',
@@ -235,20 +352,32 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       
       {/* Legend */}
       <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white text-sm">
-        <h4 className="font-semibold mb-2">Connections</h4>
+        <h4 className="font-semibold mb-2">Graph Elements</h4>
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+            <span>Individual Insights</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-0.5 bg-purple-400 opacity-30 border border-purple-400 rounded"></div>
+            <span>Monthly Constellations</span>
+          </div>
+          <div className="border-t border-gray-600 my-2"></div>
+          <div className="flex items-center space-x-2">
             <div className="w-4 h-0.5 bg-purple-400"></div>
-            <span>Theme</span>
+            <span>Theme Links</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-0.5 bg-amber-400"></div>
-            <span>Emotion</span>
+            <span>Emotion Links</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-emerald-400" style={{ strokeDasharray: '2,2' }}></div>
-            <span>Time (3 days)</span>
+            <div className="w-4 h-0.5 bg-emerald-400"></div>
+            <span>Time Links</span>
           </div>
+        </div>
+        <div className="mt-3 text-xs text-gray-300">
+          Click nodes to view constellation details
         </div>
       </div>
     </div>
