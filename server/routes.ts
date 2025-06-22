@@ -19,6 +19,7 @@ import echoRoutes from "./routes/echoRoutes";
 import dailyPrompt from "./routes/dailyPrompt";
 import userThemes from "./routes/userThemes";
 import lifeChapters from "./routes/lifeChapters";
+import arcProfile from "./routes/arcProfile";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1787,6 +1788,9 @@ End with a simple, poetic follow-up question.
 
   // Use life chapters routes
   app.use('/', lifeChapters);
+
+  // Use arc profile routes
+  app.use('/', arcProfile);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

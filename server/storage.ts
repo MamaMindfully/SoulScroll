@@ -172,6 +172,10 @@ export interface IStorage {
   createLifeChapter(userId: string, chapter: InsertLifeChapter): Promise<LifeChapter>;
   getLifeChapters(userId: string, limit?: number): Promise<LifeChapter[]>;
   getLatestChapter(userId: string): Promise<LifeChapter | undefined>;
+
+  // Arc persona operations
+  getArcProfile(userId: string): Promise<{ arcTone: string; arcPromptStyle: string; arcDepth: string } | null>;
+  updateArcProfile(userId: string, profile: { arcTone?: string; arcPromptStyle?: string; arcDepth?: string }): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -840,6 +844,34 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(lifeChapters.createdAt))
       .limit(1);
     return chapter;
+  }
+
+  // Arc persona operations
+  async getArcProfile(userId: string): Promise<{ arcTone: string; arcPromptStyle: string; arcDepth: string } | null> {
+    const [user] = await this.db
+      .select({
+        arcTone: users.arcTone,
+        arcPromptStyle: users.arcPromptStyle,
+        arcDepth: users.arcDepth,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    return user || null;
+  }
+
+  async updateArcProfile(userId: string, profile: { arcTone?: string; arcPromptStyle?: string; arcDepth?: string }): Promise<User> {
+    const [updatedUser] = await this.db
+      .update(users)
+      .set({
+        ...profile,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+      
+    return updatedUser;
   }
 }
 

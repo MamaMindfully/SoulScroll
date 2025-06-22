@@ -80,6 +80,7 @@ function Router() {
           <Route path="/export" component={withLazyLoading(LazyExportManager, "Export Manager")} />
           <Route path="/ask-arc" component={withLazyLoading(LazyAskArc, "Ask Arc")} />
           <Route path="/arc-archive" component={withLazyLoading(LazyArcArchive, "Arc Archive")} />
+          <Route path="/arc-settings" component={withLazyLoading(() => import('@/components/ArcPersonaSettings'), "Arc Settings")} />
           <Route path="/premium" component={withLazyLoading(() => import('@/pages/premium'), "Premium")} />
           <Route path="/premium-success" component={withLazyLoading(() => import('@/pages/premium-success'), "Premium Success")} />
           <Route path="/demo-optimistic" component={withLazyLoading(() => import('@/pages/demo-optimistic'), "Optimistic UI Demo")} />
