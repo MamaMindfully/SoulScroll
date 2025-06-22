@@ -41,10 +41,15 @@ const VisualProgressTracker: React.FC = () => {
   }, []);
 
   const loadProgressData = () => {
+    console.log('📊 Loading progress data...');
+    
     try {
       setIsLoading(true);
       const stats = getJournalStats();
+      console.log('📈 Journal stats loaded:', stats);
+      
       const unlockables = getUnlockables();
+      console.log('🏆 Achievements loaded:', unlockables.length);
       
       // Calculate XP and level based on journal activity
       const baseXp = stats.totalEntries * 10 + Math.floor(stats.totalWords / 10);

@@ -54,6 +54,13 @@ const DreamMode = () => {
   };
 
   const handleDreamSubmit = async () => {
+    console.log('🌙 Submitting dream for interpretation...');
+    
+    // Validate dream content
+    if (!dreamLog.trim()) {
+      console.warn('Dream submission blocked: Empty content');
+      return;
+    }
     if (!dreamLog.trim()) return;
     
     setIsAnalyzing(true);
