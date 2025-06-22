@@ -7,6 +7,7 @@ import { useUserStatus } from '@/hooks/useUserStatus';
 import OptimisticLoadingIndicator from '@/components/OptimisticLoadingIndicator';
 import MemoryLoopVisualization from '@/components/MemoryLoopVisualization';
 import InnerEcho from '@/components/InnerEcho';
+import DailyPromptCard from '@/components/DailyPromptCard';
 import { Badge } from "@/components/ui/badge";
 import { Clock, TrendingUp, Gift, Bell } from "lucide-react";
 
@@ -62,6 +63,9 @@ const DemoOptimisticUI: React.FC = () => {
           <p className="text-gray-600">Experience instant feedback with background processing</p>
         </div>
       </div>
+
+      {/* Daily Prompt */}
+      <DailyPromptCard />
 
       {/* User Status Dashboard */}
       <Card>

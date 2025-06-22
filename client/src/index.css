@@ -17,6 +17,22 @@
   to { opacity: 1; }
 }
 
+/* Daily notification slide-up animation */
+.animate-slide-up {
+  animation: slide-up 1s ease forwards;
+}
+
+@keyframes slide-up {
+  from { 
+    transform: translateY(100px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
 @layer base {
   html,
   body {

@@ -15,6 +15,7 @@ import Fallback404 from "@/components/Fallback404";
 import { useUserStatusSync } from "@/hooks/useUserStatusSync";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
+import DailyNotification from "@/components/DailyNotification";
 import { fetchSoulScrollReply } from './utils/gptAPI';
 import { prompts } from './utils/promptTemplates';
 import { saveReflection, incrementReflectionCount } from './utils/storage';
@@ -108,6 +109,7 @@ function App() {
                 <Toaster />
                 <FloatingStartButton />
                 <PerformanceMonitor />
+                <DailyNotification />
               </div>
             </PremiumProvider>
           </ThemeProvider>
