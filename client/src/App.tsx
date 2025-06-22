@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PremiumProvider } from "@/context/PremiumContext";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import NavigationBar from "@/components/NavigationBar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
@@ -94,6 +95,7 @@ function App() {
               <AppStoreMetadata />
               <MobileTouchOptimizations />
               <div className="app-container">
+                <NavigationBar />
                 <Router />
                 <Toaster />
                 <FloatingStartButton />

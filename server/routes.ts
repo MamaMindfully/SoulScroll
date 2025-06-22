@@ -11,6 +11,8 @@ import stripeRoutes from "./routes/stripeRoutes";
 import apiRoutes from "./routes/apiRoutes";
 import webhookStripe from "./routes/webhookStripe";
 import aiJournal from "./routes/aiJournal";
+import emotionScore from "./routes/emotionScore";
+import billingPortal from "./routes/billingPortal";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
