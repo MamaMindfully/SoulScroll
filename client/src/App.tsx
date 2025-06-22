@@ -59,8 +59,8 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/morning" component={() => <MorningFlow />} />
           <Route path="/evening" component={() => <EveningFlow />} />
-          <Route path="/progress" component={() => <ProgressDashboard />} />
-          <Route path="/community" component={Community} />
+          <Route path="/progress" component={withLazyLoading(() => import('@/pages/progress'), "Progress")} />
+          <Route path="/community" component={withLazyLoading(() => import('@/pages/community'), "Community")} />
           <Route path="/dreams" component={withLazyLoading(LazyDreams, "Dreams")} />
           <Route path="/mantras" component={withLazyLoading(LazyMantras, "Mantras")} />
           <Route path="/mama-mindfully" component={MamaMindfully} />

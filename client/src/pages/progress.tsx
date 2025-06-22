@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import VisualProgressTracker from "@/components/VisualProgressTracker";
+import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 
 export default function Progress() {
   const { toast } = useToast();
@@ -51,7 +52,12 @@ export default function Progress() {
             </div>
             
             {/* Progress Tracker */}
-            <VisualProgressTracker />
+            <ErrorBoundaryWrapper 
+              fallbackTitle="Progress Tracker Error"
+              fallbackMessage="The progress dashboard could not load. Please try refreshing the page."
+            >
+              <VisualProgressTracker />
+            </ErrorBoundaryWrapper>
           </div>
         </section>
       </main>

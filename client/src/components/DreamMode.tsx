@@ -28,17 +28,23 @@ const DreamMode = () => {
   const isPremium = true // Demo mode;
 
   useEffect(() => {
-    // Load dream history from localStorage
-    const stored = JSON.parse(localStorage.getItem('soulscroll-dreams') || '[]');
-    setDreamHistory(stored);
+    try {
+      // Load dream history from localStorage
+      const stored = localStorage.getItem('soulscroll-dreams');
+      const dreamData = stored ? JSON.parse(stored) : [];
+      setDreamHistory(Array.isArray(dreamData) ? dreamData : []);
 
-    // Check if there's a pending intention
-    const storedIntent = localStorage.getItem('soulscroll-dream-intent');
-    if (storedIntent && stage === 'intention') {
-      setDreamIntent(storedIntent);
-      setStage('dream');
+      // Check if there's a pending intention
+      const storedIntent = localStorage.getItem('soulscroll-dream-intent');
+      if (storedIntent && stage === 'intention') {
+        setDreamIntent(storedIntent);
+        setStage('dream');
+      }
+    } catch (error) {
+      console.error('Error loading dream data:', error);
+      setDreamHistory([]);
     }
-  }, []);
+  }, [stage]);
 
   const handleIntentSubmit = () => {
     if (!dreamIntent.trim()) return;

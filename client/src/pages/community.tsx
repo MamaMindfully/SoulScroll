@@ -39,7 +39,12 @@ export default function Community() {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
-        <CommunityFeed />
+        <ErrorBoundaryWrapper 
+          fallbackTitle="Community Feed Error"
+          fallbackMessage="The community feed could not load. Please try refreshing the page."
+        >
+          <CommunityFeed />
+        </ErrorBoundaryWrapper>
       </main>
       
       <BottomNavigation currentPage="community" />

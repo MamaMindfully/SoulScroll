@@ -34,16 +34,27 @@ const ProgressDashboard = () => {
   };
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
-    const reflectionCount = parseInt(localStorage.getItem('soulscroll-reflection-count') || '0');
-    
-    setEntries(stored);
-    setSoulSeeds(reflectionCount);
-    
-    calculateStreak(stored);
-    extractEmotionTrends(stored);
-    calculateWeeklyProgress(stored);
-    setUnlockables(evaluateUnlockables(stored));
+    try {
+      const stored = localStorage.getItem('soulscroll-entries');
+      const entries = stored ? JSON.parse(stored) : [];
+      const reflectionCount = parseInt(localStorage.getItem('soulscroll-reflection-count') || '0');
+      
+      setEntries(Array.isArray(entries) ? entries : []);
+      setSoulSeeds(reflectionCount);
+      
+      calculateStreak(entries);
+      extractEmotionTrends(entries);
+      calculateWeeklyProgress(entries);
+      setUnlockables(evaluateUnlockables(entries));
+    } catch (error) {
+      console.error('Error loading progress data:', error);
+      setEntries([]);
+      setSoulSeeds(0);
+      setStreak(0);
+      setEmotionTrends({});
+      setWeeklyProgress(0);
+      setUnlockables([]);
+    }
   }, []);
 
   const calculateStreak = (entries: JournalEntry[]) => {

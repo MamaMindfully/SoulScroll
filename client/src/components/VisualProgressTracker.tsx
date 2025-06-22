@@ -42,6 +42,7 @@ const VisualProgressTracker: React.FC = () => {
 
   const loadProgressData = () => {
     try {
+      setIsLoading(true);
       const stats = getJournalStats();
       const unlockables = getUnlockables();
       
@@ -79,9 +80,24 @@ const VisualProgressTracker: React.FC = () => {
       });
 
       setAchievements(unlockables.filter(item => item.isUnlocked));
+      setIsLoading(false);
     } catch (error) {
       console.error('Error loading progress data:', error);
-    } finally {
+      // Set fallback data to prevent infinite loading
+      setProgressData({
+        currentStreak: 0,
+        longestStreak: 0,
+        totalEntries: 0,
+        totalWords: 0,
+        averageWords: 0,
+        averageMood: 0,
+        level: 1,
+        xp: 0,
+        nextLevelXp: 100,
+        weeklyGoal: 7,
+        weeklyProgress: 0
+      });
+      setAchievements([]);
       setIsLoading(false);
     }
   };

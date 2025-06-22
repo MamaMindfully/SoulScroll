@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import DreamMode from "@/components/DreamMode";
+import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 
 export default function Dreams() {
   const { toast } = useToast();
@@ -52,7 +53,12 @@ export default function Dreams() {
               </p>
             </div>
 
-            <DreamMode />
+            <ErrorBoundaryWrapper 
+              fallbackTitle="Dream Mode Error"
+              fallbackMessage="The dream interpretation feature could not load. Please try refreshing the page."
+            >
+              <DreamMode />
+            </ErrorBoundaryWrapper>
           </div>
         </section>
       </main>
