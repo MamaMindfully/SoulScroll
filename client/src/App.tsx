@@ -29,9 +29,8 @@ import ServerError from "@/pages/ServerError";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import { setupGlobalErrorHandlers } from "@/utils/errorLogger";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import OnboardingIntro from "@/components/OnboardingIntro";
-import { useState } from "react";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
@@ -133,7 +132,7 @@ function App() {
   };
   
   return (
-    <ErrorBoundary>
+    <ErrorBoundaryWrapper>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ThemeProvider>
@@ -149,7 +148,7 @@ function App() {
           </ThemeProvider>
         </TooltipProvider>
       </QueryClientProvider>
-    </ErrorBoundary>
+    </ErrorBoundaryWrapper>
   );
 }
 
