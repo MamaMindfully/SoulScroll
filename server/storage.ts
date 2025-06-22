@@ -145,6 +145,11 @@ export interface IStorage {
   createEcho(userId: string, echo: InsertEchoArchive): Promise<EchoArchive>;
   getLatestEcho(userId: string): Promise<EchoArchive | undefined>;
   getEchoHistory(userId: string, limit?: number): Promise<EchoArchive[]>;
+
+  // Prompt feedback operations
+  createPromptFeedback(userId: string, feedback: InsertPromptFeedback): Promise<PromptFeedback>;
+  getPromptFeedback(userId: string, limit?: number): Promise<PromptFeedback[]>;
+  updateUserPromptRatios(userId: string): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -672,6 +677,64 @@ export class DatabaseStorage implements IStorage {
       .where(eq(echoArchive.userId, userId))
       .orderBy(desc(echoArchive.createdAt))
       .limit(limit);
+  }
+
+  // Prompt feedback operations
+  async createPromptFeedback(userId: string, feedbackData: InsertPromptFeedback): Promise<PromptFeedback> {
+    const [feedback] = await this.db
+      .insert(promptFeedback)
+      .values({
+        ...feedbackData,
+        userId,
+      })
+      .returning();
+    return feedback;
+  }
+
+  async getPromptFeedback(userId: string, limit: number = 30): Promise<PromptFeedback[]> {
+    return await this.db
+      .select()
+      .from(promptFeedback)
+      .where(eq(promptFeedback.userId, userId))
+      .orderBy(desc(promptFeedback.createdAt))
+      .limit(limit);
+  }
+
+  async updateUserPromptRatios(userId: string): Promise<User> {
+    // Get recent feedback
+    const recentFeedback = await this.getPromptFeedback(userId, 50);
+    
+    const likedFeedback = recentFeedback.filter(f => f.feedback === 'liked');
+    const totalFeedback = recentFeedback.filter(f => f.feedback !== null);
+    
+    if (totalFeedback.length === 0) {
+      // No feedback yet, keep defaults
+      return await this.getUser(userId) as User;
+    }
+    
+    const affirmationLiked = likedFeedback.filter(f => f.type === 'affirmation').length;
+    const reflectionLiked = likedFeedback.filter(f => f.type === 'reflection').length;
+    const totalLiked = likedFeedback.length;
+    
+    let affirmationRatio = 0.5;
+    let reflectionRatio = 0.5;
+    
+    if (totalLiked > 0) {
+      affirmationRatio = affirmationLiked / totalLiked;
+      reflectionRatio = reflectionLiked / totalLiked;
+    }
+    
+    const [updatedUser] = await this.db
+      .update(users)
+      .set({
+        affirmationRatio,
+        reflectionRatio,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+      
+    return updatedUser;
   }
 }
 

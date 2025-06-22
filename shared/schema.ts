@@ -424,6 +424,15 @@ export const echoArchive = pgTable("echo_archive", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const promptFeedback = pgTable("prompt_feedback", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  date: date("date").notNull(),
+  type: text("type").notNull(), // 'affirmation' or 'reflection'
+  feedback: text("feedback"), // 'liked', 'skipped', null
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
@@ -432,6 +441,15 @@ export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
 
 export type InsertEchoArchive = z.infer<typeof insertEchoArchiveSchema>;
 export type EchoArchive = typeof echoArchive.$inferSelect;
+
+// Prompt Feedback schema
+export const insertPromptFeedbackSchema = createInsertSchema(promptFeedback).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPromptFeedback = z.infer<typeof insertPromptFeedbackSchema>;
+export type PromptFeedback = typeof promptFeedback.$inferSelect;
 
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;

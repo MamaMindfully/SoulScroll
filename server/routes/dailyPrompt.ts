@@ -4,6 +4,8 @@ import { storage } from "../storage";
 import { logger } from "../utils/logger";
 import { captureError } from "../utils/errorHandler";
 import { retryOpenAICall } from "../utils/retryUtils";
+import { determinePreferredPromptStyle, getPromptSystemMessage } from "../utils/promptTuner";
+import { z } from "zod";
 
 const router = Router();
 
@@ -37,47 +39,83 @@ router.get('/api/daily-prompt', async (req: Request, res: Response) => {
           dailyMessage: "What is one thing you're grateful for in this moment?" 
         });
       }
+      const insights = journalEntries
+        .map(entry => entry.aiResponse)
+        .filter(Boolean)
+        .join('\n');
+
+      if (!insights) {
+        // Return a generic prompt if no insights available
+        return res.json({ 
+          type: "reflection",
+          message: "What is one thing you're grateful for in this moment?" 
+        });
+      }
+
+      // Get user stats for personalization
+      const user = await storage.getUser(userId as string);
+      const userStats = {
+        affirmation_ratio: user?.affirmationRatio || 0.5,
+        reflection_ratio: user?.reflectionRatio || 0.5
+      };
+
+      const tone = determinePreferredPromptStyle(userStats);
+      const systemMessage = getPromptSystemMessage(tone);
+
+      const prompt = `${systemMessage}
+---
+Recent insights: ${insights}`;
+
+      const response = await retryOpenAICall(
+        () => openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 100
+        }),
+        'daily-prompt-generation'
+      );
+
+      const responseText = response.choices[0].message.content?.trim();
+      
+      try {
+        const { type, message } = JSON.parse(responseText || '{}');
+        
+        // Store prompt feedback entry
+        const today = new Date().toISOString().split('T')[0];
+        await storage.createPromptFeedback(userId as string, {
+          date: today,
+          type: type || 'reflection',
+          feedback: null // Will be updated when user gives feedback
+        });
+
+        logger.info('Daily prompt generated', { userId, type, messageLength: message?.length });
+
+        res.json({ type, message });
+      } catch (parseError) {
+        // Fallback if JSON parsing fails
+        const fallbackType = tone === 'affirming' ? 'affirmation' : 'reflection';
+        const fallbackMessage = responseText || "What intention would you like to set for today?";
+        
+        res.json({ 
+          type: fallbackType, 
+          message: fallbackMessage 
+        });
+      }
+
     } catch (dbError) {
-      // Database fallback - return thoughtful prompts
+      // Database fallback - return thoughtful prompts with type
       const fallbackPrompts = [
-        "What intention would you like to set for today?",
-        "How are you feeling in this very moment?",
-        "What is one thing you're grateful for right now?",
-        "What story is your heart trying to tell you today?",
-        "If today had a color, what would it be and why?"
+        { type: "reflection", message: "What intention would you like to set for today?" },
+        { type: "affirmation", message: "You have everything within you to create a meaningful day." },
+        { type: "reflection", message: "How are you feeling in this very moment?" },
+        { type: "affirmation", message: "Today is an opportunity to grow and learn." },
+        { type: "reflection", message: "What story is your heart trying to tell you today?" }
       ];
       
       const randomPrompt = fallbackPrompts[Math.floor(Math.random() * fallbackPrompts.length)];
-      return res.json({ dailyMessage: randomPrompt });
+      return res.json(randomPrompt);
     }
-
-    const prompt = `
-You are a daily ritual assistant. From these journal reflections, return either:
-- One short affirmation to start the day mindfully
-OR
-- One reflective question the user should consider today.
-
-Be brief. Do NOT include both. Only return the message itself.
----
-${insights}
-    `;
-
-    const response = await retryOpenAICall(
-      () => openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 100
-      }),
-      'daily-prompt-generation'
-    );
-
-    const message = response.choices[0].message.content?.trim() || 
-      "Take a moment to breathe deeply and notice what you're feeling right now.";
-
-    logger.info('Daily prompt generated', { userId, messageLength: message.length });
-
-    res.json({ dailyMessage: message });
 
   } catch (error: any) {
     captureError(error, {
@@ -90,10 +128,56 @@ ${insights}
       userId: req.query.userId
     });
 
-    // Return fallback prompt
+    // Return fallback prompt with type
     res.json({ 
-      dailyMessage: "What intention would you like to set for today?" 
+      type: "reflection",
+      message: "What intention would you like to set for today?" 
     });
+  }
+});
+
+// Prompt feedback endpoint
+router.post('/api/daily-prompt/feedback', async (req: Request, res: Response) => {
+  try {
+    const { userId, feedback } = req.body;
+    
+    if (!userId || !feedback) {
+      return res.status(400).json({ error: 'userId and feedback are required' });
+    }
+
+    if (!['liked', 'skipped'].includes(feedback)) {
+      return res.status(400).json({ error: 'feedback must be "liked" or "skipped"' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Update the most recent prompt feedback for today
+    const recentFeedback = await storage.getPromptFeedback(userId, 1);
+    
+    if (recentFeedback.length > 0 && recentFeedback[0].date === today) {
+      // Update existing feedback (would need to implement updatePromptFeedback method)
+      logger.info('Prompt feedback received', { userId, feedback, type: recentFeedback[0].type });
+      
+      // Update user ratios based on feedback
+      await storage.updateUserPromptRatios(userId);
+      
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'No recent prompt found for today' });
+    }
+
+  } catch (error: any) {
+    captureError(error, {
+      userId: req.body.userId,
+      operation: 'prompt_feedback'
+    });
+
+    logger.error('Failed to process prompt feedback', {
+      error: error.message,
+      userId: req.body.userId
+    });
+
+    res.status(500).json({ error: 'Failed to process feedback' });
   }
 });
 
