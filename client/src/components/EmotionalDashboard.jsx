@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import EmotionPulseGraph from './EmotionPulseGraph'
 import InnerCompass from './InnerCompass'
 import PersonalizedInsight from './PersonalizedInsight'
+import SaveReflectionButton from './SaveReflectionButton'
 import { useUser } from '@/hooks/useUser'
 
 export default function EmotionalDashboard() {
@@ -88,6 +89,15 @@ export default function EmotionalDashboard() {
           <h3 className="text-lg font-semibold mb-2">30 Days Ago...</h3>
           <p className="text-purple-200 italic">{memoryInsight}</p>
           <p className="text-xs text-purple-300 mt-2">Reflection on your past self</p>
+          
+          {/* Add save button for memory insights */}
+          <div className="mt-3">
+            <SaveReflectionButton 
+              content={memoryInsight}
+              source="memory_loop"
+              type="reflection"
+            />
+          </div>
         </div>
       )}
     </div>

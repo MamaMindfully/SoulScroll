@@ -32,6 +32,8 @@ import vectorSearch from "./routes/vectorSearch";
 import insightFeedback from "./routes/insightFeedback";
 import ritualStreak from "./routes/ritualStreak";
 import lifeArcTags from "./routes/lifeArcTags";
+import arcInsight from "./routes/arcInsight";
+import saveReflection from "./routes/saveReflection";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1863,6 +1865,12 @@ End with a simple, poetic follow-up question.
 
   // Use life arc tags routes
   app.use('/', lifeArcTags);
+
+  // Use Arc insight routes
+  app.use('/', arcInsight);
+
+  // Use save reflection routes
+  app.use('/', saveReflection);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);
