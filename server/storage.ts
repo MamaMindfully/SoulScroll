@@ -1311,7 +1311,7 @@ export class DatabaseStorage implements IStorage {
 
   // Error logging operations
   async createErrorLog(errorData: InsertErrorLog): Promise<ErrorLog> {
-    const [error] = await db
+    const [error] = await this.db
       .insert(errorLogs)
       .values(errorData)
       .returning();
@@ -1319,7 +1319,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getErrorLogs(limit: number = 50, type?: string): Promise<ErrorLog[]> {
-    let query = db
+    let query = this.db
       .select()
       .from(errorLogs)
       .orderBy(desc(errorLogs.createdAt))

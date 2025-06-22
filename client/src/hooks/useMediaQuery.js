@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useHasMounted } from '@/utils/useHasMounted';
 
 export function useMediaQuery(query) {
+  const hasMounted = useHasMounted();
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
+    if (!hasMounted) return;
+    
     const mediaQuery = window.matchMedia(query);
     setMatches(mediaQuery.matches);
 
