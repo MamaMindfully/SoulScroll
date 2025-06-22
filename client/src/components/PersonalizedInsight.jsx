@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { Sparkles, Brain, Heart } from 'lucide-react';
 import InsightFeedback from './InsightFeedback';
+import { getCachedData, setCachedData } from '@/utils/cacheManager';
 
 export default function PersonalizedInsight() {
   const { user, trackBehavior } = useUser();
@@ -14,18 +15,12 @@ export default function PersonalizedInsight() {
     const fetchTodayInsight = async () => {
       try {
         // Check cache first
-        const cachedInsight = localStorage.getItem('insight_today');
+        const cachedInsight = getCachedData('insight_today');
         
         if (cachedInsight) {
-          const cached = JSON.parse(cachedInsight);
-          const cacheAge = Date.now() - cached.timestamp;
-          const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
-          
-          if (cacheAge < CACHE_DURATION) {
-            setInsight(cached.data);
-            setLoading(false);
-            return;
-          }
+          setInsight(cachedInsight);
+          setLoading(false);
+          return;
         }
 
         // Fetch fresh insight
@@ -36,10 +31,7 @@ export default function PersonalizedInsight() {
           setInsight(data);
           
           // Cache the insight
-          localStorage.setItem('insight_today', JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }));
+          setCachedData('insight_today', data);
           
           // Track that user received personalized insight
           trackBehavior('received_insight', {

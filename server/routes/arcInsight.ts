@@ -21,9 +21,16 @@ router.post('/api/arc-insight', isAuthenticated, async (req: Request, res: Respo
 
     logger.info('Generating Arc insight', { userId, promptLength: prompt.length });
 
-    // Get recent journal entries for context
-    const recentEntries = await storage.getJournalEntries(userId, 3, 0);
-    const userTraits = await storage.getUserTraits(userId);
+    // Get recent journal entries for context with error handling
+    let recentEntries = [];
+    let userTraits = null;
+    
+    try {
+      recentEntries = await storage.getJournalEntries(userId, 3, 0);
+      userTraits = await storage.getUserTraits(userId);
+    } catch (dbError) {
+      logger.warn('Database query failed, using defaults', { error: dbError.message });
+    }
 
     // Build journal context from recent insights
     const journalContext = recentEntries

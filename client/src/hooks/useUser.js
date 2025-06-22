@@ -54,39 +54,54 @@ const useUserStore = create(
         localStorage.removeItem('user_cache');
       },
       
-      // Session restoration
+      // Session restoration with improved error handling
       restoreSession: async () => {
+        let mounted = true;
+        
         try {
           const storedSession = localStorage.getItem('supabase_session');
-          if (storedSession) {
-            const session = JSON.parse(storedSession);
-            
-            // Validate session with backend
-            const response = await fetch('/api/auth/validate-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ session })
+          if (!storedSession) return null;
+
+          const session = JSON.parse(storedSession);
+          
+          // Validate session structure
+          if (!session?.user?.id) {
+            get().logout();
+            return null;
+          }
+
+          // Check expiration
+          const expiresAt = session.expires_at || session.user.expires_at;
+          if (expiresAt && new Date(expiresAt * 1000) < new Date()) {
+            get().logout();
+            return null;
+          }
+          
+          // Validate session with backend
+          const response = await fetch('/api/auth/validate-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session })
+          });
+          
+          if (mounted && response.ok) {
+            const { user, traits } = await response.json();
+            set({ 
+              session, 
+              user, 
+              userTraits: traits,
+              isAuthenticated: true 
             });
-            
-            if (response.ok) {
-              const { user, traits } = await response.json();
-              set({ 
-                session, 
-                user, 
-                userTraits: traits,
-                isAuthenticated: true 
-              });
-              return { user, traits };
-            } else {
-              // Session invalid, clear it
-              get().logout();
-            }
+            return { user, traits };
+          } else {
+            if (mounted) get().logout();
           }
         } catch (error) {
           console.error('Session restoration failed:', error);
-          get().logout();
+          if (mounted) get().logout();
         }
-        return null;
+        
+        return () => { mounted = false };
       },
       
       // Behavioral tracking

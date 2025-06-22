@@ -17,8 +17,12 @@ router.get('/api/emotion-history', isAuthenticated, async (req: Request, res: Re
     // Get recent journal entries with emotion scores
     const entries = await storage.getJournalEntries(userId, limit, 0);
     
+    if (!entries || entries.length === 0) {
+      return res.json([]);
+    }
+    
     const emotionHistory = entries
-      .filter(entry => entry.emotionalTone || entry.wordCount > 0)
+      .filter(entry => entry.emotionalTone !== null || entry.wordCount > 0)
       .map(entry => ({
         id: entry.id,
         date: entry.createdAt,

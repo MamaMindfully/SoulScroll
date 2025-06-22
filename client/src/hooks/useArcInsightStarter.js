@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useUser } from './useUser';
+import { getCachedData, setCachedData, getTodaysCachedPrompt, setTodaysCachedPrompt } from '@/utils/cacheManager';
 
 export default function useArcInsightStarter() {
   const { user, userTraits, trackBehavior } = useUser();
@@ -18,9 +19,18 @@ export default function useArcInsightStarter() {
       let prompt = customPrompt;
       
       if (!prompt) {
-        prompt = userTraits?.likesAffirmations
-          ? "Give me a poetic affirmation to soften my guard and open my heart."
-          : "Ask me a direct question to guide my inner search and deepen my self-understanding.";
+        // Check cache for today's prompt first
+        const cachedPrompt = getTodaysCachedPrompt();
+        if (cachedPrompt) {
+          prompt = cachedPrompt;
+        } else {
+          prompt = userTraits?.likesAffirmations
+            ? "Give me a poetic affirmation to soften my guard and open my heart."
+            : "Ask me a direct question to guide my inner search and deepen my self-understanding.";
+          
+          // Cache the generated prompt
+          setTodaysCachedPrompt(prompt);
+        }
       }
 
       // Track the Arc insight request
