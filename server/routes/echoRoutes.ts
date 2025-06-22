@@ -9,7 +9,7 @@ const router = Router();
 // Get latest echo for user (following your pattern)
 router.get('/api/echo', async (req: Request, res: Response) => {
   try {
-    const userId = req.query.userId as string;
+    const { userId } = req.query;
     
     if (!userId) {
       return res.status(400).json({ error: 'userId parameter required' });
@@ -17,17 +17,14 @@ router.get('/api/echo', async (req: Request, res: Response) => {
 
     logger.info('Fetching latest echo', { userId });
 
-    const echo = await storage.getLatestEcho(userId);
+    const echo = await storage.getLatestEcho(userId as string);
 
     if (!echo) {
       return res.json({ echo: null });
     }
 
-    res.json({ 
-      echo: echo.echo,
-      createdAt: echo.createdAt,
-      id: echo.id
-    });
+    // Return just the echo text like your pattern
+    res.json({ echo: echo.echo });
 
   } catch (error: any) {
     captureError(error, {
@@ -40,10 +37,7 @@ router.get('/api/echo', async (req: Request, res: Response) => {
       userId: req.query.userId
     });
 
-    res.status(500).json({
-      error: 'Failed to fetch echo',
-      details: error.message
-    });
+    res.status(500).json({ error: 'Failed to fetch echo' });
   }
 });
 

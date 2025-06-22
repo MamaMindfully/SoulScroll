@@ -16,6 +16,7 @@ import billingPortal from "./routes/billingPortal";
 import queueBundle from "./routes/queueBundle";
 import userStatus from "./routes/userStatus";
 import echoRoutes from "./routes/echoRoutes";
+import dailyPrompt from "./routes/dailyPrompt";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1775,6 +1776,9 @@ End with a simple, poetic follow-up question.
 
   // Use echo routes
   app.use('/', echoRoutes);
+
+  // Use daily prompt routes
+  app.use('/', dailyPrompt);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

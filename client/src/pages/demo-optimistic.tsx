@@ -44,20 +44,23 @@ const DemoOptimisticUI: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header with status */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Optimistic UI Demo</h1>
-          <p className="text-gray-600">Experience instant feedback with background processing</p>
-        </div>
+      <div className="flex flex-col items-center justify-center text-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome back</h1>
+        <InnerEcho />
         
         {hasUnreadContent && (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-4">
             <Bell className="w-4 h-4 text-purple-600" />
             <Badge variant="secondary" className="bg-purple-100 text-purple-800">
               {notificationBadgeCount} new
             </Badge>
           </div>
         )}
+        
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold text-gray-800">Optimistic UI Demo</h2>
+          <p className="text-gray-600">Experience instant feedback with background processing</p>
+        </div>
       </div>
 
       {/* User Status Dashboard */}
@@ -194,9 +197,6 @@ const DemoOptimisticUI: React.FC = () => {
 
       {/* Memory Loop Visualization */}
       <MemoryLoopVisualization />
-
-      {/* Inner Echo Component */}
-      <InnerEcho />
 
       {/* Background Processing Info */}
       <Card className="border-l-4 border-l-green-500">
