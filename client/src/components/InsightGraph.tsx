@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
 interface Node {
@@ -38,12 +38,13 @@ interface InsightGraphProps {
 
 const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  const [activeTheme, setActiveTheme] = useState<string | null>(null);
 
   useEffect(() => {
     if (!data?.nodes || !svgRef.current) return;
 
-    const width = 800;
-    const height = 600;
+    const width = svgRef.current.clientWidth || 800;
+    const height = svgRef.current.clientHeight || 600;
     const svg = d3.select(svgRef.current)
       .attr('viewBox', [0, 0, width, height])
       .style('background', 'linear-gradient(135deg, #0b0c10 0%, #1f2937 100%)')
@@ -52,9 +53,19 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     // Clear previous content
     svg.selectAll('*').remove();
 
+    // Apply theme filtering
+    const filteredNodes = activeTheme
+      ? data.nodes.filter(n => n.theme === activeTheme)
+      : data.nodes;
+
+    const fadedNodes = data.nodes.map(n => ({
+      ...n,
+      opacity: activeTheme ? (n.theme === activeTheme ? 1 : 0.1) : 1
+    }));
+
     // Group nodes by constellation
     const nodesByConstellation = new Map();
-    data.nodes.forEach(node => {
+    fadedNodes.forEach(node => {
       const constellationId = node.constellationId || 'unassigned';
       if (!nodesByConstellation.has(constellationId)) {
         nodesByConstellation.set(constellationId, []);
@@ -66,7 +77,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     const constellationContainer = svg.append('g').attr('class', 'constellations');
 
     // Create simulation with constellation clustering
-    const simulation = d3.forceSimulation(data.nodes as any)
+    const simulation = d3.forceSimulation(fadedNodes as any)
       .force('link', d3.forceLink(data.edges).id((d: any) => d.id).distance(60))
       .force('charge', d3.forceManyBody().strength(-150))
       .force('center', d3.forceCenter(width / 2, height / 2))
@@ -117,26 +128,31 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('stroke', (d) => getEdgeColor(d.type))
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 2)
-      .attr('stroke-dasharray', (d) => d.type === 'time' ? '5,5' : null);
+      .attr('stroke-dasharray', (d) => d.type === 'time' ? '5,5' : null)
+      .style('opacity', (d: any) => {
+        if (!activeTheme) return 1;
+        return (d.source.theme === activeTheme || d.target.theme === activeTheme) ? 1 : 0.1;
+      });
 
     // Create nodes
     const node = svg.append('g')
       .attr('class', 'nodes')
       .selectAll('circle')
-      .data(data.nodes)
+      .data(fadedNodes)
       .join('circle')
       .attr('r', 10)
       .attr('fill', (d) => `url(#gradient-${getThemeId(d.theme)})`)
       .attr('stroke', '#ffffff')
       .attr('stroke-width', 2)
       .style('cursor', 'pointer')
+      .style('opacity', (d: any) => d.opacity || 1)
       .call(drag(simulation) as any);
 
     // Add node labels
     const label = svg.append('g')
       .attr('class', 'labels')
       .selectAll('text')
-      .data(data.nodes)
+      .data(fadedNodes)
       .join('text')
       .text((d) => d.label.length > 20 ? d.label.substring(0, 20) + '...' : d.label)
       .attr('font-size', '10px')
@@ -144,7 +160,8 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('fill', '#e5e7eb')
       .attr('text-anchor', 'middle')
       .attr('dy', 25)
-      .style('pointer-events', 'none');
+      .style('pointer-events', 'none')
+      .style('opacity', (d: any) => d.opacity || 1);
 
     // Add hover and click effects
     node
@@ -243,16 +260,17 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
         .attr('y', (d: any) => d.y);
 
       // Dynamic constellation clustering
-      const uniqueConstellations = [...new Set(data.nodes.map(n => n.constellationId).filter(Boolean))];
+      const uniqueConstellations = [...new Set(fadedNodes.map(n => n.constellationId).filter(Boolean))];
 
       const constellationGroups = uniqueConstellations.map(id => {
-        const members = data.nodes.filter(n => n.constellationId === id);
+        const members = fadedNodes.filter(n => n.constellationId === id);
         const cx = d3.mean(members, (n: any) => n.x) || 0;
         const cy = d3.mean(members, (n: any) => n.y) || 0;
         const r = Math.max(60, (d3.max(members.map((n: any) => Math.sqrt((n.x - cx)**2 + (n.y - cy)**2))) || 0) + 50);
         const constellation = data.constellations?.find(c => c.id === id);
         const themeColor = getConstellationColor(constellation?.themes?.[0]);
-        return { id, cx, cy, r, constellation, themeColor };
+        const avgOpacity = d3.mean(members, (n: any) => n.opacity || 1) || 1;
+        return { id, cx, cy, r, constellation, themeColor, opacity: avgOpacity };
       });
 
       // Render soft glowing constellation clusters
@@ -270,6 +288,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
         .attr('stroke-opacity', 0.2)
         .attr('stroke-width', 2)
         .style('cursor', 'pointer')
+        .style('opacity', (d: any) => d.opacity || 1)
         .on('mouseover', function(event, d) {
           d3.select(this)
             .transition()
@@ -304,7 +323,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
               .style('border', '2px solid ' + d.themeColor)
               .style('box-shadow', '0 20px 40px rgba(0,0,0,0.3)');
 
-            const memberCount = data.nodes.filter(n => n.constellationId === d.id).length;
+            const memberCount = fadedNodes.filter(n => n.constellationId === d.id).length;
             
             overview.html(`
               <div style="text-align: center;">
@@ -412,11 +431,26 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       d3.selectAll('.insight-tooltip').remove();
     };
 
-  }, [data]);
+  }, [data, activeTheme]);
 
   return (
     <div className="relative">
-      <svg ref={svgRef} className="w-full h-[600px] border border-gray-700 rounded-lg shadow-lg" />
+      {/* Theme Filter */}
+      <div className="absolute top-4 right-4 z-10">
+        <select 
+          onChange={e => setActiveTheme(e.target.value || null)} 
+          className="p-2 rounded bg-black/70 text-white border border-gray-600 text-sm backdrop-blur-sm"
+          value={activeTheme || ''}
+        >
+          <option value="">All Themes</option>
+          {Array.from(new Set(data.nodes.map(n => n.theme).filter(Boolean))).map(theme => (
+            <option key={theme} value={theme}>{theme}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="w-full h-[80vh] overflow-hidden rounded-xl">
+        <svg ref={svgRef} className="w-full h-full border border-gray-700 rounded-lg shadow-lg" />
       
       {/* Legend */}
       <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white text-sm">
