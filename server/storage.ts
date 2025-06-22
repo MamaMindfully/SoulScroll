@@ -150,6 +150,11 @@ export interface IStorage {
   createPromptFeedback(userId: string, feedback: InsertPromptFeedback): Promise<PromptFeedback>;
   getPromptFeedback(userId: string, limit?: number): Promise<PromptFeedback[]>;
   updateUserPromptRatios(userId: string): Promise<User>;
+
+  // Memory tag operations
+  upsertMemoryTag(userId: string, tag: string, strength: number): Promise<UserMemoryTag>;
+  getUserMemoryTags(userId: string, limit?: number): Promise<UserMemoryTag[]>;
+  getTopUserThemes(userId: string, limit?: number): Promise<UserMemoryTag[]>;
 }
 
 export class DatabaseStorage implements IStorage {

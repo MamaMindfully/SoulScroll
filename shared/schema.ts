@@ -433,6 +433,15 @@ export const promptFeedback = pgTable("prompt_feedback", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const userMemoryTags = pgTable("user_memory_tags", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  tag: text("tag").notNull(), // Theme like 'uncertainty', 'letting_go', 'acceptance'
+  strength: real("strength").default(1.0), // Float 0-5 indicating theme importance
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
@@ -450,6 +459,15 @@ export const insertPromptFeedbackSchema = createInsertSchema(promptFeedback).omi
 
 export type InsertPromptFeedback = z.infer<typeof insertPromptFeedbackSchema>;
 export type PromptFeedback = typeof promptFeedback.$inferSelect;
+
+// User Memory Tags schema
+export const insertUserMemoryTagSchema = createInsertSchema(userMemoryTags).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUserMemoryTag = z.infer<typeof insertUserMemoryTagSchema>;
+export type UserMemoryTag = typeof userMemoryTags.$inferSelect;
 
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;

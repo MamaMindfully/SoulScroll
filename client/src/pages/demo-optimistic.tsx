@@ -8,6 +8,7 @@ import OptimisticLoadingIndicator from '@/components/OptimisticLoadingIndicator'
 import MemoryLoopVisualization from '@/components/MemoryLoopVisualization';
 import InnerEcho from '@/components/InnerEcho';
 import DailyPromptCard from '@/components/DailyPromptCard';
+import ThemeTracker from '@/components/ThemeTracker';
 import { Badge } from "@/components/ui/badge";
 import { Clock, TrendingUp, Gift, Bell } from "lucide-react";
 
@@ -66,6 +67,9 @@ const DemoOptimisticUI: React.FC = () => {
 
       {/* Daily Prompt */}
       <DailyPromptCard />
+
+      {/* Theme Tracker */}
+      <ThemeTracker />
 
       {/* User Status Dashboard */}
       <Card>

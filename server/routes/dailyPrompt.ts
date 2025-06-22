@@ -5,6 +5,7 @@ import { logger } from "../utils/logger";
 import { captureError } from "../utils/errorHandler";
 import { retryOpenAICall } from "../utils/retryUtils";
 import { determinePreferredPromptStyle, getPromptSystemMessage } from "../utils/promptTuner";
+import { getThemeBasedPromptContext } from "../engines/themeExtractor";
 import { z } from "zod";
 
 const router = Router();
@@ -49,11 +50,18 @@ router.get('/api/daily-prompt', async (req: Request, res: Response) => {
       };
 
       const tone = determinePreferredPromptStyle(userStats);
-      const systemMessage = getPromptSystemMessage(tone);
+      const themeContext = await getThemeBasedPromptContext(userId as string);
+      
+      const baseSystemMessage = `You are a mindful ritual assistant. ${themeContext ? themeContext + '.' : ''} Respond based on this tone: "${tone}".`;
+      
+      const prompt = `${baseSystemMessage}
 
-      const prompt = `${systemMessage}
----
-Recent insights: ${insights}`;
+Using these insights and themes, craft a ${tone === 'affirming' ? 'affirmation' : tone === 'probing' ? 'reflective question' : 'balanced message'}.
+
+Return JSON: { "type": "affirmation" | "reflection", "message": "..." }
+
+Recent insights:
+${insights}`;
 
       const response = await retryOpenAICall(
         () => openai.chat.completions.create({

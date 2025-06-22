@@ -17,6 +17,7 @@ import queueBundle from "./routes/queueBundle";
 import userStatus from "./routes/userStatus";
 import echoRoutes from "./routes/echoRoutes";
 import dailyPrompt from "./routes/dailyPrompt";
+import userThemes from "./routes/userThemes";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1779,6 +1780,9 @@ End with a simple, poetic follow-up question.
 
   // Use daily prompt routes
   app.use('/', dailyPrompt);
+
+  // Use user themes routes
+  app.use('/', userThemes);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);
