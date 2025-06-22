@@ -1741,11 +1741,32 @@ End with a simple, poetic follow-up question.
     }
   });
 
-  // Use stripe routes
-  app.use('/api', stripeRoutes);
+  // Use stripe routes with rate limiting
+  app.use('/api', stripeRateLimit, stripeRoutes);
+
+  // Use premium routes
+  app.use('/api', premiumRoutes);
+
+  // Use comprehensive API routes
+  app.use('/api', apiRoutes);
+
+  // Use AI journal routes with rate limiting
+  app.use('/api', aiAnalysisRateLimit, aiJournal);
+
+  // Use emotion scoring routes with rate limiting
+  app.use('/', aiAnalysisRateLimit, emotionScore);
+
+  // Use billing portal routes with rate limiting
+  app.use('/', stripeRateLimit, billingPortal);
+
+  // Use enhanced webhook routes
+  app.use('/', webhookStripe);
   
-  // Use stripe webhook
+  // Use stripe webhook (legacy)
   app.use('/stripe', stripeWebhook);
+
+  // Journal routes with specific rate limiting
+  app.use('/api/journal', journalRateLimit);
 
   const httpServer = createServer(app);
   
