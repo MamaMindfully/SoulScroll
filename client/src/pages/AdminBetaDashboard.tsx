@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Brain, Heart, TrendingUp, Calendar, Clock, BarChart3, Activity } from 'lucide-react';
+import AdminTokenGuard from '@/components/AdminTokenGuard';
 
 interface UsageStats {
   users: number;
@@ -95,7 +96,8 @@ export default function AdminBetaDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-6">
+    <AdminTokenGuard>
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -271,5 +273,6 @@ export default function AdminBetaDashboard() {
         </div>
       </div>
     </div>
+    </AdminTokenGuard>
   );
 }

@@ -39,6 +39,7 @@ import dreamMirror from "./routes/dreamMirror";
 import emotionTrend from "./routes/emotionTrend";
 import feedback from "./routes/feedback";
 import adminAnalytics from "./routes/adminAnalytics";
+import userStreak from "./routes/userStreak";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1891,6 +1892,9 @@ End with a simple, poetic follow-up question.
 
   // Use admin analytics routes
   app.use('/', adminAnalytics);
+
+  // Use user streak routes
+  app.use('/', userStreak);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);
