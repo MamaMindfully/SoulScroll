@@ -642,6 +642,40 @@ export const userTraits = pgTable("user_traits", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Journal embeddings table
+export const journalEmbeddings = pgTable("journal_embeddings", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  entryId: integer("entry_id").references(() => journalEntries.id),
+  embedding: real("embedding").array().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insight feedback table
+export const insightFeedback = pgTable("insight_feedback", {
+  id: serial("id").primaryKey(),
+  insightId: varchar("insight_id", { length: 255 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  rating: varchar("rating", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Ritual streaks table
+export const ritualStreaks = pgTable("ritual_streaks", {
+  userId: varchar("user_id", { length: 255 }).primaryKey(),
+  count: integer("count").default(1),
+  lastDay: timestamp("last_day").defaultNow(),
+});
+
+// Life arc tags table
+export const lifeArcTags = pgTable("life_arc_tags", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  entryId: integer("entry_id").references(() => journalEntries.id),
+  tag: varchar("tag", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema exports for new tables
 export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
   id: true,
@@ -672,6 +706,23 @@ export const insertUserTraitsSchema = createInsertSchema(userTraits).omit({
   updatedAt: true
 });
 
+export const insertJournalEmbeddingSchema = createInsertSchema(journalEmbeddings).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertInsightFeedbackSchema = createInsertSchema(insightFeedback).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertRitualStreakSchema = createInsertSchema(ritualStreaks);
+
+export const insertLifeArcTagSchema = createInsertSchema(lifeArcTags).omit({
+  id: true,
+  createdAt: true
+});
+
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 
@@ -688,3 +739,11 @@ export type InsertInnerCompassPrompt = z.infer<typeof insertInnerCompassPromptSc
 export type InnerCompassPrompt = typeof innerCompassPrompts.$inferSelect;
 export type InsertUserTraits = z.infer<typeof insertUserTraitsSchema>;
 export type UserTraits = typeof userTraits.$inferSelect;
+export type InsertJournalEmbedding = z.infer<typeof insertJournalEmbeddingSchema>;
+export type JournalEmbedding = typeof journalEmbeddings.$inferSelect;
+export type InsertInsightFeedback = z.infer<typeof insertInsightFeedbackSchema>;
+export type InsightFeedback = typeof insightFeedback.$inferSelect;
+export type InsertRitualStreak = z.infer<typeof insertRitualStreakSchema>;
+export type RitualStreak = typeof ritualStreaks.$inferSelect;
+export type InsertLifeArcTag = z.infer<typeof insertLifeArcTagSchema>;
+export type LifeArcTag = typeof lifeArcTags.$inferSelect;
