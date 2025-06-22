@@ -4,6 +4,10 @@ import { isAuthenticated } from "../replitAuth";
 import { storage } from "../storage";
 import { logger } from "../utils/logger";
 import { z } from "zod";
+import { cacheService } from "../services/cacheService";
+import { tokenMonitor } from "../services/tokenMonitor";
+import { retryOpenAICall } from "../utils/retryUtils";
+import { captureError } from "../utils/errorHandler";
 
 const router = Router();
 const openai = new OpenAI({ 
@@ -26,8 +30,24 @@ router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) 
       textLength: entryText.length 
     });
 
-    // Generate AI insight using GPT-4
-    const response = await openai.chat.completions.create({
+    // Check cache first
+    const cachedResponse = await cacheService.getAIResponse(entryText);
+    if (cachedResponse) {
+      logger.info('Using cached AI response', { userId: user.id });
+      return res.json(cachedResponse);
+    }
+
+    // Check token limits
+    const canMakeRequest = await tokenMonitor.canMakeRequest(user.id, tokenMonitor.estimateTokens(entryText));
+    if (!canMakeRequest) {
+      return res.status(429).json({ 
+        error: 'Monthly token limit exceeded. Please upgrade to Premium for higher limits.' 
+      });
+    }
+
+    // Generate AI insight using GPT-4 with retry logic
+    const response = await retryOpenAICall(
+      () => openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { 
@@ -42,9 +62,16 @@ router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) 
           content: `Here's my journal entry: ${entryText}` 
         }
       ],
-      temperature: 0.7,
-      max_tokens: 300
-    });
+        temperature: 0.7,
+        max_tokens: 300
+      }),
+      'ai-journal-analysis'
+    );
+
+    // Track token usage
+    if (response.usage) {
+      await tokenMonitor.trackUsage(user.id, 'ai_journal_analysis', response.usage);
+    }
 
     const aiInsight = response.choices[0].message.content || "Thank you for sharing your thoughts. Your reflection shows courage and self-awareness.";
 
@@ -65,6 +92,9 @@ router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) 
       timestamp: new Date()
     };
 
+    // Cache the result
+    await cacheService.setAIResponse(entryText, analysisResult);
+
     logger.info('AI journal analysis completed', { 
       userId: user.id,
       emotionScore: emotionAnalysis.score,
@@ -75,6 +105,11 @@ router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) 
     res.json(analysisResult);
 
   } catch (error: any) {
+    captureError(error, { 
+      userId: req.user?.id, 
+      operation: 'ai_journal_analysis' 
+    });
+    
     logger.error('AI journaling failed:', { 
       error: error.message,
       userId: req.user?.id 
@@ -82,6 +117,10 @@ router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) 
     
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request data' });
+    }
+
+    if (error.message.includes('token limit')) {
+      return res.status(429).json({ error: error.message });
     }
     
     res.status(500).json({ 

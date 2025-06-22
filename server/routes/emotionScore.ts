@@ -4,6 +4,10 @@ import { isAuthenticated } from "../replitAuth";
 import { storage } from "../storage";
 import { logger } from "../utils/logger";
 import { z } from "zod";
+import { cacheService } from "../services/cacheService";
+import { tokenMonitor } from "../services/tokenMonitor";
+import { retryOpenAICall } from "../utils/retryUtils";
+import { captureError } from "../utils/errorHandler";
 
 const router = Router();
 const openai = new OpenAI({ 
@@ -27,7 +31,23 @@ router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Res
       textLength: journalText.length 
     });
 
-    const response = await openai.chat.completions.create({
+    // Check cache first
+    const cachedEmotion = await cacheService.getEmotionAnalysis(journalText);
+    if (cachedEmotion) {
+      logger.info('Using cached emotion analysis', { userId: user.id });
+      return res.json(cachedEmotion);
+    }
+
+    // Check token limits
+    const canMakeRequest = await tokenMonitor.canMakeRequest(user.id, tokenMonitor.estimateTokens(journalText));
+    if (!canMakeRequest) {
+      return res.status(429).json({ 
+        error: 'Monthly token limit exceeded. Please upgrade to Premium for higher limits.' 
+      });
+    }
+
+    const response = await retryOpenAICall(
+      () => openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { 
@@ -41,9 +61,16 @@ router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Res
           content: `Analyze this journal entry:\n\n${journalText}` 
         }
       ],
-      temperature: 0.2,
-      max_tokens: 100
-    });
+        temperature: 0.2,
+        max_tokens: 100
+      }),
+      'emotion-score-analysis'
+    );
+
+    // Track token usage
+    if (response.usage) {
+      await tokenMonitor.trackUsage(user.id, 'emotion_analysis', response.usage);
+    }
 
     let parsed;
     try {
@@ -63,6 +90,15 @@ router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Res
     // Ensure intensity is within valid range
     parsed.intensity = Math.max(0, Math.min(100, parsed.intensity));
 
+    const result = {
+      emotion: parsed.emotion,
+      intensity: parsed.intensity,
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    // Cache the result
+    await cacheService.setEmotionAnalysis(journalText, result);
+
     // Save emotion score to database
     await saveEmotionScoreToDB(user.id, {
       date: new Date().toISOString().split('T')[0],
@@ -77,13 +113,14 @@ router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Res
       intensity: parsed.intensity
     });
 
-    res.json({
-      emotion: parsed.emotion,
-      intensity: parsed.intensity,
-      date: new Date().toISOString().split('T')[0]
-    });
+    res.json(result);
 
   } catch (error: any) {
+    captureError(error, { 
+      userId: req.user?.id, 
+      operation: 'emotion_score_analysis' 
+    });
+    
     logger.error('Emotion score analysis failed:', { 
       error: error.message,
       userId: req.user?.id 
@@ -91,6 +128,10 @@ router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Res
     
     if (error.name === 'ZodError') {
       return res.status(400).json({ error: 'Invalid request data' });
+    }
+
+    if (error.message.includes('token limit')) {
+      return res.status(429).json({ error: error.message });
     }
     
     res.status(500).json({ 
