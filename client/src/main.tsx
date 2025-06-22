@@ -14,6 +14,10 @@ import {
 } from "./utils/bundleOptimization";
 import { initializePerformanceOptimizations } from "./utils/finalOptimizations";
 
+// Initialize Sentry and performance monitoring
+initSentry();
+performanceMonitor.startMark('app-initialization');
+
 // Initialize comprehensive performance optimizations
 initializePerformanceOptimizations();
 addResourceHints();
@@ -44,6 +48,8 @@ if (container) {
       <App />
     </StrictMode>
   );
+  
+  performanceMonitor.endMark('app-initialization');
 } else {
   throw new Error(
     "Root element with ID 'root' was not found in the document. Ensure there is a corresponding HTML element with the ID 'root' in your HTML file.",

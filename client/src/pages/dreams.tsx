@@ -1,21 +1,24 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/context/AppContext";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import DreamMode from "@/components/DreamMode";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
+import LockedFeatureMessage from "@/components/LockedFeatureMessage";
 
 export default function Dreams() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasFeatureAccess, setCurrentPage } = useAppContext();
 
-  // Enhanced authentication validation with logging
   useEffect(() => {
-    console.log('🌙 Dreams page auth check:', { isLoading, isAuthenticated });
+    setCurrentPage('/dreams');
+    console.log('Dreams page auth check:', { isLoading, isAuthenticated });
     
     if (!isLoading && !isAuthenticated) {
-      console.warn('🚫 Dreams access denied - redirecting to login');
+      console.warn('Dreams access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -28,9 +31,9 @@ export default function Dreams() {
     }
     
     if (isAuthenticated) {
-      console.log('✅ Dreams page access granted');
+      console.log('Dreams page access granted');
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isAuthenticated, isLoading, toast, setCurrentPage]);
 
   if (isLoading) {
     return (

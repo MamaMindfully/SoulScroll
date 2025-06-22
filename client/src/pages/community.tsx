@@ -8,13 +8,15 @@ import BottomNavigation from "@/components/BottomNavigation";
 export default function Community() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasFeatureAccess, setCurrentPage } = useAppContext();
 
-  // Enhanced authentication validation with logging
+  // Enhanced authentication and feature access validation
   useEffect(() => {
-    console.log('🔐 Community page auth check:', { isLoading, isAuthenticated });
+    setCurrentPage('/community');
+    console.log('Community page auth check:', { isLoading, isAuthenticated });
     
     if (!isLoading && !isAuthenticated) {
-      console.warn('🚫 Community access denied - redirecting to login');
+      console.warn('Community access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -27,9 +29,9 @@ export default function Community() {
     }
     
     if (isAuthenticated) {
-      console.log('✅ Community page access granted');
+      console.log('Community page access granted');
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isAuthenticated, isLoading, toast, setCurrentPage]);
 
   if (isLoading) {
     return (

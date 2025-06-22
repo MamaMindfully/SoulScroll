@@ -8,6 +8,7 @@ import { journalService } from "./services/journalService";
 import OpenAI from "openai";
 import premiumRoutes from "./routes/premiumFeatures.js";
 import stripeRoutes from "./routes/stripeRoutes";
+import apiRoutes from "./routes/apiRoutes";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
