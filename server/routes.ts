@@ -18,6 +18,7 @@ import userStatus from "./routes/userStatus";
 import echoRoutes from "./routes/echoRoutes";
 import dailyPrompt from "./routes/dailyPrompt";
 import userThemes from "./routes/userThemes";
+import lifeChapters from "./routes/lifeChapters";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1783,6 +1784,9 @@ End with a simple, poetic follow-up question.
 
   // Use user themes routes
   app.use('/', userThemes);
+
+  // Use life chapters routes
+  app.use('/', lifeChapters);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

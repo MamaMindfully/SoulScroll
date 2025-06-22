@@ -442,6 +442,17 @@ export const userMemoryTags = pgTable("user_memory_tags", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const lifeChapters = pgTable("life_chapters", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  title: text("title").notNull(),
+  emotions: text("emotions").array(), // Array of top emotions
+  theme: text("theme").notNull(),
+  summary: text("summary").notNull(), // One-sentence insight
+  entryCount: integer("entry_count").default(0), // Number of entries analyzed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
@@ -468,6 +479,15 @@ export const insertUserMemoryTagSchema = createInsertSchema(userMemoryTags).omit
 
 export type InsertUserMemoryTag = z.infer<typeof insertUserMemoryTagSchema>;
 export type UserMemoryTag = typeof userMemoryTags.$inferSelect;
+
+// Life Chapters schema
+export const insertLifeChapterSchema = createInsertSchema(lifeChapters).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertLifeChapter = z.infer<typeof insertLifeChapterSchema>;
+export type LifeChapter = typeof lifeChapters.$inferSelect;
 
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;

@@ -10,7 +10,7 @@ import InnerEcho from '@/components/InnerEcho';
 import DailyPromptCard from '@/components/DailyPromptCard';
 import ThemeTracker from '@/components/ThemeTracker';
 import { Badge } from "@/components/ui/badge";
-import { Clock, TrendingUp, Gift, Bell } from "lucide-react";
+import { Clock, TrendingUp, Gift, Bell, BookOpen } from "lucide-react";
 
 const DemoOptimisticUI: React.FC = () => {
   const [journalText, setJournalText] = useState('');
@@ -70,6 +70,26 @@ const DemoOptimisticUI: React.FC = () => {
 
       {/* Theme Tracker */}
       <ThemeTracker />
+
+      {/* Chapter Generation Hint */}
+      <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+        <CardContent className="p-6 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-3">
+            <BookOpen className="w-6 h-6 text-indigo-600" />
+            <h3 className="text-lg font-semibold text-indigo-800">Life Chapters</h3>
+          </div>
+          <p className="text-indigo-700 mb-4">
+            Continue journaling to unlock poetic autobiographical summaries of your emotional growth journey.
+          </p>
+          <Button 
+            variant="outline" 
+            className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+            onClick={() => window.location.href = '/chapters'}
+          >
+            View Chapters
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* User Status Dashboard */}
       <Card>

@@ -155,6 +155,11 @@ export interface IStorage {
   upsertMemoryTag(userId: string, tag: string, strength: number): Promise<UserMemoryTag>;
   getUserMemoryTags(userId: string, limit?: number): Promise<UserMemoryTag[]>;
   getTopUserThemes(userId: string, limit?: number): Promise<UserMemoryTag[]>;
+
+  // Life chapter operations
+  createLifeChapter(userId: string, chapter: InsertLifeChapter): Promise<LifeChapter>;
+  getLifeChapters(userId: string, limit?: number): Promise<LifeChapter[]>;
+  getLatestChapter(userId: string): Promise<LifeChapter | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -792,6 +797,37 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userMemoryTags.userId, userId))
       .orderBy(desc(userMemoryTags.strength))
       .limit(limit);
+  }
+
+  // Life chapter operations
+  async createLifeChapter(userId: string, chapterData: InsertLifeChapter): Promise<LifeChapter> {
+    const [chapter] = await this.db
+      .insert(lifeChapters)
+      .values({
+        ...chapterData,
+        userId,
+      })
+      .returning();
+    return chapter;
+  }
+
+  async getLifeChapters(userId: string, limit: number = 20): Promise<LifeChapter[]> {
+    return await this.db
+      .select()
+      .from(lifeChapters)
+      .where(eq(lifeChapters.userId, userId))
+      .orderBy(desc(lifeChapters.createdAt))
+      .limit(limit);
+  }
+
+  async getLatestChapter(userId: string): Promise<LifeChapter | undefined> {
+    const [chapter] = await this.db
+      .select()
+      .from(lifeChapters)
+      .where(eq(lifeChapters.userId, userId))
+      .orderBy(desc(lifeChapters.createdAt))
+      .limit(1);
+    return chapter;
   }
 }
 

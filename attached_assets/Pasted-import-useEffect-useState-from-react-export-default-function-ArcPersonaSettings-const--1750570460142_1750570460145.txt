@@ -1,0 +1,68 @@
+import { useEffect, useState } from 'react'
+
+export default function ArcPersonaSettings() {
+  const [profile, setProfile] = useState({
+    arc_tone: 'poetic',
+    arc_prompt_style: 'reflection',
+    arc_depth: 'introspective'
+  })
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const userId = localStorage.getItem('userId')
+      const res = await fetch(`/api/arc-profile?userId=${userId}`)
+      const data = await res.json()
+      setProfile(data)
+    }
+    fetchProfile()
+  }, [])
+
+  const handleChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value })
+  }
+
+  const handleSave = async () => {
+    const userId = localStorage.getItem('userId')
+    await fetch('/api/arc-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, ...profile })
+    })
+    alert('Arc profile updated.')
+  }
+
+  return (
+    <div className="p-6 space-y-6 max-w-xl mx-auto">
+      <h2 className="text-2xl font-bold">Customize Arc</h2>
+
+      <div>
+        <label className="block mb-1 font-semibold">Tone</label>
+        <select name="arc_tone" value={profile.arc_tone} onChange={handleChange} className="w-full p-2 rounded">
+          <option value="poetic">Poetic</option>
+          <option value="grounded">Grounded</option>
+          <option value="scientific">Scientific</option>
+          <option value="mystical">Mystical</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block mb-1 font-semibold">Preferred Prompt Style</label>
+        <select name="arc_prompt_style" value={profile.arc_prompt_style} onChange={handleChange} className="w-full p-2 rounded">
+          <option value="affirmation">Affirmation</option>
+          <option value="reflection">Reflection Question</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block mb-1 font-semibold">Spiritual Depth</label>
+        <select name="arc_depth" value={profile.arc_depth} onChange={handleChange} className="w-full p-2 rounded">
+          <option value="light">Light</option>
+          <option value="introspective">Introspective</option>
+          <option value="transformative">Transformative</option>
+        </select>
+      </div>
+
+      <button onClick={handleSave} className="bg-indigo-600 text-white px-4 py-2 rounded">Save Settings</button>
+    </div>
+  )
+}
