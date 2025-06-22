@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Users, Share2, MessageCircle } from "lucide-react";
+import { Heart, Users, Share2, MessageCircle, Wifi, WifiOff } from "lucide-react";
+import { useRealtime } from "@/hooks/useRealtime";
+import { useAuth } from "@/hooks/useAuth";
+import { addBreadcrumb } from "@/utils/sentry";
+import { performanceMonitor } from "@/utils/performance";
 
 interface SharedReflection {
   id: string;
@@ -13,58 +17,73 @@ interface SharedReflection {
 }
 
 const CommunityFeed = () => {
-  const [shared, setShared] = useState<SharedReflection[]>([
+  const { user } = useAuth();
+  const { 
+    isConnected, 
+    userCount, 
+    recentPosts, 
+    typingUsers, 
+    sendPost, 
+    toggleHeart, 
+    startTyping, 
+    stopTyping 
+  } = useRealtime();
+  
+  const [userNote, setUserNote] = useState('');
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [isTyping, setIsTyping] = useState(false);
+  const [fallbackPosts, setFallbackPosts] = useState<SharedReflection[]>([
     {
-      id: '1',
+      id: 'fallback-1',
       content: "🌿 'I learned that stillness can be powerful.'",
       timestamp: new Date(Date.now() - 1000 * 60 * 30),
       hearts: 12
     },
     {
-      id: '2', 
+      id: 'fallback-2', 
       content: "🌞 'My intention today: approach the world with softness.'",
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
       hearts: 8
-    },
-    {
-      id: '3',
-      content: "💫 'I cried today, and it helped me heal a little.'",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4),
-      hearts: 15
     }
   ]);
-  const [userNote, setUserNote] = useState('');
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+
+  // Use realtime posts if connected, fallback to local posts
+  const displayPosts = isConnected ? recentPosts : fallbackPosts;
 
   useEffect(() => {
-    console.log('🌐 Loading CommunityFeed data...');
+    performanceMonitor.startMark('community-feed-load');
+    console.log('Loading CommunityFeed with realtime support...');
+    addBreadcrumb('CommunityFeed component mounted', 'component');
     
     try {
-      // Load existing community posts from localStorage
-      const savedPosts = localStorage.getItem('soulscroll-community-posts');
-      if (savedPosts) {
-        const parsed = JSON.parse(savedPosts);
-        const validPosts = Array.isArray(parsed) ? parsed : [];
-        console.log('📱 Loaded community posts:', validPosts.length);
-        setShared(validPosts);
-      }
-      
-      // Load liked posts
+      // Load liked posts from localStorage
       const savedLikes = localStorage.getItem('soulscroll-community-likes');
       if (savedLikes) {
         const parsed = JSON.parse(savedLikes);
         const validLikes = Array.isArray(parsed) ? parsed : [];
-        console.log('❤️ Loaded liked posts:', validLikes.length);
         setLikedPosts(new Set(validLikes));
+        console.log('Loaded liked posts:', validLikes.length);
       }
       
-      console.log('✅ CommunityFeed data loaded successfully');
+      // Load fallback posts if not connected
+      if (!isConnected) {
+        const savedPosts = localStorage.getItem('soulscroll-community-posts');
+        if (savedPosts) {
+          const parsed = JSON.parse(savedPosts);
+          const validPosts = Array.isArray(parsed) ? parsed : [];
+          setFallbackPosts(prev => [...prev, ...validPosts]);
+        }
+      }
+      
+      console.log('CommunityFeed loaded successfully');
+      addBreadcrumb('CommunityFeed loaded successfully', 'component');
     } catch (error) {
-      console.error('❌ Error loading community data:', error);
-      setShared([]);
-      setLikedPosts(new Set());
+      console.error('Error loading community data:', error);
+      addBreadcrumb('Error loading community data', 'error', { error: error.message });
+    } finally {
+      performanceMonitor.endMark('community-feed-load');
     }
-  }, []);
+  }, [isConnected]);
 
   const handlePost = () => {
     if (userNote.trim()) {

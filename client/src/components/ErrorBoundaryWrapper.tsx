@@ -34,10 +34,13 @@ class ErrorBoundaryWrapper extends React.Component<ErrorBoundaryWrapperProps, Er
     console.error('Error Stack:', error.stack);
     console.groupEnd();
     
-    // Log to external service in production
-    if (import.meta.env.PROD) {
-      // Sentry.captureException(error, { contexts: { react: errorInfo } });
-    }
+    // Import Sentry dynamically to capture error
+    import('../utils/sentry').then(({ captureError }) => {
+      captureError(error, {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: this.props.fallbackTitle || 'Unknown Component'
+      });
+    });
   }
 
   handleRetry = () => {

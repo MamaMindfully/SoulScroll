@@ -2,6 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { initSentry } from "./utils/sentry";
+import { performanceMonitor } from "./utils/performance";
 import { setupCleanupHandlers, monitorMemory } from "./utils/memoryManagement";
 import { 
   preloadCriticalRoutes, 

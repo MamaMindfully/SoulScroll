@@ -9,6 +9,7 @@ import OpenAI from "openai";
 import premiumRoutes from "./routes/premiumFeatures.js";
 import stripeRoutes from "./routes/stripeRoutes";
 import stripeWebhook from "./stripeWebhook";
+import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -1742,5 +1743,10 @@ End with a simple, poetic follow-up question.
   app.use('/stripe', stripeWebhook);
 
   const httpServer = createServer(app);
+  
+  // Setup Socket.IO realtime server
+  setupRealtimeServer(httpServer);
+  logger.info('Realtime server initialized');
+  
   return httpServer;
 }
