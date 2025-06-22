@@ -9,6 +9,8 @@ import {
   userMemoryTags,
   lifeChapters,
   arcDialogue,
+  insightNodes,
+  insightEdges,
   voiceEntries,
   communityMoods,
   communitySupport,
@@ -42,6 +44,10 @@ import {
   type InsertLifeChapter,
   type ArcDialogue,
   type InsertArcDialogue,
+  type InsightNode,
+  type InsertInsightNode,
+  type InsightEdge,
+  type InsertInsightEdge,
   type VoiceEntry,
   type InsertVoiceEntry,
   type CommunityMood,
@@ -183,6 +189,12 @@ export interface IStorage {
   // Arc dialogue operations
   createArcDialogue(userId: string, dialogue: InsertArcDialogue): Promise<ArcDialogue>;
   getArcDialogueHistory(userId: string, limit?: number): Promise<ArcDialogue[]>;
+
+  // Insight graph operations
+  createInsightNode(userId: string, node: InsertInsightNode): Promise<InsightNode>;
+  createInsightEdge(userId: string, edge: InsertInsightEdge): Promise<InsightEdge>;
+  getInsightGraph(userId: string): Promise<{ nodes: InsightNode[]; edges: InsightEdge[] }>;
+  getRecentInsightNodes(userId: string, limit?: number): Promise<InsightNode[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -899,6 +911,53 @@ export class DatabaseStorage implements IStorage {
       .from(arcDialogue)
       .where(eq(arcDialogue.userId, userId))
       .orderBy(desc(arcDialogue.createdAt))
+      .limit(limit);
+  }
+
+  // Insight graph operations
+  async createInsightNode(userId: string, nodeData: InsertInsightNode): Promise<InsightNode> {
+    const [node] = await this.db
+      .insert(insightNodes)
+      .values({
+        ...nodeData,
+        userId,
+      })
+      .returning();
+    return node;
+  }
+
+  async createInsightEdge(userId: string, edgeData: InsertInsightEdge): Promise<InsightEdge> {
+    const [edge] = await this.db
+      .insert(insightEdges)
+      .values({
+        ...edgeData,
+        userId,
+      })
+      .returning();
+    return edge;
+  }
+
+  async getInsightGraph(userId: string): Promise<{ nodes: InsightNode[]; edges: InsightEdge[] }> {
+    const nodes = await this.db
+      .select()
+      .from(insightNodes)
+      .where(eq(insightNodes.userId, userId))
+      .orderBy(desc(insightNodes.createdAt));
+
+    const edges = await this.db
+      .select()
+      .from(insightEdges)
+      .where(eq(insightEdges.userId, userId));
+
+    return { nodes, edges };
+  }
+
+  async getRecentInsightNodes(userId: string, limit: number = 10): Promise<InsightNode[]> {
+    return await this.db
+      .select()
+      .from(insightNodes)
+      .where(eq(insightNodes.userId, userId))
+      .orderBy(desc(insightNodes.createdAt))
       .limit(limit);
   }
 }

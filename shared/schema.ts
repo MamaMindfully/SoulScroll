@@ -461,6 +461,25 @@ export const arcDialogue = pgTable("arc_dialogue", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const insightNodes = pgTable("insight_nodes", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  entryId: integer("entry_id").references(() => journalEntries.id),
+  label: text("label").notNull(),
+  theme: text("theme"),
+  emotion: text("emotion"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insightEdges = pgTable("insight_edges", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  source: integer("source").references(() => insightNodes.id),
+  target: integer("target").references(() => insightNodes.id),
+  type: text("type").notNull(), // "theme", "emotion", "time"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
@@ -505,6 +524,22 @@ export const insertArcDialogueSchema = createInsertSchema(arcDialogue).omit({
 
 export type InsertArcDialogue = z.infer<typeof insertArcDialogueSchema>;
 export type ArcDialogue = typeof arcDialogue.$inferSelect;
+
+// Insight Graph schemas
+export const insertInsightNodeSchema = createInsertSchema(insightNodes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertInsightEdgeSchema = createInsertSchema(insightEdges).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertInsightNode = z.infer<typeof insertInsightNodeSchema>;
+export type InsightNode = typeof insightNodes.$inferSelect;
+export type InsertInsightEdge = z.infer<typeof insertInsightEdgeSchema>;
+export type InsightEdge = typeof insightEdges.$inferSelect;
 
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;

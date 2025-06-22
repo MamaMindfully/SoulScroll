@@ -21,6 +21,7 @@ import userThemes from "./routes/userThemes";
 import lifeChapters from "./routes/lifeChapters";
 import arcProfile from "./routes/arcProfile";
 import askArc from "./routes/askArc";
+import insightGraph from "./routes/insightGraph";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1795,6 +1796,9 @@ End with a simple, poetic follow-up question.
 
   // Use ask arc routes
   app.use('/', askArc);
+
+  // Use insight graph routes
+  app.use('/', insightGraph);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

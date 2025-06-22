@@ -1,0 +1,258 @@
+import React, { useEffect, useRef } from 'react';
+import * as d3 from 'd3';
+
+interface Node {
+  id: number;
+  label: string;
+  theme?: string;
+  emotion?: string;
+  entryId?: number;
+  createdAt?: string;
+}
+
+interface Edge {
+  source: number;
+  target: number;
+  type: string;
+}
+
+interface GraphData {
+  nodes: Node[];
+  edges: Edge[];
+}
+
+interface InsightGraphProps {
+  data: GraphData;
+}
+
+const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!data?.nodes || !svgRef.current) return;
+
+    const width = 800;
+    const height = 600;
+    const svg = d3.select(svgRef.current)
+      .attr('viewBox', [0, 0, width, height])
+      .style('background', 'linear-gradient(135deg, #0b0c10 0%, #1f2937 100%)')
+      .style('border-radius', '12px');
+
+    // Clear previous content
+    svg.selectAll('*').remove();
+
+    // Create simulation
+    const simulation = d3.forceSimulation(data.nodes as any)
+      .force('link', d3.forceLink(data.edges).id((d: any) => d.id).distance(80))
+      .force('charge', d3.forceManyBody().strength(-200))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(15));
+
+    // Add gradient definitions
+    const defs = svg.append('defs');
+    
+    // Theme color gradients
+    const gradients = [
+      { id: 'grief', colors: ['#8b5cf6', '#a78bfa'] },
+      { id: 'joy', colors: ['#10b981', '#34d399'] },
+      { id: 'control', colors: ['#f59e0b', '#fbbf24'] },
+      { id: 'identity', colors: ['#ec4899', '#f472b6'] },
+      { id: 'release', colors: ['#38bdf8', '#60a5fa'] },
+      { id: 'love', colors: ['#f87171', '#fb7185'] },
+      { id: 'uncertainty', colors: ['#a855f7', '#c084fc'] },
+      { id: 'peace', colors: ['#06b6d4', '#22d3ee'] },
+      { id: 'transformation', colors: ['#84cc16', '#a3e635'] },
+      { id: 'healing', colors: ['#22c55e', '#4ade80'] },
+      { id: 'default', colors: ['#64748b', '#94a3b8'] }
+    ];
+
+    gradients.forEach(({ id, colors }) => {
+      const gradient = defs.append('radialGradient')
+        .attr('id', `gradient-${id}`)
+        .attr('cx', '50%')
+        .attr('cy', '50%')
+        .attr('r', '50%');
+      
+      gradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', colors[0])
+        .attr('stop-opacity', 0.9);
+      
+      gradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', colors[1])
+        .attr('stop-opacity', 0.7);
+    });
+
+    // Create links
+    const link = svg.append('g')
+      .attr('class', 'links')
+      .selectAll('line')
+      .data(data.edges)
+      .join('line')
+      .attr('stroke', (d) => getEdgeColor(d.type))
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', (d) => d.type === 'time' ? '5,5' : null);
+
+    // Create nodes
+    const node = svg.append('g')
+      .attr('class', 'nodes')
+      .selectAll('circle')
+      .data(data.nodes)
+      .join('circle')
+      .attr('r', 10)
+      .attr('fill', (d) => `url(#gradient-${getThemeId(d.theme)})`)
+      .attr('stroke', '#ffffff')
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .call(drag(simulation) as any);
+
+    // Add node labels
+    const label = svg.append('g')
+      .attr('class', 'labels')
+      .selectAll('text')
+      .data(data.nodes)
+      .join('text')
+      .text((d) => d.label.length > 20 ? d.label.substring(0, 20) + '...' : d.label)
+      .attr('font-size', '10px')
+      .attr('font-family', 'Inter, sans-serif')
+      .attr('fill', '#e5e7eb')
+      .attr('text-anchor', 'middle')
+      .attr('dy', 25)
+      .style('pointer-events', 'none');
+
+    // Add hover effects
+    node
+      .on('mouseover', function(event, d) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('r', 14)
+          .attr('stroke-width', 3);
+
+        // Show tooltip
+        const tooltip = d3.select('body').append('div')
+          .attr('class', 'insight-tooltip')
+          .style('position', 'absolute')
+          .style('background', 'rgba(0, 0, 0, 0.9)')
+          .style('color', 'white')
+          .style('padding', '8px 12px')
+          .style('border-radius', '6px')
+          .style('font-size', '12px')
+          .style('pointer-events', 'none')
+          .style('z-index', '1000')
+          .style('opacity', 0);
+
+        tooltip.html(`
+          <div><strong>${d.label}</strong></div>
+          <div>Theme: ${d.theme || 'Unknown'}</div>
+          <div>Emotion: ${d.emotion || 'Unknown'}</div>
+        `)
+          .style('left', (event.pageX + 10) + 'px')
+          .style('top', (event.pageY - 10) + 'px')
+          .transition()
+          .duration(200)
+          .style('opacity', 1);
+      })
+      .on('mouseout', function() {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('r', 10)
+          .attr('stroke-width', 2);
+
+        d3.selectAll('.insight-tooltip').remove();
+      });
+
+    // Update positions on simulation tick
+    simulation.on('tick', () => {
+      link
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x)
+        .attr('y2', (d: any) => d.target.y);
+
+      node
+        .attr('cx', (d: any) => d.x)
+        .attr('cy', (d: any) => d.y);
+
+      label
+        .attr('x', (d: any) => d.x)
+        .attr('y', (d: any) => d.y);
+    });
+
+    // Drag behavior
+    function drag(simulation: any) {
+      function dragstarted(event: any, d: any) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+
+      function dragged(event: any, d: any) {
+        d.fx = event.x;
+        d.fy = event.y;
+      }
+
+      function dragended(event: any, d: any) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      }
+
+      return d3.drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended);
+    }
+
+    function getThemeId(theme?: string): string {
+      const validThemes = ['grief', 'joy', 'control', 'identity', 'release', 'love', 'uncertainty', 'peace', 'transformation', 'healing'];
+      return validThemes.includes(theme || '') ? theme! : 'default';
+    }
+
+    function getEdgeColor(type: string): string {
+      const colors = {
+        theme: '#8b5cf6',
+        emotion: '#f59e0b',
+        time: '#10b981'
+      };
+      return colors[type] || '#64748b';
+    }
+
+    // Cleanup function
+    return () => {
+      simulation.stop();
+      d3.selectAll('.insight-tooltip').remove();
+    };
+
+  }, [data]);
+
+  return (
+    <div className="relative">
+      <svg ref={svgRef} className="w-full h-[600px] border border-gray-700 rounded-lg shadow-lg" />
+      
+      {/* Legend */}
+      <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white text-sm">
+        <h4 className="font-semibold mb-2">Connections</h4>
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-0.5 bg-purple-400"></div>
+            <span>Theme</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-0.5 bg-amber-400"></div>
+            <span>Emotion</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-0.5 bg-emerald-400" style={{ strokeDasharray: '2,2' }}></div>
+            <span>Time (3 days)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InsightGraph;
