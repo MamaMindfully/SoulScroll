@@ -451,6 +451,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
 
       <div className="w-full h-[80vh] overflow-hidden rounded-xl">
         <svg ref={svgRef} className="w-full h-full border border-gray-700 rounded-lg shadow-lg" />
+      </div>
       
       {/* Legend */}
       <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white text-sm">
