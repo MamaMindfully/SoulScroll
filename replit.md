@@ -481,6 +481,14 @@ Changelog:
   * Integrated graph node creation into journalBundle worker for automatic constellation building with each journal entry
   * Added theme-based color coding, emotion connections, and time-proximity linking within 3-day windows
   * Complete insight constellation system visualizes the hidden connections between thoughts, emotions, and themes across journaling journey
+- June 22, 2025: Monthly Constellations poetic summary system implementation:
+  * Created monthlyConstellations database table for storing poetic summaries of 30-day emotional evolution periods
+  * Built comprehensive constellation generation API using GPT-4o to analyze recent journal insights and create narrative summaries
+  * Created MonthlyConstellationCard component with beautiful gradient design, theme badges, and guiding questions
+  * Built complete Constellations page with generation status, manual trigger, and chronological constellation display
+  * Added intelligent generation criteria requiring minimum 5 entries in 30-day period with 25-day intervals between constellations
+  * Enhanced constellation system with poetic titles, thematic analysis, and contemplative guiding questions
+  * Complete monthly reflection system creates "Season of ___" style summaries capturing emotional growth arcs and transformation patterns
 ```
 
 ## User Preferences

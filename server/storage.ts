@@ -11,6 +11,7 @@ import {
   arcDialogue,
   insightNodes,
   insightEdges,
+  monthlyConstellations,
   voiceEntries,
   communityMoods,
   communitySupport,
@@ -48,6 +49,8 @@ import {
   type InsertInsightNode,
   type InsightEdge,
   type InsertInsightEdge,
+  type MonthlyConstellation,
+  type InsertMonthlyConstellation,
   type VoiceEntry,
   type InsertVoiceEntry,
   type CommunityMood,
@@ -195,6 +198,11 @@ export interface IStorage {
   createInsightEdge(userId: string, edge: InsertInsightEdge): Promise<InsightEdge>;
   getInsightGraph(userId: string): Promise<{ nodes: InsightNode[]; edges: InsightEdge[] }>;
   getRecentInsightNodes(userId: string, limit?: number): Promise<InsightNode[]>;
+
+  // Monthly constellation operations
+  createMonthlyConstellation(userId: string, constellation: InsertMonthlyConstellation): Promise<MonthlyConstellation>;
+  getMonthlyConstellations(userId: string, limit?: number): Promise<MonthlyConstellation[]>;
+  getLatestConstellation(userId: string): Promise<MonthlyConstellation | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -959,6 +967,37 @@ export class DatabaseStorage implements IStorage {
       .where(eq(insightNodes.userId, userId))
       .orderBy(desc(insightNodes.createdAt))
       .limit(limit);
+  }
+
+  // Monthly constellation operations
+  async createMonthlyConstellation(userId: string, constellationData: InsertMonthlyConstellation): Promise<MonthlyConstellation> {
+    const [constellation] = await this.db
+      .insert(monthlyConstellations)
+      .values({
+        ...constellationData,
+        userId,
+      })
+      .returning();
+    return constellation;
+  }
+
+  async getMonthlyConstellations(userId: string, limit: number = 12): Promise<MonthlyConstellation[]> {
+    return await this.db
+      .select()
+      .from(monthlyConstellations)
+      .where(eq(monthlyConstellations.userId, userId))
+      .orderBy(desc(monthlyConstellations.createdAt))
+      .limit(limit);
+  }
+
+  async getLatestConstellation(userId: string): Promise<MonthlyConstellation | undefined> {
+    const [constellation] = await this.db
+      .select()
+      .from(monthlyConstellations)
+      .where(eq(monthlyConstellations.userId, userId))
+      .orderBy(desc(monthlyConstellations.createdAt))
+      .limit(1);
+    return constellation;
   }
 }
 

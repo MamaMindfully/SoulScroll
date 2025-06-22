@@ -480,6 +480,17 @@ export const insightEdges = pgTable("insight_edges", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const monthlyConstellations = pgTable("monthly_constellations", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  title: text("title").notNull(),
+  themes: text("themes").array(), // ['grief', 'surrender']
+  summary: text("summary").notNull(), // "This was the month of letting go..."
+  guidingQuestion: text("guiding_question"), // "What does it mean to release without regret?"
+  entryCount: integer("entry_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
@@ -540,6 +551,15 @@ export type InsertInsightNode = z.infer<typeof insertInsightNodeSchema>;
 export type InsightNode = typeof insightNodes.$inferSelect;
 export type InsertInsightEdge = z.infer<typeof insertInsightEdgeSchema>;
 export type InsightEdge = typeof insightEdges.$inferSelect;
+
+// Monthly Constellations schema
+export const insertMonthlyConstellationSchema = createInsertSchema(monthlyConstellations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMonthlyConstellation = z.infer<typeof insertMonthlyConstellationSchema>;
+export type MonthlyConstellation = typeof monthlyConstellations.$inferSelect;
 
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;

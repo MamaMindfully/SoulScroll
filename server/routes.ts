@@ -22,6 +22,7 @@ import lifeChapters from "./routes/lifeChapters";
 import arcProfile from "./routes/arcProfile";
 import askArc from "./routes/askArc";
 import insightGraph from "./routes/insightGraph";
+import monthlyConstellations from "./routes/monthlyConstellations";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1799,6 +1800,9 @@ End with a simple, poetic follow-up question.
 
   // Use insight graph routes
   app.use('/', insightGraph);
+
+  // Use monthly constellations routes
+  app.use('/', monthlyConstellations);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

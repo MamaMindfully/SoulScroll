@@ -103,6 +103,13 @@ const DemoOptimisticUI: React.FC = () => {
             >
               View Constellation
             </Button>
+            <Button 
+              variant="outline" 
+              className="text-rose-600 border-rose-200 hover:bg-rose-50"
+              onClick={() => window.location.href = '/constellations'}
+            >
+              Monthly Reflections
+            </Button>
           </div>
         </CardContent>
       </Card>
