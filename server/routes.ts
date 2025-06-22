@@ -20,6 +20,7 @@ import dailyPrompt from "./routes/dailyPrompt";
 import userThemes from "./routes/userThemes";
 import lifeChapters from "./routes/lifeChapters";
 import arcProfile from "./routes/arcProfile";
+import askArc from "./routes/askArc";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1791,6 +1792,9 @@ End with a simple, poetic follow-up question.
 
   // Use arc profile routes
   app.use('/', arcProfile);
+
+  // Use ask arc routes
+  app.use('/', askArc);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

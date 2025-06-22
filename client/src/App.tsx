@@ -78,7 +78,7 @@ function Router() {
           <Route path="/pricing" component={withLazyLoading(LazyPricing, "Pricing")} />
           <Route path="/feed" component={withLazyLoading(LazyFeed, "Feed")} />
           <Route path="/export" component={withLazyLoading(LazyExportManager, "Export Manager")} />
-          <Route path="/ask-arc" component={withLazyLoading(LazyAskArc, "Ask Arc")} />
+          <Route path="/ask-arc" component={withLazyLoading(() => import('@/components/AskArc'), "Ask Arc")} />
           <Route path="/arc-archive" component={withLazyLoading(LazyArcArchive, "Arc Archive")} />
           <Route path="/arc-settings" component={withLazyLoading(() => import('@/components/ArcPersonaSettings'), "Arc Settings")} />
           <Route path="/premium" component={withLazyLoading(() => import('@/pages/premium'), "Premium")} />

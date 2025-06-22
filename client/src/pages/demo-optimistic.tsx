@@ -81,13 +81,22 @@ const DemoOptimisticUI: React.FC = () => {
           <p className="text-indigo-700 mb-4">
             Continue journaling to unlock poetic autobiographical summaries of your emotional growth journey.
           </p>
-          <Button 
-            variant="outline" 
-            className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-            onClick={() => window.location.href = '/chapters'}
-          >
-            View Chapters
-          </Button>
+          <div className="flex gap-3 justify-center">
+            <Button 
+              variant="outline" 
+              className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+              onClick={() => window.location.href = '/chapters'}
+            >
+              View Chapters
+            </Button>
+            <Button 
+              variant="outline" 
+              className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              onClick={() => window.location.href = '/ask-arc'}
+            >
+              Ask Arc
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

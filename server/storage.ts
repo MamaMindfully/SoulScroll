@@ -8,6 +8,7 @@ import {
   promptFeedback,
   userMemoryTags,
   lifeChapters,
+  arcDialogue,
   voiceEntries,
   communityMoods,
   communitySupport,
@@ -39,6 +40,8 @@ import {
   type InsertUserMemoryTag,
   type LifeChapter,
   type InsertLifeChapter,
+  type ArcDialogue,
+  type InsertArcDialogue,
   type VoiceEntry,
   type InsertVoiceEntry,
   type CommunityMood,
@@ -176,6 +179,10 @@ export interface IStorage {
   // Arc persona operations
   getArcProfile(userId: string): Promise<{ arcTone: string; arcPromptStyle: string; arcDepth: string } | null>;
   updateArcProfile(userId: string, profile: { arcTone?: string; arcPromptStyle?: string; arcDepth?: string }): Promise<User>;
+
+  // Arc dialogue operations
+  createArcDialogue(userId: string, dialogue: InsertArcDialogue): Promise<ArcDialogue>;
+  getArcDialogueHistory(userId: string, limit?: number): Promise<ArcDialogue[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -872,6 +879,27 @@ export class DatabaseStorage implements IStorage {
       .returning();
       
     return updatedUser;
+  }
+
+  // Arc dialogue operations
+  async createArcDialogue(userId: string, dialogueData: InsertArcDialogue): Promise<ArcDialogue> {
+    const [dialogue] = await this.db
+      .insert(arcDialogue)
+      .values({
+        ...dialogueData,
+        userId,
+      })
+      .returning();
+    return dialogue;
+  }
+
+  async getArcDialogueHistory(userId: string, limit: number = 20): Promise<ArcDialogue[]> {
+    return await this.db
+      .select()
+      .from(arcDialogue)
+      .where(eq(arcDialogue.userId, userId))
+      .orderBy(desc(arcDialogue.createdAt))
+      .limit(limit);
   }
 }
 

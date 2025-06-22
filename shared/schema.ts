@@ -453,6 +453,14 @@ export const lifeChapters = pgTable("life_chapters", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const arcDialogue = pgTable("arc_dialogue", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  prompt: text("prompt").notNull(),
+  response: text("response").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
@@ -488,6 +496,15 @@ export const insertLifeChapterSchema = createInsertSchema(lifeChapters).omit({
 
 export type InsertLifeChapter = z.infer<typeof insertLifeChapterSchema>;
 export type LifeChapter = typeof lifeChapters.$inferSelect;
+
+// Arc Dialogue schema
+export const insertArcDialogueSchema = createInsertSchema(arcDialogue).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertArcDialogue = z.infer<typeof insertArcDialogueSchema>;
+export type ArcDialogue = typeof arcDialogue.$inferSelect;
 
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;
