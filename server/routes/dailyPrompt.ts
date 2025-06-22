@@ -22,19 +22,33 @@ router.get('/api/daily-prompt', async (req: Request, res: Response) => {
 
     logger.info('Generating daily prompt', { userId });
 
-    // Fetch recent journal entries
-    const journalEntries = await storage.getJournalEntries(userId as string, 3, 0);
-    
-    const insights = journalEntries
-      .map(entry => entry.aiResponse)
-      .filter(Boolean)
-      .join('\n');
+    try {
+      // Fetch recent journal entries
+      const journalEntries = await storage.getJournalEntries(userId as string, 3, 0);
+      
+      const insights = journalEntries
+        .map(entry => entry.aiResponse)
+        .filter(Boolean)
+        .join('\n');
 
-    if (!insights) {
-      // Return a generic prompt if no insights available
-      return res.json({ 
-        dailyMessage: "What is one thing you're grateful for in this moment?" 
-      });
+      if (!insights) {
+        // Return a generic prompt if no insights available
+        return res.json({ 
+          dailyMessage: "What is one thing you're grateful for in this moment?" 
+        });
+      }
+    } catch (dbError) {
+      // Database fallback - return thoughtful prompts
+      const fallbackPrompts = [
+        "What intention would you like to set for today?",
+        "How are you feeling in this very moment?",
+        "What is one thing you're grateful for right now?",
+        "What story is your heart trying to tell you today?",
+        "If today had a color, what would it be and why?"
+      ];
+      
+      const randomPrompt = fallbackPrompts[Math.floor(Math.random() * fallbackPrompts.length)];
+      return res.json({ dailyMessage: randomPrompt });
     }
 
     const prompt = `
