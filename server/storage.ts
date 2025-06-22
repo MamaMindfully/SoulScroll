@@ -741,6 +741,58 @@ export class DatabaseStorage implements IStorage {
       
     return updatedUser;
   }
+
+  // Memory tag operations
+  async upsertMemoryTag(userId: string, tag: string, strength: number): Promise<UserMemoryTag> {
+    const existingTag = await this.db
+      .select()
+      .from(userMemoryTags)
+      .where(and(eq(userMemoryTags.userId, userId), eq(userMemoryTags.tag, tag)))
+      .limit(1);
+
+    if (existingTag.length > 0) {
+      // Update existing tag
+      const [updatedTag] = await this.db
+        .update(userMemoryTags)
+        .set({
+          strength,
+          lastSeen: new Date(),
+        })
+        .where(eq(userMemoryTags.id, existingTag[0].id))
+        .returning();
+      return updatedTag;
+    } else {
+      // Insert new tag
+      const [newTag] = await this.db
+        .insert(userMemoryTags)
+        .values({
+          userId,
+          tag,
+          strength,
+          lastSeen: new Date(),
+        })
+        .returning();
+      return newTag;
+    }
+  }
+
+  async getUserMemoryTags(userId: string, limit: number = 20): Promise<UserMemoryTag[]> {
+    return await this.db
+      .select()
+      .from(userMemoryTags)
+      .where(eq(userMemoryTags.userId, userId))
+      .orderBy(desc(userMemoryTags.lastSeen))
+      .limit(limit);
+  }
+
+  async getTopUserThemes(userId: string, limit: number = 5): Promise<UserMemoryTag[]> {
+    return await this.db
+      .select()
+      .from(userMemoryTags)
+      .where(eq(userMemoryTags.userId, userId))
+      .orderBy(desc(userMemoryTags.strength))
+      .limit(limit);
+  }
 }
 
 export const storage = new DatabaseStorage();
