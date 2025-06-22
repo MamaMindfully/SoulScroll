@@ -100,6 +100,9 @@ class MemoryQueue extends EventEmitter {
       let result;
       
       switch (job.name) {
+        case 'journalBundle':
+          result = await this.simulateJournalBundle(job);
+          break;
         case 'analyze':
           result = await this.simulateJournalAnalysis(job);
           break;
@@ -152,6 +155,34 @@ class MemoryQueue extends EventEmitter {
         });
       }
     }
+  }
+
+  private async simulateJournalBundle(job: Job): Promise<any> {
+    const { entryText, userId } = job.data;
+    
+    // Simulate unified processing (like your example)
+    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+    
+    // Simulate progress updates
+    job.progress = 25;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    job.progress = 50;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    job.progress = 75;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const emotion = this.getRandomEmotion();
+    const intensity = Math.floor(40 + Math.random() * 60);
+    
+    return {
+      insight: this.generateFallbackInsight(entryText),
+      emotion,
+      intensity,
+      wordCount: entryText.split(/\s+/).length,
+      themes: this.extractThemes(entryText),
+      processed: true,
+      timestamp: new Date()
+    };
   }
 
   private async simulateJournalAnalysis(job: Job): Promise<any> {
@@ -239,6 +270,11 @@ class MemoryQueue extends EventEmitter {
     ];
     
     return insights[Math.floor(Math.random() * insights.length)];
+  }
+
+  private getRandomEmotion(): string {
+    const emotions = ['joy', 'sadness', 'anger', 'fear', 'surprise', 'calm', 'excitement', 'gratitude', 'hope'];
+    return emotions[Math.floor(Math.random() * emotions.length)];
   }
 
   private extractThemes(text: string): string[] {

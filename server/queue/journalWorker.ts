@@ -1,29 +1,32 @@
 import { logger } from '../utils/logger';
 
-// Conditional worker initialization - only if Redis is available
+// Simplified worker initialization
+const REDIS_ENABLED = process.env.REDIS_URL || process.env.NODE_ENV === 'production';
+
 async function initializeWorkers() {
+  if (!REDIS_ENABLED) {
+    logger.info('Memory queues handle their own processing in development');
+    return;
+  }
+
   try {
-    // Check if we can use BullMQ workers
+    // Only initialize BullMQ workers if Redis is available in production
     const Redis = (await import('ioredis')).default;
-    const connection = new Redis({
+    const connection = new Redis(process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
-      maxRetriesPerRequest: 1,
-      connectTimeout: 5000,
-      enableOfflineQueue: false,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
     });
 
     await connection.ping();
-    
-    // If Redis is available, initialize BullMQ workers
     await initializeBullMQWorkers(connection);
     
   } catch (error) {
-    logger.info('Redis not available, using memory queue processing', { 
+    logger.info('Redis not available for workers, using memory processing', { 
       error: error.message 
     });
-    // Memory queues handle their own processing
   }
 }
 
@@ -39,100 +42,100 @@ async function initializeBullMQWorkers(connection: any) {
     apiKey: process.env.OPENAI_API_KEY 
   });
 
-  // Journal Analysis Worker
-  const journalWorker = new Worker('journalQueue', async (job: any) => {
-  const { userId, journalText, entryId } = job.data;
-  
-  logger.info('Processing journal analysis job', { 
-    jobId: job.id, 
-    userId, 
-    textLength: journalText.length 
-  });
+  // Unified Journal Bundle Worker (following your pattern)
+  const journalBundleWorker = new Worker('journalBundle', async (job: any) => {
+    const { userId, entryText } = job.data;
+    
+    logger.info('Processing journal bundle job', { 
+      jobId: job.id, 
+      userId, 
+      textLength: entryText.length 
+    });
 
-  try {
-    // Check token limits
-    const canMakeRequest = await tokenMonitor.canMakeRequest(userId, tokenMonitor.estimateTokens(journalText));
-    if (!canMakeRequest) {
-      throw new Error('User has exceeded monthly token limit');
-    }
-
-    // Generate AI insight with retry logic
-    const response = await retryOpenAICall(
-      () => openai.chat.completions.create({
+    try {
+      // Step 1: Generate AI Insight
+      const insightRes = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
-          {
-            role: 'system',
-            content: 'You are a wise and compassionate journaling coach. Provide thoughtful, supportive insights that help users gain deeper self-understanding. Be warm, empathetic, and encouraging while offering meaningful reflections on their thoughts and experiences.'
+          { 
+            role: 'system', 
+            content: 'Give an emotionally intelligent, personal insight about the following journal entry.' 
           },
-          {
-            role: 'user',
-            content: `Here's my journal entry: ${journalText}`
+          { 
+            role: 'user', 
+            content: entryText 
           }
         ],
         temperature: 0.7,
-        max_tokens: 300
-      }),
-      'journal-worker-analysis'
-    );
-
-    // Track token usage
-    if (response.usage) {
-      await tokenMonitor.trackUsage(userId, 'journal_analysis', response.usage);
-    }
-
-    const insight = response.choices[0].message.content || "Thank you for sharing your thoughts. Your reflection shows courage and self-awareness.";
-
-    // Perform emotional analysis
-    const emotionAnalysis = await analyzeEmotions(journalText);
-
-    // Save insight to database
-    if (entryId) {
-      await storage.updateJournalEntry(entryId, {
-        aiResponse: insight,
-        emotionScore: emotionAnalysis.intensity,
-        themes: emotionAnalysis.labels
       });
+
+      const insight = insightRes.choices[0].message.content.trim();
+
+      // Step 2: Emotion Scoring
+      const emotionRes = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'Return a JSON with "emotion" and "intensity" (0-100). Be brief.' 
+          },
+          { 
+            role: 'user', 
+            content: entryText 
+          }
+        ],
+        temperature: 0.2,
+      });
+
+      const emotionData = JSON.parse(emotionRes.choices[0].message.content.trim());
+      const { emotion, intensity } = emotionData;
+
+      // Step 3: Save All to Database
+      const journalEntry = await storage.createJournalEntry(userId, {
+        content: entryText,
+        mood: Math.round(intensity / 10), // Convert to 1-10 scale
+        wordCount: entryText.split(/\s+/).length,
+        aiResponse: insight,
+        emotionScore: intensity,
+        themes: [emotion]
+      });
+
+      // Step 4: Update Progress/Graph Summary
+      await storage.updateUserStreak(userId);
+
+      logger.info('Journal bundle processing completed', {
+        jobId: job.id,
+        userId,
+        entryId: journalEntry.id,
+        emotion,
+        intensity
+      });
+
+      return {
+        journalEntry,
+        insight,
+        emotion,
+        intensity,
+        processed: true,
+        timestamp: new Date()
+      };
+
+    } catch (error: any) {
+      captureError(error, {
+        userId,
+        operation: 'journal_bundle_worker',
+        jobId: job.id
+      });
+
+      logger.error('Journal bundle job failed', {
+        jobId: job.id,
+        userId,
+        error: error.message
+      });
+
+      throw error;
     }
-
-    // Create emotional insight record
-    await storage.createEmotionalInsight(userId, {
-      period: 'daily',
-      averageMood: Math.round(emotionAnalysis.intensity / 10),
-      insights: [insight],
-      emotionalPatterns: emotionAnalysis.labels,
-      recommendations: getEmotionRecommendations(emotionAnalysis.primary, emotionAnalysis.intensity)
-    });
-
-    logger.info('Journal analysis completed', {
-      jobId: job.id,
-      userId,
-      emotionScore: emotionAnalysis.intensity
-    });
-
-    return {
-      insight,
-      emotionAnalysis,
-      processed: true,
-      timestamp: new Date()
-    };
-
-  } catch (error: any) {
-    captureError(error, {
-      userId,
-      operation: 'journal_worker_analysis',
-      jobId: job.id
-    });
-
-    logger.error('Journal analysis job failed', {
-      jobId: job.id,
-      userId,
-      error: error.message
-    });
-
-    throw error;
-  }
-}, { connection });
+  }, { connection });
 
 // Emotion Analysis Worker
 const emotionWorker = new Worker('emotionQueue', async (job: Job) => {

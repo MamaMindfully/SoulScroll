@@ -9,34 +9,25 @@ const router = Router();
 
 // Validation schema for journal bundle
 const journalBundleSchema = z.object({
-  entryText: z.string().min(1, "Entry text is required"),
-  entryId: z.string(),
-  userId: z.string()
+  entryText: z.string().min(1, "Entry text is required")
 });
 
-// Unified journal bundle processing endpoint
-router.post('/api/queue/journal-bundle', isAuthenticated, async (req: Request, res: Response) => {
+// Simplified journal bundle processing endpoint (following your pattern)
+router.post('/api/journal', isAuthenticated, async (req: Request, res: Response) => {
   try {
-    const { entryText, entryId, userId } = journalBundleSchema.parse(req.body);
+    const { entryText } = journalBundleSchema.parse(req.body);
     const user = req.user;
 
     logger.info('Processing journal bundle', {
       userId: user.id,
-      entryId,
       textLength: entryText.length
     });
 
-    // Create a bundle of related jobs with dependencies
-    const bundleId = `bundle_${entryId}_${Date.now()}`;
-    
-    // Job 1: Analyze journal entry (highest priority)
-    const analyzeJob = await journalQueue.add('analyze', {
+    // Add unified bundle job (like your example)
+    const job = await journalQueue.add('journalBundle', {
       userId: user.id,
-      journalText: entryText,
-      entryId,
-      bundleId
+      entryText
     }, {
-      priority: 10,
       attempts: 3,
       backoff: {
         type: 'exponential',
@@ -44,80 +35,15 @@ router.post('/api/queue/journal-bundle', isAuthenticated, async (req: Request, r
       }
     });
 
-    // Job 2: Score emotion (can run in parallel)
-    const emotionJob = await emotionQueue.add('score', {
-      userId: user.id,
-      journalText: entryText,
-      entryId,
-      bundleId
-    }, {
-      priority: 8,
-      attempts: 2,
-      backoff: {
-        type: 'exponential',
-        delay: 1000
-      }
+    logger.info('Journal bundle job created', {
+      jobId: job.id,
+      userId: user.id
     });
 
-    // Job 3: Update progress graph (depends on emotion scoring)
-    const progressJob = await insightQueue.add('updateProgress', {
-      userId: user.id,
-      entryId,
-      bundleId,
-      dependsOn: [emotionJob.id]
-    }, {
-      priority: 5,
-      delay: 5000, // Wait 5 seconds to allow emotion scoring
-      attempts: 2
-    });
-
-    // Job 4: Check scroll rewards (lowest priority)
-    const rewardJob = await insightQueue.add('checkRewards', {
-      userId: user.id,
-      entryId,
-      bundleId,
-      dependsOn: [analyzeJob.id, emotionJob.id]
-    }, {
-      priority: 3,
-      delay: 10000, // Wait 10 seconds
-      attempts: 1
-    });
-
-    // Job 5: Update memory loop (for pattern recognition)
-    const memoryJob = await insightQueue.add('updateMemoryLoop', {
-      userId: user.id,
-      entryText,
-      entryId,
-      bundleId,
-      dependsOn: [analyzeJob.id, emotionJob.id]
-    }, {
-      priority: 4,
-      delay: 8000, // Wait 8 seconds
-      attempts: 2
-    });
-
-    logger.info('Journal bundle jobs created', {
-      bundleId,
-      jobs: {
-        analyze: analyzeJob.id,
-        emotion: emotionJob.id,
-        progress: progressJob.id,
-        rewards: rewardJob.id,
-        memory: memoryJob.id
-      }
-    });
-
-    res.status(202).json({
-      message: 'Journal bundle processing started',
-      bundleId,
-      jobs: {
-        analyze: analyzeJob.id,
-        emotion: emotionJob.id,
-        progress: progressJob.id,
-        rewards: rewardJob.id,
-        memory: memoryJob.id
-      },
-      estimated: 'Processing will complete within 30-60 seconds'
+    res.status(200).json({ 
+      status: 'processing',
+      jobId: job.id,
+      message: 'Journal entry submitted for processing'
     });
 
   } catch (error: any) {
@@ -140,6 +66,13 @@ router.post('/api/queue/journal-bundle', isAuthenticated, async (req: Request, r
       details: error.message
     });
   }
+});
+
+// Legacy bundle endpoint for compatibility
+router.post('/api/queue/journal-bundle', isAuthenticated, async (req: Request, res: Response) => {
+  // Redirect to the new endpoint
+  req.url = '/api/journal';
+  return router.handle(req, res);
 });
 
 // Get bundle status endpoint

@@ -142,11 +142,9 @@ export const useOptimisticJournal = () => {
       setLoadingStates(prev => ({ ...prev, updatingProgress: false, checkingRewards: true }));
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Submit to unified queue for actual processing
-      await apiRequest('POST', '/api/queue/journal-bundle', {
-        entryText,
-        entryId,
-        userId: 'current-user' // This would come from auth context
+      // Submit to unified queue for actual processing (simplified endpoint)
+      await apiRequest('POST', '/api/journal', {
+        entryText
       });
 
       // Complete loading
