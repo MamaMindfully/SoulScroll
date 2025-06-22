@@ -27,8 +27,12 @@ import { Button } from "@/components/ui/button";
 export default function Home() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(true);
   const { isPremium, refreshPremiumStatus, premiumFeatures } = usePremium();
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+  }, []);
 
   const togglePremiumMutation = useMutation({
     mutationFn: async () => {

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Smartphone, Battery, Wifi, Download, Share2, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useHasMounted } from "@/utils/useHasMounted";
 
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -10,11 +11,14 @@ interface InstallPromptEvent extends Event {
 }
 
 export default function MobileOptimizations() {
+  const hasMounted = useHasMounted();
   const [deferredPrompt, setDeferredPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const { toast } = useToast();
+
+  if (!hasMounted) return null;
 
   useEffect(() => {
     // Check if app is already installed (running in standalone mode)

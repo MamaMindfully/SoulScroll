@@ -3,20 +3,25 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wifi, WifiOff, Shield, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useHasMounted } from "@/utils/useHasMounted";
 
 interface LocalModeToggleProps {
   onModeChange?: (isLocal: boolean) => void;
 }
 
 export default function LocalModeToggle({ onModeChange }: LocalModeToggleProps) {
+  const hasMounted = useHasMounted();
   const [isLocalMode, setIsLocalMode] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if local mode was previously enabled
-    const savedMode = localStorage.getItem('luma_local_mode');
-    setIsLocalMode(savedMode === 'true');
-  }, []);
+    if (hasMounted) {
+      const savedMode = localStorage.getItem('luma_local_mode');
+      setIsLocalMode(savedMode === 'true');
+    }
+  }, [hasMounted]);
+
+  if (!hasMounted) return null;
 
   const handleToggle = (enabled: boolean) => {
     setIsLocalMode(enabled);

@@ -34,6 +34,7 @@ import OnboardingIntro from "@/components/OnboardingIntro";
 import OnboardingModal from "@/components/OnboardingModal";
 import FeedbackButton from "@/components/FeedbackButton";
 import { restoreSession } from "@/utils/restoreSession";
+import { useHasMounted } from "@/utils/useHasMounted";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
@@ -119,6 +120,8 @@ function AppRoutes() {
 }
 
 function App() {
+  const hasMounted = useHasMounted();
+  
   // Initialize user status synchronization
   useUserStatusSync();
   
@@ -127,27 +130,23 @@ function App() {
     setupGlobalErrorHandlers();
   }, []);
   
-  const [showIntro, setShowIntro] = useState<boolean | null>(null);
+  const [showIntro, setShowIntro] = useState(false);
   
   // Handle localStorage access after hydration
   useEffect(() => {
-    const hasSeenIntro = localStorage.getItem('soul-scroll-intro-seen');
-    setShowIntro(!hasSeenIntro);
-  }, []);
+    if (hasMounted) {
+      const hasSeenIntro = localStorage.getItem('soul-scroll-intro-seen');
+      setShowIntro(!hasSeenIntro);
+    }
+  }, [hasMounted]);
 
   const handleContinue = () => {
     localStorage.setItem('soul-scroll-intro-seen', 'true');
     setShowIntro(false);
   };
   
-  // Show loading state during hydration
-  if (showIntro === null) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-pulse text-white">Loading...</div>
-      </div>
-    );
-  }
+  // Prevent hydration mismatch
+  if (!hasMounted) return null;
   
   return (
     <ErrorBoundaryWrapper>

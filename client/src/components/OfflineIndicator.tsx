@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { WifiOff, Wifi, RefreshCw } from "lucide-react";
 
 const OfflineIndicator: React.FC = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(true);
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Initialize online status
+    setIsOnline(navigator.onLine);
+    setShowOfflineBanner(!navigator.onLine);
     const handleOnline = () => {
       setIsOnline(true);
       setShowOfflineBanner(false);
