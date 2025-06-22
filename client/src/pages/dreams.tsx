@@ -10,9 +10,12 @@ export default function Dreams() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Redirect to home if not authenticated
+  // Enhanced authentication validation with logging
   useEffect(() => {
+    console.log('🌙 Dreams page auth check:', { isLoading, isAuthenticated });
+    
     if (!isLoading && !isAuthenticated) {
+      console.warn('🚫 Dreams access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -22,6 +25,10 @@ export default function Dreams() {
         window.location.href = "/api/login";
       }, 500);
       return;
+    }
+    
+    if (isAuthenticated) {
+      console.log('✅ Dreams page access granted');
     }
   }, [isAuthenticated, isLoading, toast]);
 

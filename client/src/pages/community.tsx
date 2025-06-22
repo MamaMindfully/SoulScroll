@@ -9,9 +9,12 @@ export default function Community() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Redirect to home if not authenticated
+  // Enhanced authentication validation with logging
   useEffect(() => {
+    console.log('🔐 Community page auth check:', { isLoading, isAuthenticated });
+    
     if (!isLoading && !isAuthenticated) {
+      console.warn('🚫 Community access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -21,6 +24,10 @@ export default function Community() {
         window.location.href = "/api/login";
       }, 500);
       return;
+    }
+    
+    if (isAuthenticated) {
+      console.log('✅ Community page access granted');
     }
   }, [isAuthenticated, isLoading, toast]);
 

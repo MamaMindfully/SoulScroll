@@ -21,11 +21,23 @@ class ErrorBoundaryWrapper extends React.Component<ErrorBoundaryWrapperProps, Er
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    console.error('ErrorBoundary - Component crashed:', error.message);
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Enhanced logging for debugging
+    console.group('🚨 React Error Boundary Triggered');
+    console.error('Error:', error);
+    console.error('Error Info:', errorInfo);
+    console.error('Component Stack:', errorInfo.componentStack);
+    console.error('Error Stack:', error.stack);
+    console.groupEnd();
+    
+    // Log to external service in production
+    if (import.meta.env.PROD) {
+      // Sentry.captureException(error, { contexts: { react: errorInfo } });
+    }
   }
 
   handleRetry = () => {

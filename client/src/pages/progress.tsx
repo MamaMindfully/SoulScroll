@@ -10,9 +10,12 @@ export default function Progress() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Redirect to home if not authenticated
+  // Enhanced authentication validation with logging
   useEffect(() => {
+    console.log('📊 Progress page auth check:', { isLoading, isAuthenticated });
+    
     if (!isLoading && !isAuthenticated) {
+      console.warn('🚫 Progress access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -22,6 +25,10 @@ export default function Progress() {
         window.location.href = "/api/login";
       }, 500);
       return;
+    }
+    
+    if (isAuthenticated) {
+      console.log('✅ Progress page access granted');
     }
   }, [isAuthenticated, isLoading, toast]);
 

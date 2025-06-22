@@ -37,22 +37,30 @@ const CommunityFeed = () => {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    console.log('🌐 Loading CommunityFeed data...');
+    
     try {
       // Load existing community posts from localStorage
       const savedPosts = localStorage.getItem('soulscroll-community-posts');
       if (savedPosts) {
         const parsed = JSON.parse(savedPosts);
-        setShared(Array.isArray(parsed) ? parsed : []);
+        const validPosts = Array.isArray(parsed) ? parsed : [];
+        console.log('📱 Loaded community posts:', validPosts.length);
+        setShared(validPosts);
       }
       
       // Load liked posts
       const savedLikes = localStorage.getItem('soulscroll-community-likes');
       if (savedLikes) {
         const parsed = JSON.parse(savedLikes);
-        setLikedPosts(new Set(Array.isArray(parsed) ? parsed : []));
+        const validLikes = Array.isArray(parsed) ? parsed : [];
+        console.log('❤️ Loaded liked posts:', validLikes.length);
+        setLikedPosts(new Set(validLikes));
       }
+      
+      console.log('✅ CommunityFeed data loaded successfully');
     } catch (error) {
-      console.error('Error loading community data:', error);
+      console.error('❌ Error loading community data:', error);
       setShared([]);
       setLikedPosts(new Set());
     }
