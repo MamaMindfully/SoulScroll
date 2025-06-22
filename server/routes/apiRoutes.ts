@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { logger } from "../utils/logger";
+import { aiJournalEngine } from "../engines/aiJournalEngine";
 import { z } from "zod";
 import Stripe from "stripe";
 
@@ -136,11 +137,46 @@ router.post('/journal', isAuthenticated, async (req, res) => {
     await storage.updateUserStreak(user.id);
 
     // Trigger AI analysis (async)
-    // This would normally be a background job
     setTimeout(async () => {
       try {
-        // AI analysis logic here
-        logger.info('AI analysis completed for entry', { entryId: entry.id });
+        logger.info('Starting AI analysis for journal entry', { entryId: entry.id });
+        
+        // Get recent entries for context
+        const recentEntries = await storage.getJournalEntries(user.id, 5, 0);
+        
+        // Perform AI analysis
+        const analysis = await aiJournalEngine.analyzeJournalEntry(content, user.id);
+        const emotions = await aiJournalEngine.detectEmotions(content);
+        const reflection = await aiJournalEngine.generatePersonalizedReflection(
+          content, 
+          user.id, 
+          recentEntries
+        );
+        const insights = await aiJournalEngine.scoreInsightDepth(content);
+
+        // Update entry with AI analysis
+        await storage.updateJournalEntry(entry.id, {
+          aiResponse: reflection,
+          emotionScore: emotions.intensity,
+          themes: analysis.themes,
+          insights: analysis.insights
+        });
+
+        // Create emotional insight record
+        await storage.createEmotionalInsight(user.id, {
+          period: 'daily',
+          averageMood: mood || 5,
+          insights: analysis.insights,
+          emotionalPatterns: analysis.themes,
+          recommendations: analysis.suggestions
+        });
+
+        logger.info('AI analysis completed successfully', { 
+          entryId: entry.id,
+          emotionScore: emotions.intensity,
+          insightDepth: insights.depth
+        });
+
       } catch (error) {
         logger.error('AI analysis failed', { entryId: entry.id, error: error.message });
       }

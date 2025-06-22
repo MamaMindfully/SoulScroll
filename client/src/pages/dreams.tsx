@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/context/AppContext";
+import { useAppStore, useAuth, useFeatureAccess } from "@/store/appStore";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import DreamMode from "@/components/DreamMode";
@@ -11,7 +10,8 @@ import LockedFeatureMessage from "@/components/LockedFeatureMessage";
 export default function Dreams() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const { hasFeatureAccess, setCurrentPage } = useAppContext();
+  const { hasFeatureAccess } = useFeatureAccess();
+  const setCurrentPage = useAppStore(state => state.setCurrentPage);
 
   useEffect(() => {
     setCurrentPage('/dreams');
@@ -48,7 +48,7 @@ export default function Dreams() {
   }
 
   // Check feature access
-  if (!hasFeatureAccess('dreams')) {
+  if (!hasFeatureAccess('dream')) {
     return (
       <ErrorBoundaryWrapper>
         <div className="h-screen flex flex-col bg-gentle">

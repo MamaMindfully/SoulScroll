@@ -8,7 +8,8 @@ import BottomNavigation from "@/components/BottomNavigation";
 export default function Community() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const { hasFeatureAccess, setCurrentPage } = useAppContext();
+  const { hasFeatureAccess } = useFeatureAccess();
+  const setCurrentPage = useAppStore(state => state.setCurrentPage);
 
   // Enhanced authentication and feature access validation
   useEffect(() => {
