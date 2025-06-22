@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useAppStore, useAuth, useFeatureAccess } from "@/store/appStore";
+import { useFeatureAccess } from "@/store/appStore";
+import { useAuth } from "@/hooks/useAuth";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import DreamMode from "@/components/DreamMode";
@@ -10,15 +11,10 @@ import LockedFeatureMessage from "@/components/LockedFeatureMessage";
 export default function Dreams() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const { hasFeatureAccess } = useFeatureAccess();
-  const setCurrentPage = useAppStore(state => state.setCurrentPage);
+  const featureAccess = useFeatureAccess();
 
   useEffect(() => {
-    setCurrentPage('/dreams');
-    console.log('Dreams page auth check:', { isLoading, isAuthenticated });
-    
     if (!isLoading && !isAuthenticated) {
-      console.warn('Dreams access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -27,13 +23,8 @@ export default function Dreams() {
       setTimeout(() => {
         window.location.href = "/api/login";
       }, 500);
-      return;
     }
-    
-    if (isAuthenticated) {
-      console.log('Dreams page access granted');
-    }
-  }, [isAuthenticated, isLoading, toast, setCurrentPage]);
+  }, [isAuthenticated, isLoading, toast]);
 
   if (isLoading) {
     return (
@@ -48,7 +39,7 @@ export default function Dreams() {
   }
 
   // Check feature access
-  if (!hasFeatureAccess('dream')) {
+  if (!featureAccess.dream) {
     return (
       <ErrorBoundaryWrapper>
         <div className="h-screen flex flex-col bg-gentle">

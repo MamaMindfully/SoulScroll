@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useAppContext } from "@/context/AppContext";
+import { useFeatureAccess } from "@/store/appStore";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import VisualProgressTracker from "@/components/VisualProgressTracker";
@@ -10,14 +10,10 @@ import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 export default function Progress() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const { setCurrentPage } = useAppContext();
+  const featureAccess = useFeatureAccess();
 
   useEffect(() => {
-    setCurrentPage('/progress');
-    console.log('Progress page auth check:', { isLoading, isAuthenticated });
-    
     if (!isLoading && !isAuthenticated) {
-      console.warn('🚫 Progress access denied - redirecting to login');
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -26,13 +22,8 @@ export default function Progress() {
       setTimeout(() => {
         window.location.href = "/api/login";
       }, 500);
-      return;
     }
-    
-    if (isAuthenticated) {
-      console.log('Progress page access granted');
-    }
-  }, [isAuthenticated, isLoading, toast, setCurrentPage]);
+  }, [isAuthenticated, isLoading, toast]);
 
   if (isLoading) {
     return (

@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { useAppStore } from "@/store/appStore";
 import { useAuth } from "./useAuth";
 
 export function usePremium() {
   const { isAuthenticated } = useAuth();
-  const setSubscription = useAppStore(state => state.setSubscription);
-  const setSubscriptionLoading = useAppStore(state => state.setSubscriptionLoading);
+  const setSubscriptionStatus = useAppStore(state => state.setSubscriptionStatus);
   
   const { data: premiumData, isLoading } = useQuery({
     queryKey: ["/api/user/premium-status"],
@@ -14,19 +12,14 @@ export function usePremium() {
     retry: false,
     onSuccess: (data) => {
       if (data) {
-        const status = data.isPremium ? 'premium' : 'free';
-        setSubscription(status, data.isPremium);
+        const status = data.isPremium ? 'active' : 'free';
+        setSubscriptionStatus(status);
       }
     },
     onError: () => {
-      setSubscription('free', false);
+      setSubscriptionStatus('free');
     }
   });
-
-  // Sync loading state with store
-  useEffect(() => {
-    setSubscriptionLoading(isLoading);
-  }, [isLoading, setSubscriptionLoading]);
 
   return {
     isPremium: premiumData?.isPremium || false,

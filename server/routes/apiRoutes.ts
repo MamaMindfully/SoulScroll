@@ -24,53 +24,84 @@ const journalEntrySchema = z.object({
   tags: z.array(z.string()).optional()
 });
 
-// POST /api/create-subscription
+// POST /api/create-subscription - Enhanced with proper trial and customer handling
 router.post('/create-subscription', isAuthenticated, async (req, res) => {
   try {
-    const { priceId, successUrl, cancelUrl } = createSubscriptionSchema.parse(req.body);
+    const { userId, email } = req.body;
     const user = req.user;
 
-    logger.info('Creating subscription', { userId: user.id, priceId });
+    logger.info('Creating subscription', { userId: user.id, email: user.email });
 
-    const session = await stripe.checkout.sessions.create({
-      customer_email: user.email,
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: successUrl || `${req.headers.origin}/premium-success`,
-      cancel_url: cancelUrl || `${req.headers.origin}/premium`,
+    // Create customer if not exists
+    let customer;
+    try {
+      const existingSubscription = await storage.getUserSubscription(user.id);
+      if (existingSubscription?.stripeCustomerId) {
+        customer = await stripe.customers.retrieve(existingSubscription.stripeCustomerId);
+      }
+    } catch (error) {
+      logger.debug('No existing customer found, creating new one');
+    }
+
+    if (!customer) {
+      customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { userId: user.id }
+      });
+    }
+
+    // Create subscription with trial
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: process.env.STRIPE_PRICE_ID }],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent'],
+      trial_period_days: 14,
       metadata: {
+        userId: user.id
+      }
+    });
+
+    // Save subscription data in database
+    try {
+      await storage.updateSubscription(user.id, {
+        stripeCustomerId: customer.id,
+        stripeSubscriptionId: subscription.id,
+        status: 'trialing',
+        planType: 'monthly',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days trial
+      });
+    } catch (updateError) {
+      // Create new subscription record if update fails
+      await storage.createSubscription({
         userId: user.id,
-      },
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: {
-          userId: user.id,
-        },
-      },
+        stripeCustomerId: customer.id,
+        stripeSubscriptionId: subscription.id,
+        status: 'trialing',
+        planType: 'monthly',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      });
+    }
+
+    logger.info('Subscription created successfully', { 
+      subscriptionId: subscription.id,
+      customerId: customer.id,
+      status: subscription.status
     });
 
-    // Save subscription attempt to database
-    await storage.createSubscription({
-      userId: user.id,
-      stripeCustomerId: session.customer as string,
-      stripeSubscriptionId: '',
-      status: 'pending',
-      planType: priceId.includes('yearly') ? 'yearly' : 'monthly',
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days trial
+    // Send client secret to frontend for payment confirmation
+    res.json({
+      clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+      subscriptionId: subscription.id,
+      customerId: customer.id,
+      status: subscription.status
     });
 
-    logger.info('Subscription session created', { sessionId: session.id });
-    res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
-    logger.error('Error creating subscription', { error: error.message });
-    res.status(500).json({ error: 'Failed to create subscription' });
+    logger.error('Subscription creation failed', { error: error.message });
+    res.status(500).json({ error: 'Subscription creation failed' });
   }
 });
 

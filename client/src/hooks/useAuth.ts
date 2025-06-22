@@ -5,8 +5,8 @@ import { setUserContext, addBreadcrumb } from "@/utils/sentry";
 import { performanceMonitor } from "@/utils/performance";
 
 export function useAuth() {
-  const setAuth = useAppStore(state => state.setAuth);
-  const setAuthLoading = useAppStore(state => state.setAuthLoading);
+  const setUser = useAppStore(state => state.setUser);
+  const logout = useAppStore(state => state.logout);
   
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user"],
@@ -18,22 +18,17 @@ export function useAuth() {
         performanceMonitor.endMark('auth-check');
         
         // Update global store
-        setAuth(true, userData.id, userData);
+        setUser(userData.id);
       } else {
-        setAuth(false);
+        logout();
       }
     },
     onError: (error) => {
       addBreadcrumb('Authentication failed', 'auth', { error: error.message });
       performanceMonitor.endMark('auth-check');
-      setAuth(false);
+      logout();
     }
   });
-
-  // Sync loading state with store
-  useEffect(() => {
-    setAuthLoading(isLoading);
-  }, [isLoading, setAuthLoading]);
 
   // Start performance tracking for auth check
   if (isLoading) {
