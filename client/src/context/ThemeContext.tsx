@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useHasMounted } from '@/utils/useHasMounted';
 
 type ThemeType = 'calm' | 'galaxy' | 'forest' | 'sunset' | 'ocean';
 

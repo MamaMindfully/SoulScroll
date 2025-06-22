@@ -23,16 +23,22 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { useHasMounted } from "@/utils/useHasMounted";
 
 export default function Home() {
+  const hasMounted = useHasMounted();
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
   const { isPremium, refreshPremiumStatus, premiumFeatures } = usePremium();
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
-  }, []);
+    if (hasMounted) {
+      setIsOnline(navigator.onLine);
+    }
+  }, [hasMounted]);
+
+  if (!hasMounted) return null;
 
   const togglePremiumMutation = useMutation({
     mutationFn: async () => {

@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WifiOff, Wifi, RefreshCw } from "lucide-react";
+import { useHasMounted } from "@/utils/useHasMounted";
 
 const OfflineIndicator: React.FC = () => {
+  const hasMounted = useHasMounted();
   const [isOnline, setIsOnline] = useState(true);
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+
+  if (!hasMounted) return null;
 
   useEffect(() => {
     // Initialize online status
