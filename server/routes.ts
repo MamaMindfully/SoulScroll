@@ -1755,11 +1755,11 @@ End with a simple, poetic follow-up question.
   // Use comprehensive API routes
   app.use('/api', apiRoutes);
 
-  // Use AI journal routes with rate limiting
-  app.use('/api', aiAnalysisRateLimit, aiJournal);
+  // Use AI journal routes (rate limiting applied internally)
+  app.use('/api', aiJournal);
 
-  // Use emotion scoring routes with rate limiting
-  app.use('/', aiAnalysisRateLimit, emotionScore);
+  // Use emotion scoring routes (rate limiting applied internally)
+  app.use('/', emotionScore);
 
   // Use billing portal routes with rate limiting
   app.use('/', stripeRateLimit, billingPortal);

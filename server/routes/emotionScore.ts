@@ -8,6 +8,7 @@ import { cacheService } from "../services/cacheService";
 import { tokenMonitor } from "../services/tokenMonitor";
 import { retryOpenAICall } from "../utils/retryUtils";
 import { captureError } from "../utils/errorHandler";
+import { aiAnalysisRateLimit } from "../middleware/rateLimiter";
 
 const router = Router();
 const openai = new OpenAI({ 
@@ -20,8 +21,8 @@ const emotionScoreSchema = z.object({
   userId: z.string().optional()
 });
 
-// POST /api/emotion-score
-router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Response) => {
+// POST /api/emotion-score (with rate limiting)
+router.post('/api/emotion-score', aiAnalysisRateLimit, isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { journalText } = emotionScoreSchema.parse(req.body);
     const user = req.user;

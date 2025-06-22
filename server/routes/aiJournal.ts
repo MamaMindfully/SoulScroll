@@ -8,6 +8,7 @@ import { cacheService } from "../services/cacheService";
 import { tokenMonitor } from "../services/tokenMonitor";
 import { retryOpenAICall } from "../utils/retryUtils";
 import { captureError } from "../utils/errorHandler";
+import { aiAnalysisRateLimit } from "../middleware/rateLimiter";
 
 const router = Router();
 const openai = new OpenAI({ 
@@ -19,8 +20,8 @@ const journalAnalysisSchema = z.object({
   entryText: z.string().min(1, "Journal entry text is required")
 });
 
-// AI Journal Analysis Route
-router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) => {
+// AI Journal Analysis Route (with rate limiting)
+router.post('/ai/journal', aiAnalysisRateLimit, isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { entryText } = journalAnalysisSchema.parse(req.body);
     const user = req.user;

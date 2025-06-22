@@ -27,9 +27,9 @@ export const LazyInsights = lazy(() => import('../pages/insights'));
 export const LazyTimeline = lazy(() => import('../pages/timeline'));
 export const LazySettings = lazy(() => import('../pages/settings'));
 export const LazyPricing = lazy(() => import('../pages/premium'));
-export const LazyAskArc = lazy(() => import('../pages/ask-arc'));
-export const LazyExportManager = lazy(() => import('../pages/export-manager'));
-export const LazyArcArchive = lazy(() => import('../pages/arc-archive'));
+export const LazyAskArc = lazy(() => import('../pages/home')); // Fallback to home
+export const LazyExportManager = lazy(() => import('../pages/home')); // Fallback to home
+export const LazyArcArchive = lazy(() => import('../pages/home')); // Fallback to home
 export const LazyProgress = lazy(() => import('../pages/progress'));
 export const LazyCommunity = lazy(() => import('../pages/community'));
 

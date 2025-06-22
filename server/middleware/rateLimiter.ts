@@ -24,10 +24,10 @@ export const journalRateLimit = rateLimit({
   }
 });
 
-// Rate limiter for AI analysis - 10 per hour
+// Rate limiter for AI analysis - 50 per hour (more lenient)
 export const aiAnalysisRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 requests per window
+  max: 50, // 50 requests per window
   message: {
     error: 'Too many AI analysis requests. Please wait before requesting another analysis.',
     retryAfter: '1 hour'
@@ -70,10 +70,10 @@ export const stripeRateLimit = rateLimit({
   }
 });
 
-// General API rate limiter - 100 requests per 15 minutes
+// General API rate limiter - 500 requests per 15 minutes (more lenient for development)
 export const generalRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per window
+  max: 500, // 500 requests per window
   message: {
     error: 'Too many requests. Please slow down.',
     retryAfter: '15 minutes'
