@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Lightbulb } from "lucide-react";
 import { useDailyReminder } from '@/hooks/useDailyReminder';
+import { useAppStore } from '@/store/appStore';
 
 const DailyNotification: React.FC = () => {
   const { message, dismissReminder } = useDailyReminder();
