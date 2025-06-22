@@ -1000,13 +1000,74 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLatestConstellation(userId: string): Promise<MonthlyConstellation | undefined> {
-    const [constellation] = await this.db
+    const [constellation] = await db
       .select()
       .from(monthlyConstellations)
       .where(eq(monthlyConstellations.userId, userId))
       .orderBy(desc(monthlyConstellations.createdAt))
       .limit(1);
     return constellation;
+  }
+
+  // Memory loop operations
+  async createMemoryLoop(userId: string, memoryLoopData: InsertMemoryLoop): Promise<MemoryLoop> {
+    const [memoryLoop] = await db
+      .insert(memoryLoops)
+      .values({
+        userId,
+        ...memoryLoopData,
+      })
+      .returning();
+    return memoryLoop;
+  }
+
+  async getMemoryLoops(userId: string, limit: number = 10): Promise<MemoryLoop[]> {
+    return await db
+      .select()
+      .from(memoryLoops)
+      .where(eq(memoryLoops.userId, userId))
+      .orderBy(desc(memoryLoops.createdAt))
+      .limit(limit);
+  }
+
+  // Inner compass operations
+  async createInnerCompassPrompt(userId: string, promptData: InsertInnerCompassPrompt): Promise<InnerCompassPrompt> {
+    const [prompt] = await db
+      .insert(innerCompassPrompts)
+      .values({
+        userId,
+        ...promptData,
+      })
+      .returning();
+    return prompt;
+  }
+
+  async getTodaysPrompt(userId: string): Promise<InnerCompassPrompt | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const [prompt] = await db
+      .select()
+      .from(innerCompassPrompts)
+      .where(
+        and(
+          eq(innerCompassPrompts.userId, userId),
+          gte(innerCompassPrompts.createdAt, today)
+        )
+      )
+      .orderBy(desc(innerCompassPrompts.createdAt))
+      .limit(1);
+    
+    return prompt;
+  }
+
+  async getInnerCompassPrompts(userId: string, limit: number = 20): Promise<InnerCompassPrompt[]> {
+    return await db
+      .select()
+      .from(innerCompassPrompts)
+      .where(eq(innerCompassPrompts.userId, userId))
+      .orderBy(desc(innerCompassPrompts.createdAt))
+      .limit(limit);
   }
 }
 

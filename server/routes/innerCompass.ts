@@ -66,9 +66,20 @@ router.get('/api/inner-compass', isAuthenticated, async (req: Request, res: Resp
       prompt.base = lines[0].trim();
     }
 
-    logger.info('Inner compass prompt generated', { userId, baseLength: prompt.base.length });
+    // Check if user already has a prompt for today
+    const existingPrompt = await storage.getTodaysPrompt(userId);
+    
+    if (existingPrompt) {
+      logger.info('Returning existing prompt for today', { userId });
+      return res.json({ prompt: existingPrompt });
+    }
 
-    res.json({ prompt });
+    // Save the new prompt to database
+    const savedPrompt = await storage.createInnerCompassPrompt(userId, prompt);
+    
+    logger.info('Inner compass prompt generated and saved', { userId, promptId: savedPrompt.id });
+
+    res.json({ prompt: savedPrompt });
 
   } catch (error: any) {
     logger.error('Inner compass generation failed', { 

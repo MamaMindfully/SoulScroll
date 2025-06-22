@@ -37,12 +37,9 @@ async function runMemoryLoop(userId) {
     const reflection = response.choices[0].message.content.trim()
 
     // Store the memory loop insight
-    await storage.createEmotionalInsight(userId, {
-      type: 'memory_loop',
-      content: reflection,
+    await storage.createMemoryLoop(userId, {
       entryId: oldEntry.id,
-      emotionalPatterns: ['reflection', 'growth'],
-      summary: reflection.substring(0, 100) + '...'
+      insight: reflection
     })
 
     logger.info('Memory loop insight created', { userId, entryId: oldEntry.id })

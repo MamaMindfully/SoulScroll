@@ -13,6 +13,24 @@ router.get('/api/memory-loop', isAuthenticated, async (req: Request, res: Respon
 
     logger.info('Processing memory loop request', { userId });
 
+    // Check if we have existing memory loops for this user
+    const existingLoops = await storage.getMemoryLoops(userId, 1);
+    
+    if (existingLoops.length > 0) {
+      const latestLoop = existingLoops[0];
+      // Return latest loop if it's from today
+      const today = new Date().toDateString();
+      const loopDate = new Date(latestLoop.createdAt).toDateString();
+      
+      if (today === loopDate) {
+        return res.json({
+          insight: latestLoop.insight,
+          type: 'memory_loop',
+          message: 'Looking back 30 days ago...'
+        });
+      }
+    }
+
     const reflection = await runMemoryLoop(userId);
     
     if (reflection) {

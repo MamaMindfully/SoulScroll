@@ -12,22 +12,21 @@ export default function EmotionalDashboard() {
     fetch('/api/emotion-history')
       .then(res => res.json())
       .then(data => {
-        const formattedData = data.map(entry => ({
-          date: new Date(entry.createdAt).toLocaleDateString(),
-          emotion_score: entry.emotionScore || 50
-        }))
-        setEmotionData(formattedData)
+        if (Array.isArray(data) && data.length > 0) {
+          const formattedData = data.map(entry => ({
+            date: new Date(entry.createdAt || entry.date).toLocaleDateString(),
+            emotion_score: entry.emotionScore || entry.emotion_score || 50
+          }))
+          setEmotionData(formattedData)
+        } else {
+          // No data available - show empty state
+          setEmotionData([])
+        }
       })
       .catch(err => {
         console.error('Error fetching emotion data:', err)
-        // Fallback data for development
-        setEmotionData([
-          { date: '12/18', emotion_score: 65 },
-          { date: '12/19', emotion_score: 72 },
-          { date: '12/20', emotion_score: 58 },
-          { date: '12/21', emotion_score: 81 },
-          { date: '12/22', emotion_score: 69 }
-        ])
+        // Show empty state on error
+        setEmotionData([])
       })
 
     // Fetch memory loop insight
@@ -54,7 +53,16 @@ export default function EmotionalDashboard() {
   return (
     <div className="space-y-6">
       {/* Emotional Pulse Timeline */}
-      <EmotionPulseGraph data={emotionData} />
+      {emotionData.length > 0 ? (
+        <EmotionPulseGraph data={emotionData} />
+      ) : (
+        <div className="w-full h-64 bg-black/80 rounded-xl p-4 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-white text-lg mb-2">Your Emotional Pulse</h2>
+            <p className="text-gray-400">Start journaling to see your emotional patterns over time</p>
+          </div>
+        </div>
+      )}
       
       {/* Inner Compass */}
       <InnerCompass />
