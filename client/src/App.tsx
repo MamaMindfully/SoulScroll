@@ -28,6 +28,8 @@ import { useUserProfile } from './hooks/useUserProfile';
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import OnboardingIntro from "@/components/OnboardingIntro";
+import { useState } from "react";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";

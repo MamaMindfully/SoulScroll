@@ -1,0 +1,85 @@
+// === 1. 🌿 Emotional Pulse Timeline ===
+// Recharts-based component to display emotion score over time
+// Drop into `components/EmotionPulseGraph.jsx`
+
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+
+export default function EmotionPulseGraph({ data }) {
+  return (
+    <div className="w-full h-64 bg-black/80 rounded-xl p-4">
+      <h2 className="text-white text-lg mb-2">Your Emotional Pulse</h2>
+      <ResponsiveContainer width="100%" height="90%">
+        <LineChart data={data}>
+          <XAxis dataKey="date" stroke="#ccc" />
+          <YAxis domain={[0, 100]} stroke="#ccc" />
+          <Tooltip contentStyle={{ backgroundColor: '#1f1f1f', color: '#fff' }} />
+          <Line type="monotone" dataKey="emotion_score" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// === 2. 🧭 Daily Inner Compass Prompt ===
+// Drop into `components/InnerCompass.jsx`
+
+import { useEffect, useState } from 'react'
+
+export default function InnerCompass() {
+  const [prompt, setPrompt] = useState(null)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/inner-compass')
+      .then(res => res.json())
+      .then(data => setPrompt(data.prompt))
+  }, [])
+
+  if (!prompt) return null
+
+  return (
+    <div className="bg-indigo-900 text-white p-4 rounded-xl shadow-xl">
+      <p className="text-lg italic">{prompt.base}</p>
+      {!expanded && (
+        <button onClick={() => setExpanded(true)} className="mt-2 text-sm underline">Tap to go deeper</button>
+      )}
+      {expanded && <p className="mt-2 text-sm text-indigo-300">{prompt.deeper}</p>}
+    </div>
+  )
+}
+
+// === 3. 🌀 Memory Loop Engine ===
+// Worker logic to analyze old entries (drop into `utils/memoryLoopWorker.js`)
+
+const { OpenAI } = require('openai')
+const supabase = require('./db')
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+async function runMemoryLoop(userId) {
+  const { data: entries } = await supabase
+    .from('journal_entries')
+    .select('id, insight, created_at')
+    .eq('user_id', userId)
+    .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  if (!entries || entries.length === 0) return
+
+  const oldEntry = entries[0]
+  const prompt = `30 days ago, the user wrote: "${oldEntry.insight}"\n\nWrite a short paragraph of reflective insight. What were they learning? What changed?`
+
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.75
+  })
+
+  const reflection = res.choices[0].message.content.trim()
+
+  await supabase.from('memory_loops').insert([
+    { user_id: userId, entry_id: oldEntry.id, insight: reflection }
+  ])
+}
+
+module.exports = { runMemoryLoop }

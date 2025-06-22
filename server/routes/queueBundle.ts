@@ -4,8 +4,16 @@ import { logger } from "../utils/logger";
 import { z } from "zod";
 import { journalQueue, emotionQueue, insightQueue } from "../queue/journalQueue";
 import { captureError } from "../utils/errorHandler";
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+// Rate limiting middleware
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 min
+  max: 10,
+  message: 'Too many requests. Please slow down.'
+});
 
 // Validation schema for journal bundle
 const journalBundleSchema = z.object({
@@ -13,10 +21,15 @@ const journalBundleSchema = z.object({
 });
 
 // Simplified journal bundle processing endpoint (following your pattern)
-router.post('/api/journal', isAuthenticated, async (req: Request, res: Response) => {
+router.post('/api/journal', limiter, isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { entryText } = journalBundleSchema.parse(req.body);
     const user = req.user;
+    
+    // Enhanced user validation
+    if (!user?.id || typeof user.id !== 'string') {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     logger.info('Processing journal bundle', {
       userId: user.id,

@@ -35,6 +35,13 @@ import { errorHandler, captureError } from "./utils/errorHandler";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Rate limiting middleware
+  const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 min
+    max: 10,
+    message: 'Too many requests. Please slow down.'
+  });
+
   // Auth middleware
   await setupAuth(app);
 

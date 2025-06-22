@@ -505,6 +505,13 @@ Changelog:
   * Added interactive theme-based node and edge filtering with fade effects for inactive elements
   * Enhanced constellation visualization with filtered opacity based on active theme selection
   * Complete status-driven UI flow for journal submission with real-time insight polling
+- June 22, 2025: Added security, validation, and onboarding improvements:
+  * Implemented express-rate-limit middleware with 10 requests per minute for journal API
+  * Enhanced user validation with string type checking for userId parameters
+  * Created OnboardingIntro component with SoulScroll branding and gradient design
+  * Added localStorage-based intro tracking to show welcome message once per user
+  * Integrated onboarding flow into main App component with state management
+  * Applied rate limiting to journal submission endpoint for abuse prevention
 ```
 
 ## User Preferences
