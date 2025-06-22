@@ -489,6 +489,14 @@ Changelog:
   * Added intelligent generation criteria requiring minimum 5 entries in 30-day period with 25-day intervals between constellations
   * Enhanced constellation system with poetic titles, thematic analysis, and contemplative guiding questions
   * Complete monthly reflection system creates "Season of ___" style summaries capturing emotional growth arcs and transformation patterns
+- June 22, 2025: Enhanced Insight Constellation with integrated Monthly Constellations visualization:
+  * Added constellation_id column to insight_nodes table to link individual insights to their monthly constellation groups
+  * Enhanced insight graph API to return both individual nodes/edges and constellation metadata for unified visualization
+  * Upgraded D3 graph component with constellation background circles, gradient fills, and themed color coding
+  * Added interactive constellation clustering with soft gradient circles grouping related insights by emotional season
+  * Implemented constellation detail modals triggered by node clicks showing guiding questions and seasonal themes
+  * Enhanced hover effects with theme-based glows and constellation context in tooltips
+  * Complete unified graph visualization showing both micro-insights and macro-emotional patterns across time
 ```
 
 ## User Preferences
