@@ -15,9 +15,7 @@ export default function LocalModeToggle({ onModeChange }: LocalModeToggleProps) 
   useEffect(() => {
     // Check if local mode was previously enabled
     const savedMode = localStorage.getItem('luma_local_mode');
-    if (savedMode === 'true') {
-      setIsLocalMode(true);
-    }
+    setIsLocalMode(savedMode === 'true');
   }, []);
 
   const handleToggle = (enabled: boolean) => {

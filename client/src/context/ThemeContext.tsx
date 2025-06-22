@@ -51,10 +51,14 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<ThemeType>(() => {
+  const [theme, setTheme] = useState<ThemeType>('calm');
+  
+  useEffect(() => {
     const saved = localStorage.getItem('soulscroll-theme');
-    return (saved as ThemeType) || 'calm';
-  });
+    if (saved) {
+      setTheme(saved as ThemeType);
+    }
+  }, []);
 
   useEffect(() => {
     // Apply theme to document body

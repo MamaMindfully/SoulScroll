@@ -127,15 +127,27 @@ function App() {
     setupGlobalErrorHandlers();
   }, []);
   
-  const [showIntro, setShowIntro] = useState(() => {
-    // Check if user has seen intro before
-    return !localStorage.getItem('soul-scroll-intro-seen');
-  });
+  const [showIntro, setShowIntro] = useState<boolean | null>(null);
+  
+  // Handle localStorage access after hydration
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem('soul-scroll-intro-seen');
+    setShowIntro(!hasSeenIntro);
+  }, []);
 
   const handleContinue = () => {
     localStorage.setItem('soul-scroll-intro-seen', 'true');
     setShowIntro(false);
   };
+  
+  // Show loading state during hydration
+  if (showIntro === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="animate-pulse text-white">Loading...</div>
+      </div>
+    );
+  }
   
   return (
     <ErrorBoundaryWrapper>

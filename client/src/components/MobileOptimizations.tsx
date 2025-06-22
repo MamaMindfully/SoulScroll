@@ -18,8 +18,9 @@ export default function MobileOptimizations() {
 
   useEffect(() => {
     // Check if app is already installed (running in standalone mode)
-    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
-    setIsInstalled(window.matchMedia('(display-mode: standalone)').matches);
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    setIsStandalone(isStandaloneMode);
+    setIsInstalled(isStandaloneMode);
 
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {

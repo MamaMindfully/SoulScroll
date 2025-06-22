@@ -11,12 +11,16 @@ interface OfflineEntry {
 const OFFLINE_STORAGE_KEY = "luma_offline_entries";
 
 export function useOffline() {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(true); // Default to online to prevent hydration mismatch
   const [offlineEntries, setOfflineEntries] = useState<OfflineEntry[]>([]);
   const { toast } = useToast();
 
-  // Load offline entries from localStorage on mount
+  // Initialize online status and load offline entries after hydration
   useEffect(() => {
+    // Set actual online status
+    setIsOnline(navigator.onLine);
+    
+    // Load offline entries from localStorage
     const stored = localStorage.getItem(OFFLINE_STORAGE_KEY);
     if (stored) {
       try {
