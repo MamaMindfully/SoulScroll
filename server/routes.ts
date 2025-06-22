@@ -7,6 +7,8 @@ import { insertJournalEntrySchema, insertDailyPromptSchema } from "@shared/schem
 import { journalService } from "./services/journalService";
 import OpenAI from "openai";
 import premiumRoutes from "./routes/premiumFeatures.js";
+import stripeRoutes from "./routes/stripeRoutes";
+import stripeWebhook from "./stripeWebhook";
 import { logger } from "./utils/logger.js";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

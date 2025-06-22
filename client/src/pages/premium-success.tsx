@@ -1,98 +1,137 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, CheckCircle, Sparkles } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { Crown, Check, Sparkles, ArrowRight, Home } from 'lucide-react';
+import { Link } from 'wouter';
 import AppHeader from '@/components/AppHeader';
 import BottomNavigation from '@/components/BottomNavigation';
 
-export default function PremiumSuccess() {
-  const queryClient = useQueryClient();
-
+export default function PremiumSuccessPage() {
   useEffect(() => {
-    // Invalidate premium status queries to refresh user's premium state
-    queryClient.invalidateQueries({ queryKey: ['/api/user/premium-status'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/premium'] });
-  }, [queryClient]);
+    // Confetti or celebration animation could go here
+    console.log('Premium upgrade successful!');
+  }, []);
+
+  const premiumFeatures = [
+    'Unlimited AI insights and reflections',
+    'Voice journaling with transcription',
+    'Advanced mood analytics and patterns',
+    'Weekly emotional intelligence reports',
+    'Dream interpretation and analysis',
+    'Unlimited journal entries',
+    'Priority customer support',
+    'Export your data anytime'
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
       <AppHeader />
-      <div className="container mx-auto px-4 py-8 pb-20">
-        <div className="max-w-md mx-auto text-center">
-          <Card className="shadow-lg border-purple-200">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mb-4">
-                <Crown className="w-8 h-8 text-white" />
+      
+      <div className="container max-w-4xl mx-auto px-4 py-8 pb-24">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              <Crown className="h-16 w-16 text-yellow-500" />
+              <div className="absolute -top-2 -right-2">
+                <Sparkles className="h-6 w-6 text-purple-500 animate-pulse" />
               </div>
-              <CardTitle className="text-2xl font-bold text-purple-800">
-                Welcome to Premium!
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-center space-x-2 text-green-600">
-                <CheckCircle className="w-6 h-6" />
-                <span className="text-lg font-medium">Payment Successful</span>
-              </div>
-              
-              <div className="space-y-3 text-left">
-                <h3 className="font-semibold text-slate-800 flex items-center space-x-2">
-                  <Sparkles className="w-5 h-5 text-purple-600" />
-                  <span>You now have access to:</span>
-                </h3>
-                <ul className="space-y-2 text-sm text-slate-700">
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Unlimited AI conversations with Arc</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>5-level "Go Deeper" exploration</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Voice journaling with AI transcription</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Advanced mood tracking & analytics</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>PDF export and backup options</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Community wisdom feed access</span>
-                  </li>
-                </ul>
-              </div>
-              
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => window.location.href = '/'}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                >
-                  Start Your Premium Journey
+            </div>
+          </div>
+          
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+            Welcome to Luma Premium!
+          </h1>
+          
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-6">
+            Your payment was successful and you now have access to all premium features. 
+            Start exploring your enhanced journaling experience.
+          </p>
+          
+          <div className="flex items-center justify-center space-x-2 text-green-600 dark:text-green-400 mb-8">
+            <Check className="h-5 w-5" />
+            <span className="font-medium">Payment Confirmed</span>
+          </div>
+        </div>
+
+        <Card className="mb-8 border-purple-200 dark:border-purple-800 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Crown className="h-5 w-5 mr-2 text-yellow-500" />
+              Your Premium Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              {premiumFeatures.map((feature, index) => (
+                <div key={index} className="flex items-center">
+                  <Check className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
+                  <span className="text-sm">{feature}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Sparkles className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Start Journaling</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Begin your premium journaling experience with AI-powered insights
+              </p>
+              <Link href="/">
+                <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white">
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Start Writing
                 </Button>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => window.location.href = '/settings'}
-                  className="w-full"
-                >
-                  Manage Subscription
+              </Link>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Crown className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">Explore Features</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Discover all the premium tools available to enhance your wellbeing
+              </p>
+              <Link href="/settings">
+                <Button variant="outline" className="w-full">
+                  <Home className="h-4 w-4 mr-2" />
+                  View Settings
                 </Button>
-              </div>
-              
-              <div className="text-center text-sm text-slate-600">
-                <p>Your 7-day free trial has started.</p>
-                <p>You can cancel anytime from your settings.</p>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Card>
+            <CardContent className="pt-6">
+              <h3 className="font-semibold mb-2">Need Help Getting Started?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Check out our getting started guide or contact our support team
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button variant="outline" size="sm">
+                  View Guide
+                </Button>
+                <Button variant="outline" size="sm">
+                  Contact Support
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
+        
+        <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+          <p>
+            Questions about your subscription? Visit your account settings to manage your plan.
+          </p>
+        </div>
       </div>
+      
       <BottomNavigation />
     </div>
   );

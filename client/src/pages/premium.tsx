@@ -1,19 +1,7 @@
-import React, { useState } from 'react';
-import { useStripe, useElements, PaymentElement, Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Crown, Check, Sparkles, Zap, Star } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
+import BuyButtonCheckout from '@/components/BuyButtonCheckout';
 import AppHeader from '@/components/AppHeader';
 import BottomNavigation from '@/components/BottomNavigation';
-
-// Load Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 const CheckoutForm: React.FC<{ planType: 'monthly' | 'yearly' }> = ({ planType }) => {
   const stripe = useStripe();
