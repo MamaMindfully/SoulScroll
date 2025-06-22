@@ -1,6 +1,6 @@
-const OpenAI = require('openai')
-const { storage } = require('../storage')
-const { logger } = require('./logger')
+import OpenAI from 'openai';
+import { storage } from '../storage.js';
+import { logger } from './logger.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -54,4 +54,4 @@ async function runMemoryLoop(userId) {
   }
 }
 
-module.exports = { runMemoryLoop }
+export { runMemoryLoop };
