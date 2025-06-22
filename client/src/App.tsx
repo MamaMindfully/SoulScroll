@@ -94,6 +94,7 @@ function Router() {
           <Route path="/demo-optimistic" component={withLazyLoading(() => import('@/pages/demo-optimistic'), "Optimistic UI Demo")} />
           <Route path="/emotional-intelligence" component={withLazyLoading(() => import('@/pages/EmotionalIntelligence'), "Emotional Intelligence")} />
           <Route path="/admin/errors" component={withLazyLoading(() => import('@/pages/AdminErrors'), "Admin Errors")} />
+          <Route path="/admin/beta-dashboard" component={withLazyLoading(() => import('@/pages/AdminBetaDashboard'), "Beta Dashboard")} />
           <Route path="/terms" component={withLazyLoading(() => import('@/pages/terms'), "Terms & Privacy")} />
         </>
       )}

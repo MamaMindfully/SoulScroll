@@ -707,6 +707,14 @@ export const toneVectors = pgTable("tone_vectors", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Insight logs table
+export const insightLogs = pgTable("insight_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  insightType: varchar("insight_type", { length: 50 }),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
 // Schema exports for new tables
 export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
   id: true,
@@ -766,6 +774,11 @@ export const insertEmotionTrendSchema = createInsertSchema(emotionTrends).omit({
 
 export const insertToneVectorSchema = createInsertSchema(toneVectors);
 
+export const insertInsightLogSchema = createInsertSchema(insightLogs).omit({
+  id: true,
+  timestamp: true
+});
+
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 
@@ -796,3 +809,5 @@ export type InsertEmotionTrend = z.infer<typeof insertEmotionTrendSchema>;
 export type EmotionTrend = typeof emotionTrends.$inferSelect;
 export type InsertToneVector = z.infer<typeof insertToneVectorSchema>;
 export type ToneVector = typeof toneVectors.$inferSelect;
+export type InsertInsightLog = z.infer<typeof insertInsightLogSchema>;
+export type InsightLog = typeof insightLogs.$inferSelect;

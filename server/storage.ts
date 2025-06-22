@@ -246,6 +246,28 @@ export interface IStorage {
   // Tone vectors operations
   upsertToneVector(userId: string, vector: any): Promise<ToneVector>;
   getToneVector(userId: string): Promise<ToneVector | undefined>;
+
+  // Insight logs operations
+  createInsightLog(logData: InsertInsightLog): Promise<InsightLog>;
+  getInsightLogCount(): Promise<number>;
+
+  // Admin analytics operations
+  getUserCount(): Promise<number>;
+  getSavedReflectionCount(): Promise<number>;
+  getJournalEntryCount(): Promise<number>;
+  getPremiumUserCount(): Promise<number>;
+  getEmotionTrendCount(): Promise<number>;
+  getEmotionAnalytics(): Promise<{
+    avgScore: number;
+    scores: number[];
+    dominantEmotions: Record<string, number>;
+  }>;
+  getRecentActivity(): Promise<Array<{
+    date: string;
+    users: number;
+    entries: number;
+    insights: number;
+  }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1366,6 +1388,135 @@ export class DatabaseStorage implements IStorage {
       .from(toneVectors)
       .where(eq(toneVectors.userId, userId));
     return toneVector;
+  }
+
+  // Insight logs operations
+  async createInsightLog(logData: InsertInsightLog): Promise<InsightLog> {
+    const [log] = await db
+      .insert(insightLogs)
+      .values(logData)
+      .returning();
+    return log;
+  }
+
+  async getInsightLogCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(insightLogs);
+    return result[0]?.count || 0;
+  }
+
+  // Admin analytics operations
+  async getUserCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(distinct ${users.id})` })
+      .from(users);
+    return result[0]?.count || 0;
+  }
+
+  async getSavedReflectionCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(reflections);
+    return result[0]?.count || 0;
+  }
+
+  async getJournalEntryCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(journalEntries);
+    return result[0]?.count || 0;
+  }
+
+  async getPremiumUserCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.isPremium, true));
+    return result[0]?.count || 0;
+  }
+
+  async getEmotionTrendCount(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(emotionTrends);
+    return result[0]?.count || 0;
+  }
+
+  async getEmotionAnalytics(): Promise<{
+    avgScore: number;
+    scores: number[];
+    dominantEmotions: Record<string, number>;
+  }> {
+    const trends = await db
+      .select({
+        score: emotionTrends.score,
+        dominantEmotion: emotionTrends.dominantEmotion
+      })
+      .from(emotionTrends)
+      .limit(1000); // Limit for performance
+
+    const scores = trends.map(t => t.score);
+    const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+
+    const dominantEmotions = trends.reduce((acc, trend) => {
+      if (trend.dominantEmotion) {
+        acc[trend.dominantEmotion] = (acc[trend.dominantEmotion] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      avgScore,
+      scores,
+      dominantEmotions
+    };
+  }
+
+  async getRecentActivity(): Promise<Array<{
+    date: string;
+    users: number;
+    entries: number;
+    insights: number;
+  }>> {
+    // Get activity for the last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const activity = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      // Count users active on this date
+      const usersResult = await db
+        .select({ count: sql<number>`count(distinct ${journalEntries.userId})` })
+        .from(journalEntries)
+        .where(sql`date(${journalEntries.createdAt}) = ${dateStr}`);
+
+      // Count entries created on this date
+      const entriesResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(journalEntries)
+        .where(sql`date(${journalEntries.createdAt}) = ${dateStr}`);
+
+      // Count insights generated on this date
+      const insightsResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(insightLogs)
+        .where(sql`date(${insightLogs.timestamp}) = ${dateStr}`);
+
+      activity.push({
+        date: date.toLocaleDateString(),
+        users: usersResult[0]?.count || 0,
+        entries: entriesResult[0]?.count || 0,
+        insights: insightsResult[0]?.count || 0
+      });
+    }
+
+    return activity.reverse(); // Most recent first
   }
 }
 
