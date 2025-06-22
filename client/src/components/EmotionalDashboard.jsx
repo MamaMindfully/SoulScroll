@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import EmotionPulseGraph from './EmotionPulseGraph'
 import InnerCompass from './InnerCompass'
+import PersonalizedInsight from './PersonalizedInsight'
+import { useUser } from '@/hooks/useUser'
 
 export default function EmotionalDashboard() {
+  const { trackBehavior } = useUser()
   const [emotionData, setEmotionData] = useState([])
   const [memoryInsight, setMemoryInsight] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -50,8 +53,20 @@ export default function EmotionalDashboard() {
     )
   }
 
+  useEffect(() => {
+    // Track dashboard view
+    trackBehavior('view_emotional_dashboard', {
+      timestamp: new Date().toISOString(),
+      hasEmotionData: emotionData.length > 0,
+      hasMemoryInsight: !!memoryInsight
+    })
+  }, [trackBehavior, emotionData.length, memoryInsight])
+
   return (
     <div className="space-y-6">
+      {/* Personalized Daily Insight */}
+      <PersonalizedInsight />
+      
       {/* Emotional Pulse Timeline */}
       {emotionData.length > 0 ? (
         <EmotionPulseGraph data={emotionData} />

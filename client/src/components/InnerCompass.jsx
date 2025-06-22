@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useUser } from '@/hooks/useUser'
 
 export default function InnerCompass() {
+  const { trackBehavior } = useUser()
   const [prompt, setPrompt] = useState(null)
   const [expanded, setExpanded] = useState(false)
 
@@ -24,9 +26,36 @@ export default function InnerCompass() {
     <div className="bg-indigo-900 text-white p-4 rounded-xl shadow-xl">
       <p className="text-lg italic">{prompt.base}</p>
       {!expanded && (
-        <button onClick={() => setExpanded(true)} className="mt-2 text-sm underline">Tap to go deeper</button>
+        <button 
+          onClick={() => {
+            setExpanded(true)
+            trackBehavior('tap_to_deepen', {
+              promptType: 'inner_compass',
+              timestamp: new Date().toISOString()
+            })
+          }} 
+          className="mt-2 text-sm underline hover:text-indigo-200 transition-colors"
+        >
+          Tap to go deeper
+        </button>
       )}
-      {expanded && <p className="mt-2 text-sm text-indigo-300">{prompt.deeper}</p>}
+      {expanded && (
+        <div className="mt-2">
+          <p className="text-sm text-indigo-300">{prompt.deeper}</p>
+          <button
+            onClick={() => {
+              setExpanded(false)
+              trackBehavior('collapse_deeper_prompt', {
+                promptType: 'inner_compass',
+                timestamp: new Date().toISOString()
+              })
+            }}
+            className="mt-2 text-xs text-indigo-400 underline"
+          >
+            Show less
+          </button>
+        </div>
+      )}
     </div>
   )
 }
