@@ -613,6 +613,24 @@ export const rituals = pgTable("rituals", {
   completedAt: timestamp("completed_at").defaultNow(),
 });
 
+// Memory loops table
+export const memoryLoops = pgTable("memory_loops", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  entryId: integer("entry_id").references(() => journalEntries.id),
+  insight: text("insight").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Inner compass prompts table
+export const innerCompassPrompts = pgTable("inner_compass_prompts", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  base: text("base").notNull(),
+  deeper: text("deeper").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema exports for new tables
 export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
   id: true,
@@ -628,6 +646,17 @@ export const insertRitualSchema = createInsertSchema(rituals).omit({
   id: true,
   completedAt: true
 });
+
+export const insertMemoryLoopSchema = createInsertSchema(memoryLoops).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertInnerCompassPromptSchema = createInsertSchema(innerCompassPrompts).omit({
+  id: true,
+  createdAt: true
+});
+
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 
@@ -638,3 +667,7 @@ export type InsertSavedReflection = z.infer<typeof insertSavedReflectionSchema>;
 export type SavedReflection = typeof savedReflections.$inferSelect;
 export type InsertRitual = z.infer<typeof insertRitualSchema>;
 export type Ritual = typeof rituals.$inferSelect;
+export type InsertMemoryLoop = z.infer<typeof insertMemoryLoopSchema>;
+export type MemoryLoop = typeof memoryLoops.$inferSelect;
+export type InsertInnerCompassPrompt = z.infer<typeof insertInnerCompassPromptSchema>;
+export type InnerCompassPrompt = typeof innerCompassPrompts.$inferSelect;

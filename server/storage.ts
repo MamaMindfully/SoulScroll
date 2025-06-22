@@ -203,6 +203,15 @@ export interface IStorage {
   createMonthlyConstellation(userId: string, constellation: InsertMonthlyConstellation): Promise<MonthlyConstellation>;
   getMonthlyConstellations(userId: string, limit?: number): Promise<MonthlyConstellation[]>;
   getLatestConstellation(userId: string): Promise<MonthlyConstellation | undefined>;
+
+  // Memory loop operations
+  createMemoryLoop(userId: string, memoryLoop: InsertMemoryLoop): Promise<MemoryLoop>;
+  getMemoryLoops(userId: string, limit?: number): Promise<MemoryLoop[]>;
+  
+  // Inner compass operations
+  createInnerCompassPrompt(userId: string, prompt: InsertInnerCompassPrompt): Promise<InnerCompassPrompt>;
+  getTodaysPrompt(userId: string): Promise<InnerCompassPrompt | undefined>;
+  getInnerCompassPrompts(userId: string, limit?: number): Promise<InnerCompassPrompt[]>;
 }
 
 export class DatabaseStorage implements IStorage {
