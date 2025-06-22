@@ -96,6 +96,13 @@ const DemoOptimisticUI: React.FC = () => {
             >
               Ask Arc
             </Button>
+            <Button 
+              variant="outline" 
+              className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+              onClick={() => window.location.href = '/constellation'}
+            >
+              View Constellation
+            </Button>
           </div>
         </CardContent>
       </Card>

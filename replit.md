@@ -473,6 +473,14 @@ Changelog:
   * Added conversation history management with chronological display and beautiful UI for reviewing past dialogues
   * Enhanced Arc prompt building to leverage user's tone, style, and depth preferences for consistent personality
   * Complete direct dialogue system allows users to ask Arc any question and receive personalized wisdom based on their journey
+- June 22, 2025: Insight Constellation graph visualization system implementation:
+  * Created insightNodes and insightEdges database tables for storing journal insight relationships and connections
+  * Built comprehensive graph builder utility with theme extraction using GPT-4o and automatic edge creation based on themes, emotions, and time proximity
+  * Created InsightGraph component with beautiful D3.js force-directed graph visualization showing nodes connected by shared patterns
+  * Built complete Constellation page with interactive graph, statistics dashboard, and connection analytics
+  * Integrated graph node creation into journalBundle worker for automatic constellation building with each journal entry
+  * Added theme-based color coding, emotion connections, and time-proximity linking within 3-day windows
+  * Complete insight constellation system visualizes the hidden connections between thoughts, emotions, and themes across journaling journey
 ```
 
 ## User Preferences
