@@ -56,7 +56,10 @@ export default function Progress() {
               fallbackTitle="Progress Tracker Error"
               fallbackMessage="The progress dashboard could not load. Please try refreshing the page."
             >
-              <VisualProgressTracker />
+              <Suspense fallback={<ComponentLoader />}>
+            <VisualProgressTracker />
+            <EmotionChart />
+          </Suspense>
             </ErrorBoundaryWrapper>
           </div>
         </section>

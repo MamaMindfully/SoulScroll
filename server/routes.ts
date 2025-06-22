@@ -16,6 +16,11 @@ import billingPortal from "./routes/billingPortal";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
+import { generalRateLimit, journalRateLimit, aiAnalysisRateLimit, stripeRateLimit } from "./middleware/rateLimiter";
+import { cacheService } from "./services/cacheService";
+import { queueService } from "./services/queueService";
+import { tokenMonitor } from "./services/tokenMonitor";
+import { errorHandler, captureError } from "./utils/errorHandler";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -1765,8 +1770,34 @@ End with a simple, poetic follow-up question.
   // Use stripe webhook (legacy)
   app.use('/stripe', stripeWebhook);
 
-  // Journal routes with specific rate limiting
-  app.use('/api/journal', journalRateLimit);
+  // Add monitoring and stats endpoints
+  app.get('/api/admin/cache-stats', async (req, res) => {
+    try {
+      const stats = cacheService.getStats();
+      res.json({ success: true, stats });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get cache stats' });
+    }
+  });
+
+  app.get('/api/admin/queue-stats', async (req, res) => {
+    try {
+      const stats = queueService.getStats();
+      res.json({ success: true, stats });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get queue stats' });
+    }
+  });
+
+  app.get('/api/user/token-usage', isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user;
+      const usage = await tokenMonitor.getUserUsageSummary(user.id);
+      res.json(usage);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get token usage' });
+    }
+  });
 
   const httpServer = createServer(app);
   

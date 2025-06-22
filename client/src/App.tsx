@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import NavigationBar from "@/components/NavigationBar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import { fetchSoulScrollReply } from './utils/gptAPI';
@@ -99,6 +100,7 @@ function App() {
                 <Router />
                 <Toaster />
                 <FloatingStartButton />
+                <PerformanceMonitor />
               </div>
             </PremiumProvider>
           </ThemeProvider>

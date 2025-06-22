@@ -11,11 +11,15 @@ export const journalRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  onLimitReached: (req) => {
+  handler: (req, res) => {
     logger.warn('Journal rate limit exceeded', {
       ip: req.ip,
       userId: req.user?.id,
       userAgent: req.get('User-Agent')
+    });
+    res.status(429).json({
+      error: 'Too many journal entries. Please wait before submitting another entry.',
+      retryAfter: '10 minutes'
     });
   }
 });
@@ -30,11 +34,15 @@ export const aiAnalysisRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  onLimitReached: (req) => {
+  handler: (req, res) => {
     logger.warn('AI analysis rate limit exceeded', {
       ip: req.ip,
       userId: req.user?.id,
       userAgent: req.get('User-Agent')
+    });
+    res.status(429).json({
+      error: 'Too many AI analysis requests. Please wait before requesting another analysis.',
+      retryAfter: '1 hour'
     });
   }
 });
@@ -49,11 +57,15 @@ export const stripeRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  onLimitReached: (req) => {
+  handler: (req, res) => {
     logger.warn('Stripe rate limit exceeded', {
       ip: req.ip,
       userId: req.user?.id,
       userAgent: req.get('User-Agent')
+    });
+    res.status(429).json({
+      error: 'Too many billing requests. Please wait before trying again.',
+      retryAfter: '1 hour'
     });
   }
 });
@@ -68,11 +80,15 @@ export const generalRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  onLimitReached: (req) => {
+  handler: (req, res) => {
     logger.warn('General rate limit exceeded', {
       ip: req.ip,
       userId: req.user?.id,
       userAgent: req.get('User-Agent')
+    });
+    res.status(429).json({
+      error: 'Too many requests. Please slow down.',
+      retryAfter: '15 minutes'
     });
   }
 });
