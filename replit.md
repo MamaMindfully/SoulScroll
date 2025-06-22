@@ -465,6 +465,14 @@ Changelog:
   * Integrated personalized Arc profiles into AI insight generation for customized responses
   * Enhanced AI journal engine to use user-specific Arc personality in all interactions
   * Complete personalization system allows users to customize Arc's communication style and spiritual depth
+- June 22, 2025: Arc dialogue system with direct conversation capability:
+  * Created arcDialogue database table for storing user questions and Arc responses with full conversation history
+  * Built comprehensive Ask Arc API with personalized prompts based on user's Arc profile and recent journal insights
+  * Created AskArc component with elegant conversation interface, real-time responses, and collapsible history display
+  * Integrated conversation context using recent journal insights for deeply personalized and contextually aware responses
+  * Added conversation history management with chronological display and beautiful UI for reviewing past dialogues
+  * Enhanced Arc prompt building to leverage user's tone, style, and depth preferences for consistent personality
+  * Complete direct dialogue system allows users to ask Arc any question and receive personalized wisdom based on their journey
 ```
 
 ## User Preferences
