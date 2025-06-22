@@ -140,6 +140,11 @@ export interface IStorage {
   // Ritual operations
   createRitual(userId: string, ritual: any): Promise<any>;
   getUserRituals(userId: string): Promise<any[]>;
+
+  // Echo archive operations
+  createEcho(userId: string, echo: InsertEchoArchive): Promise<EchoArchive>;
+  getLatestEcho(userId: string): Promise<EchoArchive | undefined>;
+  getEchoHistory(userId: string, limit?: number): Promise<EchoArchive[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -636,6 +641,37 @@ export class DatabaseStorage implements IStorage {
   async getUserRituals(userId: string): Promise<any[]> {
     // Placeholder implementation - would fetch from database
     return [];
+  }
+
+  // Echo archive operations
+  async createEcho(userId: string, echoData: InsertEchoArchive): Promise<EchoArchive> {
+    const [echo] = await this.db
+      .insert(echoArchive)
+      .values({
+        ...echoData,
+        userId,
+      })
+      .returning();
+    return echo;
+  }
+
+  async getLatestEcho(userId: string): Promise<EchoArchive | undefined> {
+    const [echo] = await this.db
+      .select()
+      .from(echoArchive)
+      .where(eq(echoArchive.userId, userId))
+      .orderBy(desc(echoArchive.createdAt))
+      .limit(1);
+    return echo;
+  }
+
+  async getEchoHistory(userId: string, limit: number = 10): Promise<EchoArchive[]> {
+    return await this.db
+      .select()
+      .from(echoArchive)
+      .where(eq(echoArchive.userId, userId))
+      .orderBy(desc(echoArchive.createdAt))
+      .limit(limit);
   }
 }
 

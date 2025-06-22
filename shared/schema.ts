@@ -416,6 +416,15 @@ export type EmotionalInsight = typeof emotionalInsights.$inferSelect;
 export type InsertReflectionLetter = z.infer<typeof insertReflectionLetterSchema>;
 export type ReflectionLetter = typeof reflectionLetters.$inferSelect;
 
+// Echo Archive schema
+export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertEchoArchive = z.infer<typeof insertEchoArchiveSchema>;
+export type EchoArchive = typeof echoArchive.$inferSelect;
+
 // New types for advanced features
 export type InsertVoiceEntry = z.infer<typeof insertVoiceEntrySchema>;
 export type VoiceEntry = typeof voiceEntries.$inferSelect;

@@ -15,6 +15,7 @@ import emotionScore from "./routes/emotionScore";
 import billingPortal from "./routes/billingPortal";
 import queueBundle from "./routes/queueBundle";
 import userStatus from "./routes/userStatus";
+import echoRoutes from "./routes/echoRoutes";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1771,6 +1772,9 @@ End with a simple, poetic follow-up question.
 
   // Use user status routes
   app.use('/', userStatus);
+
+  // Use echo routes
+  app.use('/', echoRoutes);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

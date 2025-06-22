@@ -37,6 +37,7 @@ async function initializeBullMQWorkers(connection: any) {
   const { retryOpenAICall } = await import('../utils/retryUtils');
   const { captureError } = await import('../utils/errorHandler');
   const { tokenMonitor } = await import('../services/tokenMonitor');
+  const { generateEcho } = await import('../engines/echoEngine');
 
   const openai = new OpenAI({ 
     apiKey: process.env.OPENAI_API_KEY 
@@ -103,12 +104,36 @@ async function initializeBullMQWorkers(connection: any) {
       // Step 4: Update Progress/Graph Summary
       await storage.updateUserStreak(userId);
 
+      // Step 5: Get last 5 insights from database
+      const recentEntries = await storage.getJournalEntries(userId, 5, 0);
+      const recentInsights = recentEntries
+        .map(entry => entry.aiResponse)
+        .filter(Boolean) as string[];
+
+      // Step 6: Generate Echo if we have insights
+      let echo = null;
+      if (recentInsights.length > 0) {
+        try {
+          echo = await generateEcho(userId, recentInsights);
+          
+          // Save echo to archive
+          await storage.createEcho(userId, {
+            echo,
+            sourceInsights: recentInsights
+          });
+        } catch (error) {
+          logger.error('Failed to generate echo', { userId, error: error.message });
+          // Don't fail the entire job if echo generation fails
+        }
+      }
+
       logger.info('Journal bundle processing completed', {
         jobId: job.id,
         userId,
         entryId: journalEntry.id,
         emotion,
-        intensity
+        intensity,
+        echoGenerated: !!echo
       });
 
       return {
@@ -116,6 +141,7 @@ async function initializeBullMQWorkers(connection: any) {
         insight,
         emotion,
         intensity,
+        echo,
         processed: true,
         timestamp: new Date()
       };

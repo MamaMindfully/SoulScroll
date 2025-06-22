@@ -173,13 +173,18 @@ class MemoryQueue extends EventEmitter {
     
     const emotion = this.getRandomEmotion();
     const intensity = Math.floor(40 + Math.random() * 60);
+    const insight = this.generateFallbackInsight(entryText);
+    
+    // Generate a simple echo for simulation
+    const echo = this.generateFallbackEcho(insight);
     
     return {
-      insight: this.generateFallbackInsight(entryText),
+      insight,
       emotion,
       intensity,
       wordCount: entryText.split(/\s+/).length,
       themes: this.extractThemes(entryText),
+      echo,
       processed: true,
       timestamp: new Date()
     };
@@ -290,6 +295,20 @@ class MemoryQueue extends EventEmitter {
     if (lowerText.includes('work') || lowerText.includes('career')) themes.push('purpose');
     
     return themes.length > 0 ? themes : ['reflection', 'awareness'];
+  }
+
+  private generateFallbackEcho(insight: string): string {
+    const echoes = [
+      "Your words ripple through the quiet spaces of understanding.",
+      "Each reflection builds upon the last, weaving patterns of growth.",
+      "In the silence between thoughts, wisdom takes root.",
+      "Your journey reveals itself one insight at a time.",
+      "The echoes of your reflections whisper truths yet to be discovered.",
+      "Memory holds your insights like seeds waiting to bloom.",
+      "Your thoughts create gentle waves in the ocean of consciousness."
+    ];
+    
+    return echoes[Math.floor(Math.random() * echoes.length)];
   }
 
   async close() {
