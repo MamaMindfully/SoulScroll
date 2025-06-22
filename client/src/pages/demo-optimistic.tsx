@@ -6,6 +6,7 @@ import { useOptimisticJournal } from '@/hooks/useOptimisticJournal';
 import { useUserStatus } from '@/hooks/useUserStatus';
 import OptimisticLoadingIndicator from '@/components/OptimisticLoadingIndicator';
 import MemoryLoopVisualization from '@/components/MemoryLoopVisualization';
+import InnerEcho from '@/components/InnerEcho';
 import { Badge } from "@/components/ui/badge";
 import { Clock, TrendingUp, Gift, Bell } from "lucide-react";
 
@@ -193,6 +194,9 @@ const DemoOptimisticUI: React.FC = () => {
 
       {/* Memory Loop Visualization */}
       <MemoryLoopVisualization />
+
+      {/* Inner Echo Component */}
+      <InnerEcho />
 
       {/* Background Processing Info */}
       <Card className="border-l-4 border-l-green-500">

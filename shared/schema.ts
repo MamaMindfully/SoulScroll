@@ -416,6 +416,14 @@ export type EmotionalInsight = typeof emotionalInsights.$inferSelect;
 export type InsertReflectionLetter = z.infer<typeof insertReflectionLetterSchema>;
 export type ReflectionLetter = typeof reflectionLetters.$inferSelect;
 
+export const echoArchive = pgTable("echo_archive", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  echo: text("echo").notNull(),
+  sourceInsights: text("source_insights").array(), // JSON array of insights used
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Echo Archive schema
 export const insertEchoArchiveSchema = createInsertSchema(echoArchive).omit({
   id: true,
