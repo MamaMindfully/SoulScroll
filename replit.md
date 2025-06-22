@@ -497,6 +497,14 @@ Changelog:
   * Implemented constellation detail modals triggered by node clicks showing guiding questions and seasonal themes
   * Enhanced hover effects with theme-based glows and constellation context in tooltips
   * Complete unified graph visualization showing both micro-insights and macro-emotional patterns across time
+- June 22, 2025: Enhanced journal flow and insight graph filtering system:
+  * Created useJournalFlow hook with status tracking ('idle', 'submitting', 'processing', 'done')
+  * Added /api/insight-latest endpoint for polling latest AI insights during journal submission
+  * Enhanced InsightGraph component with theme filtering dropdown and dynamic opacity controls
+  * Implemented responsive graph sizing using client dimensions instead of fixed dimensions
+  * Added interactive theme-based node and edge filtering with fade effects for inactive elements
+  * Enhanced constellation visualization with filtered opacity based on active theme selection
+  * Complete status-driven UI flow for journal submission with real-time insight polling
 ```
 
 ## User Preferences

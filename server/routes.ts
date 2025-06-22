@@ -711,6 +711,30 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Latest insight endpoint for journal flow
+  app.get('/api/insight-latest', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get latest emotional insights
+      const insights = await storage.getEmotionalInsights(userId, 'week');
+      const latestInsight = insights[0];
+      
+      if (latestInsight) {
+        res.json({ 
+          insight: latestInsight.summary || latestInsight.content,
+          createdAt: latestInsight.createdAt,
+          id: latestInsight.id
+        });
+      } else {
+        res.json({ insight: null });
+      }
+    } catch (error) {
+      console.error('Error fetching latest insight:', error);
+      res.status(500).json({ error: 'Failed to fetch latest insight' });
+    }
+  });
+
   // Emotional insights routes
   app.get('/api/insights/emotional', isAuthenticated, async (req: any, res) => {
     try {
