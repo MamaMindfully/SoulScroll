@@ -29,14 +29,20 @@ export const initializePerformanceOptimizations = () => {
 // Preload critical resources
 const preloadCriticalResources = () => {
   const criticalResources = [
-    '/manifest.json',
-    '/sw.js'
+    { href: '/manifest.json', rel: 'prefetch' },
+    { href: '/sw.js', rel: 'prefetch' },
+    { href: '/fonts/Inter.woff2', rel: 'preload', as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
+    { href: '/icon-512.png', rel: 'preload', as: 'image' },
+    { href: '/insight-bg.png', rel: 'preload', as: 'image' }
   ];
 
   criticalResources.forEach(resource => {
     const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = resource;
+    link.rel = resource.rel;
+    link.href = resource.href;
+    if (resource.as) link.setAttribute('as', resource.as);
+    if (resource.type) link.setAttribute('type', resource.type);
+    if (resource.crossOrigin) link.setAttribute('crossorigin', resource.crossOrigin);
     document.head.appendChild(link);
   });
 };

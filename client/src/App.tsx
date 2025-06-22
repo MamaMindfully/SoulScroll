@@ -35,6 +35,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 import FeedbackButton from "@/components/FeedbackButton";
 import { restoreSession } from "@/utils/restoreSession";
 import { useHasMounted } from "@/utils/useHasMounted";
+import { useDelayedEffect, optimizeImageLoading, optimizeMemoryUsage, optimizeBundleLoading } from "@/utils/performanceOptimizer";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
@@ -125,10 +126,17 @@ function App() {
   // Initialize user status synchronization
   useUserStatusSync();
   
-  // Set up global error handlers
+  // Set up global error handlers and performance optimizations
   useEffect(() => {
     setupGlobalErrorHandlers();
   }, []);
+
+  // Delayed performance optimizations
+  useDelayedEffect(() => {
+    optimizeImageLoading();
+    optimizeMemoryUsage();
+    optimizeBundleLoading();
+  }, 2000);
   
   const [showIntro, setShowIntro] = useState(false);
   
