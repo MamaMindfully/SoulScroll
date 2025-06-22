@@ -8,10 +8,9 @@ import { PremiumProvider } from "@/context/PremiumContext";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import NavigationBar from "@/components/NavigationBar";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import ErrorBoundaryWrapper from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
-import Fallback404 from "@/components/Fallback404";
 import { useUserStatusSync } from "@/hooks/useUserStatusSync";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
@@ -25,9 +24,12 @@ import EveningFlow from './components/EveningFlow';
 import ProgressDashboard from './components/ProgressDashboard';
 import CommunityFeed from './components/CommunityFeed';
 import { useUserProfile } from './hooks/useUserProfile';
-import NotFound from "@/pages/not-found";
+import NotFound from "@/pages/NotFound";
+import ServerError from "@/pages/ServerError";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import { setupGlobalErrorHandlers } from "@/utils/errorLogger";
+import { useEffect } from "react";
 import OnboardingIntro from "@/components/OnboardingIntro";
 import { useState } from "react";
 import Community from "@/pages/community";
@@ -91,8 +93,9 @@ function Router() {
           <Route path="/emotional-intelligence" component={withLazyLoading(() => import('@/pages/EmotionalIntelligence'), "Emotional Intelligence")} />
         </>
       )}
-      {/* 404 Fallback Route - Must be last */}
-      <Route path="*" component={Fallback404} />
+      {/* Error and 404 Routes - Must be last */}
+      <Route path="/500" component={ServerError} />
+      <Route path="*" component={NotFound} />
     </Switch>
   );
 }
@@ -113,6 +116,11 @@ function AppRoutes() {
 function App() {
   // Initialize user status synchronization
   useUserStatusSync();
+  
+  // Set up global error handlers
+  useEffect(() => {
+    setupGlobalErrorHandlers();
+  }, []);
   
   const [showIntro, setShowIntro] = useState(() => {
     // Check if user has seen intro before

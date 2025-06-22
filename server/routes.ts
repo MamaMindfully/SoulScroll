@@ -1911,6 +1911,50 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // 404 handler for API routes only - must come after all API routes but before frontend serving
+  app.use('/api/*', (req, res) => {
+    logger.warn('404 - API route not found', { 
+      path: req.path, 
+      method: req.method,
+      userAgent: req.get('User-Agent')
+    });
+    
+    res.status(404).json({ 
+      error: 'API route not found',
+      path: req.path,
+      suggestion: 'Check the API documentation for valid endpoints'
+    });
+  });
+
+  // Global error handler - must be last
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    logger.error('Unhandled server error', {
+      error: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+      userId: req.user?.id
+    });
+
+    // Log to database if possible
+    try {
+      storage.createErrorLog({
+        type: 'server_error',
+        message: err.message,
+        stack: err.stack,
+        userId: req.user?.id || null,
+        path: req.path
+      });
+    } catch (logError) {
+      logger.error('Failed to log server error to database', { error: logError.message });
+    }
+
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    });
+  });
+
   const httpServer = createServer(app);
   
   // Setup Socket.IO realtime server
