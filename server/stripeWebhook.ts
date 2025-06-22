@@ -68,10 +68,31 @@ router.post('/webhook', async (req, res) => {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
+  const email = session.customer_details?.email || session.metadata?.email;
   const planType = session.metadata?.planType;
   
+  // Handle Buy Button checkout (email-based)
+  if (!userId && email) {
+    logger.info(`Buy Button checkout completed for email: ${email}`);
+    
+    // Find user by email and update premium status
+    try {
+      const user = await storage.getUserByEmail(email);
+      if (user) {
+        await updateUserPremiumStatus(user.id, 'active', planType || 'monthly');
+        logger.info(`Updated premium status for user ${user.id} via email lookup`);
+      } else {
+        logger.warn(`No user found with email ${email} for Buy Button checkout`);
+      }
+    } catch (error) {
+      logger.error(`Error finding user by email ${email}:`, error);
+    }
+    return;
+  }
+  
+  // Handle API checkout (userId-based)
   if (!userId) {
-    logger.error('No userId in checkout session metadata');
+    logger.error('No userId in checkout session metadata and no email provided');
     return;
   }
 
