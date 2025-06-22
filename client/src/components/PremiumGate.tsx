@@ -1,79 +1,78 @@
-import { ReactNode } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Lock, Star, Zap } from "lucide-react";
-import { usePremium } from "@/hooks/usePremium";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Crown, Lock } from 'lucide-react';
+import { redirectToCheckout } from '@/utils/stripeCheckout';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface PremiumGateProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  isPremium: boolean;
   feature: string;
   description?: string;
-  onUpgrade?: () => void;
 }
 
-export function PremiumGate({ 
-  children, 
-  feature, 
-  description = "This feature is available for premium members only.",
-  onUpgrade 
-}: PremiumGateProps) {
-  const { isPremium, isLoading } = usePremium();
+export default function PremiumGate({ children, isPremium, feature, description }: PremiumGateProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  if (isLoading) {
-    return (
-      <Card className="bg-gradient-to-br from-gray-50 to-gray-100">
-        <CardContent className="p-8 text-center">
-          <div className="animate-pulse">
-            <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-300 rounded w-3/4 mx-auto"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleUpgrade = async () => {
+    if (!user?.email) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to upgrade to premium.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await redirectToCheckout(user.email);
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to redirect to checkout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isPremium) {
     return <>{children}</>;
   }
 
   return (
-    <div className="locked-feature">
-      <div className="flex justify-center mb-4">
-        <div className="relative">
-          <Lock className="w-12 h-12 text-red-500" />
-          <Star className="w-6 h-6 text-amber-500 absolute -top-2 -right-2" />
+    <Card className="border-purple-200 dark:border-purple-800">
+      <CardHeader className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="relative">
+            <Lock className="h-12 w-12 text-gray-400" />
+            <Crown className="h-6 w-6 text-yellow-500 absolute -top-1 -right-1" />
+          </div>
         </div>
-      </div>
-      
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-        {feature} - Premium Feature
-      </h3>
-      
-      <p className="text-gray-700 mb-6 leading-relaxed">
-        {description}
-      </p>
-      
-      <div className="space-y-3 mb-6">
-        <div className="flex items-center justify-center text-sm text-gray-600">
-          <Zap className="w-4 h-4 mr-2" />
-          Enhanced AI insights and reflections
-        </div>
-        <div className="flex items-center justify-center text-sm text-gray-600">
-          <Zap className="w-4 h-4 mr-2" />
-          Voice journaling with transcription
-        </div>
-        <div className="flex items-center justify-center text-sm text-gray-600">
-          <Zap className="w-4 h-4 mr-2" />
-          Dream interpretation and spiritual tools
-        </div>
-      </div>
-      
-      <Button 
-        onClick={onUpgrade}
-        className="upgrade-cta"
-      >
-        Upgrade to Premium
-      </Button>
-    </div>
+        <CardTitle className="text-lg">
+          Unlock {feature}
+        </CardTitle>
+        {description && (
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+            {description}
+          </p>
+        )}
+      </CardHeader>
+      <CardContent className="text-center">
+        <Button 
+          onClick={handleUpgrade}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white"
+        >
+          <Crown className="h-4 w-4 mr-2" />
+          Upgrade to Premium
+        </Button>
+        <p className="text-xs text-gray-500 mt-3">
+          7-day free trial • Cancel anytime
+        </p>
+      </CardContent>
+    </Card>
   );
 }

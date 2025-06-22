@@ -1735,6 +1735,12 @@ End with a simple, poetic follow-up question.
     }
   });
 
+  // Use stripe routes
+  app.use('/api', stripeRoutes);
+  
+  // Use stripe webhook
+  app.use('/stripe', stripeWebhook);
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -188,15 +188,22 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 
 async function updateUserPremiumStatus(userId: string, status: string, planType?: string) {
   try {
-    // Update user premium status in users table
-    await db.execute(sql`
-      UPDATE users 
-      SET premium_status = ${status === 'active' ? 'active' : 'inactive'},
-          updated_at = NOW()
-      WHERE id = ${userId}
-    `);
-    
-    logger.info(`Updated premium status for user ${userId}: ${status}`);
+    // Update user premium status using storage interface
+    const user = await storage.getUser(userId);
+    if (user) {
+      await storage.upsertUser({
+        ...user,
+        isPremium: status === 'active',
+        subscriptionExpiresAt: status === 'active' ? 
+          new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) : // 1 year from now
+          new Date(),
+        updatedAt: new Date()
+      });
+      
+      logger.info(`Updated premium status for user ${userId}: ${status}`);
+    } else {
+      logger.error(`User ${userId} not found for premium status update`);
+    }
   } catch (error) {
     logger.error(`Failed to update premium status for user ${userId}:`, error);
   }

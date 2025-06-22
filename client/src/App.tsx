@@ -25,6 +25,8 @@ import Home from "@/pages/home";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
+import PremiumPage from "@/pages/premium";
+import PremiumSuccessPage from "@/pages/premium-success";
 import { 
   LazyFeed, 
   LazyDreams, 
@@ -71,6 +73,8 @@ function Router() {
           <Route path="/export" component={withLazyLoading(LazyExportManager, "Export Manager")} />
           <Route path="/ask-arc" component={withLazyLoading(LazyAskArc, "Ask Arc")} />
           <Route path="/arc-archive" component={withLazyLoading(LazyArcArchive, "Arc Archive")} />
+          <Route path="/premium" component={PremiumPage} />
+          <Route path="/premium-success" component={PremiumSuccessPage} />
         </>
       )}
       <Route component={NotFound} />
