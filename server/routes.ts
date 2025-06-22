@@ -36,6 +36,8 @@ import arcInsight from "./routes/arcInsight";
 import saveReflection from "./routes/saveReflection";
 import errorLogs from "./routes/errorLogs";
 import dreamMirror from "./routes/dreamMirror";
+import emotionTrend from "./routes/emotionTrend";
+import feedback from "./routes/feedback";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1879,6 +1881,12 @@ End with a simple, poetic follow-up question.
 
   // Use dream mirror routes
   app.use('/', dreamMirror);
+
+  // Use emotion trend routes
+  app.use('/', emotionTrend);
+
+  // Use feedback routes
+  app.use('/', feedback);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

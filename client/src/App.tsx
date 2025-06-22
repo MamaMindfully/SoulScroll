@@ -31,6 +31,9 @@ import Home from "@/pages/home";
 import { setupGlobalErrorHandlers } from "@/utils/errorLogger";
 import { useEffect, useState } from "react";
 import OnboardingIntro from "@/components/OnboardingIntro";
+import OnboardingModal from "@/components/OnboardingModal";
+import FeedbackButton from "@/components/FeedbackButton";
+import { restoreSession } from "@/utils/restoreSession";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
@@ -91,6 +94,7 @@ function Router() {
           <Route path="/demo-optimistic" component={withLazyLoading(() => import('@/pages/demo-optimistic'), "Optimistic UI Demo")} />
           <Route path="/emotional-intelligence" component={withLazyLoading(() => import('@/pages/EmotionalIntelligence'), "Emotional Intelligence")} />
           <Route path="/admin/errors" component={withLazyLoading(() => import('@/pages/AdminErrors'), "Admin Errors")} />
+          <Route path="/terms" component={withLazyLoading(() => import('@/pages/terms'), "Terms & Privacy")} />
         </>
       )}
       {/* Error and 404 Routes - Must be last */}
