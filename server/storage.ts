@@ -234,6 +234,10 @@ export interface IStorage {
   createLifeArcTag(userId: string, tag: InsertLifeArcTag): Promise<LifeArcTag>;
   getLifeArcTags(userId: string, limit?: number): Promise<LifeArcTag[]>;
   getUserLifeArcSummary(userId: string): Promise<{ topThemes: Array<{ tag: string; count: number }>; recentTags: string[] }>;
+
+  // Error logging operations
+  createErrorLog(errorData: InsertErrorLog): Promise<ErrorLog>;
+  getErrorLogs(limit?: number, type?: string): Promise<ErrorLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1273,6 +1277,29 @@ export class DatabaseStorage implements IStorage {
       .slice(0, 10);
 
     return { topThemes, recentTags };
+  }
+
+  // Error logging operations
+  async createErrorLog(errorData: InsertErrorLog): Promise<ErrorLog> {
+    const [error] = await db
+      .insert(errorLogs)
+      .values(errorData)
+      .returning();
+    return error;
+  }
+
+  async getErrorLogs(limit: number = 50, type?: string): Promise<ErrorLog[]> {
+    let query = db
+      .select()
+      .from(errorLogs)
+      .orderBy(desc(errorLogs.createdAt))
+      .limit(limit);
+
+    if (type) {
+      query = query.where(eq(errorLogs.type, type));
+    }
+
+    return await query;
   }
 }
 

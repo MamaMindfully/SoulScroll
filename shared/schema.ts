@@ -676,6 +676,17 @@ export const lifeArcTags = pgTable("life_arc_tags", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Error logs table
+export const errorLogs = pgTable("error_logs", {
+  id: serial("id").primaryKey(),
+  type: varchar("type", { length: 50 }).notNull(),
+  message: text("message"),
+  stack: text("stack"),
+  userId: varchar("user_id", { length: 255 }),
+  path: text("path"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schema exports for new tables
 export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
   id: true,
@@ -723,6 +734,11 @@ export const insertLifeArcTagSchema = createInsertSchema(lifeArcTags).omit({
   createdAt: true
 });
 
+export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
+  id: true,
+  createdAt: true
+});
+
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 
@@ -747,3 +763,5 @@ export type InsertRitualStreak = z.infer<typeof insertRitualStreakSchema>;
 export type RitualStreak = typeof ritualStreaks.$inferSelect;
 export type InsertLifeArcTag = z.infer<typeof insertLifeArcTagSchema>;
 export type LifeArcTag = typeof lifeArcTags.$inferSelect;
+export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
+export type ErrorLog = typeof errorLogs.$inferSelect;

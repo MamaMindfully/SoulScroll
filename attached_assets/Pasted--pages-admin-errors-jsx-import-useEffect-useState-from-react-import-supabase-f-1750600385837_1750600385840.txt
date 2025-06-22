@@ -1,0 +1,80 @@
+// === 🛠️ /pages/admin/errors.jsx ===
+import { useEffect, useState } from 'react'
+import supabase from '@/utils/db'
+
+export default function ErrorDashboard() {
+  const [errors, setErrors] = useState([])
+  const [filter, setFilter] = useState('all')
+
+  useEffect(() => {
+    fetchErrors()
+  }, [filter])
+
+  async function fetchErrors() {
+    let query = supabase.from('error_logs').select('*').order('created_at', { ascending: false }).limit(100)
+    if (filter !== 'all') query = query.eq('type', filter)
+    const { data } = await query
+    setErrors(data || [])
+  }
+
+  return (
+    <div className="p-6 text-white bg-black min-h-screen">
+      <h1 className="text-3xl mb-4">⚠️ Error Logs</h1>
+      <div className="mb-4">
+        <select value={filter} onChange={e => setFilter(e.target.value)} className="text-black px-3 py-2">
+          <option value="all">All</option>
+          <option value="frontend">Frontend</option>
+          <option value="backend">Backend</option>
+        </select>
+      </div>
+      <div className="space-y-3">
+        {errors.map(err => (
+          <div key={err.id} className="bg-gray-800 p-4 rounded">
+            <p><strong>Type:</strong> {err.type}</p>
+            <p><strong>Message:</strong> {err.message}</p>
+            <p className="text-sm text-gray-400">{new Date(err.created_at).toLocaleString()}</p>
+            <details className="text-sm text-gray-300">
+              <summary>Stack</summary>
+              <pre>{err.stack}</pre>
+            </details>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
+// === 📧 utils/sendErrorEmail.js ===
+import nodemailer from 'nodemailer'
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USERNAME, // set in Replit Secrets
+    pass: process.env.EMAIL_PASSWORD
+  }
+})
+
+export async function sendErrorEmail({ message, stack, path }) {
+  const mailOptions = {
+    from: process.env.EMAIL_USERNAME,
+    to: 'lennonpace09@gmail.com',
+    subject: '🚨 Critical Backend Error in SoulScroll',
+    html: `
+      <h2>Backend Error</h2>
+      <p><strong>Message:</strong> ${message}</p>
+      <p><strong>Path:</strong> ${path}</p>
+      <pre style="background:#eee;padding:1em">${stack}</pre>
+    `
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
+  } catch (e) {
+    console.error('Failed to send error email:', e)
+  }
+}
+
+// Use this inside any backend errorLogger
+// if (type === 'backend') await sendErrorEmail({ message, stack, path })

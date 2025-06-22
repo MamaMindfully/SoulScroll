@@ -34,6 +34,7 @@ import ritualStreak from "./routes/ritualStreak";
 import lifeArcTags from "./routes/lifeArcTags";
 import arcInsight from "./routes/arcInsight";
 import saveReflection from "./routes/saveReflection";
+import errorLogs from "./routes/errorLogs";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1871,6 +1872,9 @@ End with a simple, poetic follow-up question.
 
   // Use save reflection routes
   app.use('/', saveReflection);
+
+  // Use error logging routes
+  app.use('/', errorLogs);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);
