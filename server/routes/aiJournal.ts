@@ -9,6 +9,7 @@ import { tokenMonitor } from "../services/tokenMonitor";
 import { retryOpenAICall } from "../utils/retryUtils";
 import { captureError } from "../utils/errorHandler";
 import { aiAnalysisRateLimit } from "../middleware/rateLimiter";
+import { journalQueue } from "../queue/journalQueue";
 
 const router = Router();
 const openai = new OpenAI({ 
@@ -17,7 +18,8 @@ const openai = new OpenAI({
 
 // Validation schema
 const journalAnalysisSchema = z.object({
-  entryText: z.string().min(1, "Journal entry text is required")
+  entryText: z.string().min(1, "Journal entry text is required"),
+  entryId: z.number().optional()
 });
 
 // AI Journal Analysis Route (rate limiting disabled for development)
