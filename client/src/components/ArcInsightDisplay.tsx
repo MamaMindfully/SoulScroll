@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
-import { useUserStore } from '@/store/userStore';
 import SaveReflectionButton from './SaveReflectionButton';
 import DreamMirrorClusters from './DreamMirrorClusters';
 import { Sparkles, Eye } from 'lucide-react';
 
 interface ArcInsightDisplayProps {
   insight: string;
+  userId?: string;
   onSave?: () => void;
 }
 
-export default function ArcInsightDisplay({ insight, onSave }: ArcInsightDisplayProps) {
-  const { userId, isLoggedIn } = useUserStore();
+export default function ArcInsightDisplay({ insight, userId, onSave }: ArcInsightDisplayProps) {
   const [showClusters, setShowClusters] = useState(false);
 
-  if (!isLoggedIn || !insight) {
+  if (!userId || !insight) {
     return null;
   }
 

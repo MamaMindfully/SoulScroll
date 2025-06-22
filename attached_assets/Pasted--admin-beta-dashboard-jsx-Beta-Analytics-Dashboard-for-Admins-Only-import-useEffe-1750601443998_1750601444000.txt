@@ -1,0 +1,53 @@
+// === 📊 /admin/beta-dashboard.jsx ===
+// Beta Analytics Dashboard for Admins Only
+import { useEffect, useState } from 'react'
+import { supabase } from '@/utils/db'
+
+export default function BetaDashboard() {
+  const [usage, setUsage] = useState({ reflections: 0, insights: 0, users: 0 })
+  const [scores, setScores] = useState([])
+
+  useEffect(() => {
+    async function fetchStats() {
+      const { count: reflections } = await supabase.from('saved_reflections').select('*', { count: 'exact', head: true })
+      const { count: insights } = await supabase.from('insight_logs').select('*', { count: 'exact', head: true })
+      const { count: users } = await supabase.from('users').select('*', { count: 'exact', head: true })
+      const { data: trends } = await supabase.from('emotion_trends').select('score')
+      setUsage({ reflections, insights, users })
+      setScores(trends?.map(t => t.score))
+    }
+    fetchStats()
+  }, [])
+
+  const avg = scores.length ? (scores.reduce((a, b) => a + parseFloat(b), 0) / scores.length).toFixed(2) : '—'
+
+  return (
+    <div className="p-8 text-white">
+      <h1 className="text-2xl font-bold mb-4">🧪 Beta Testing Dashboard</h1>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-gray-800 p-4 rounded">Users: <span className="font-bold">{usage.users}</span></div>
+        <div className="bg-gray-800 p-4 rounded">Reflections: <span className="font-bold">{usage.reflections}</span></div>
+        <div className="bg-gray-800 p-4 rounded">Insights Triggered: <span className="font-bold">{usage.insights}</span></div>
+        <div className="bg-gray-800 p-4 rounded">Avg. Emotion Score: <span className="font-bold">{avg}</span></div>
+      </div>
+    </div>
+  )
+}
+
+
+// === Supabase Schema Notes ===
+// Add a table `insight_logs` if not already:
+/*
+create table insight_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users(id) on delete cascade,
+  timestamp timestamp default now()
+);
+*/
+
+// Log each insight delivery:
+export async function logInsight(userId) {
+  await supabase.from('insight_logs').insert([{ user_id: userId }])
+}
+
+// Add <BetaDashboard /> to pages/admin/beta-dashboard.jsx

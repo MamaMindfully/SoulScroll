@@ -1,12 +1,9 @@
 import { useEffect } from 'react';
-import { useUserStore } from '@/store/userStore';
 import { logEmotionTrend } from '@/utils/logEmotionTrend';
 
-export function useEmotionTrendSync(score: number | null, dominantEmotion: string) {
-  const { userId, isLoggedIn } = useUserStore();
-
+export function useEmotionTrendSync(userId: string | null, score: number | null, dominantEmotion: string) {
   useEffect(() => {
-    if (!isLoggedIn || !userId || score === null || !dominantEmotion) return;
+    if (!userId || score === null || !dominantEmotion) return;
 
     const syncEmotion = async () => {
       try {
@@ -19,5 +16,5 @@ export function useEmotionTrendSync(score: number | null, dominantEmotion: strin
     // Debounce emotion logging to avoid too many requests
     const timeoutId = setTimeout(syncEmotion, 1000);
     return () => clearTimeout(timeoutId);
-  }, [userId, isLoggedIn, score, dominantEmotion]);
+  }, [userId, score, dominantEmotion]);
 }
