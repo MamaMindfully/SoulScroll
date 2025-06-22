@@ -217,6 +217,23 @@ export interface IStorage {
   getUserTraits(userId: string): Promise<UserTraits | undefined>;
   upsertUserTraits(userId: string, traits: Partial<InsertUserTraits>): Promise<UserTraits>;
   updateBehaviorMetrics(userId: string, event: string, data: any): Promise<void>;
+
+  // Journal embeddings operations
+  createJournalEmbedding(userId: string, embedding: InsertJournalEmbedding): Promise<JournalEmbedding>;
+  getJournalEmbeddings(userId: string, limit?: number): Promise<JournalEmbedding[]>;
+
+  // Insight feedback operations
+  createInsightFeedback(userId: string, feedback: InsertInsightFeedback): Promise<InsightFeedback>;
+  getInsightFeedback(insightId: string): Promise<InsightFeedback[]>;
+
+  // Ritual streak operations
+  getRitualStreak(userId: string): Promise<RitualStreak | undefined>;
+  upsertRitualStreak(userId: string, streak: InsertRitualStreak): Promise<RitualStreak>;
+
+  // Life arc tags operations
+  createLifeArcTag(userId: string, tag: InsertLifeArcTag): Promise<LifeArcTag>;
+  getLifeArcTags(userId: string, limit?: number): Promise<LifeArcTag[]>;
+  getUserLifeArcSummary(userId: string): Promise<{ topThemes: Array<{ tag: string; count: number }>; recentTags: string[] }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1146,6 +1163,116 @@ export class DatabaseStorage implements IStorage {
     if (Object.keys(updates).length > 0) {
       await this.upsertUserTraits(userId, updates);
     }
+  }
+
+  // Journal embeddings operations
+  async createJournalEmbedding(userId: string, embeddingData: InsertJournalEmbedding): Promise<JournalEmbedding> {
+    const [embedding] = await db
+      .insert(journalEmbeddings)
+      .values({
+        userId,
+        ...embeddingData,
+      })
+      .returning();
+    return embedding;
+  }
+
+  async getJournalEmbeddings(userId: string, limit: number = 100): Promise<JournalEmbedding[]> {
+    return await db
+      .select()
+      .from(journalEmbeddings)
+      .where(eq(journalEmbeddings.userId, userId))
+      .orderBy(desc(journalEmbeddings.createdAt))
+      .limit(limit);
+  }
+
+  // Insight feedback operations
+  async createInsightFeedback(userId: string, feedbackData: InsertInsightFeedback): Promise<InsightFeedback> {
+    const [feedback] = await db
+      .insert(insightFeedback)
+      .values({
+        userId,
+        ...feedbackData,
+      })
+      .returning();
+    return feedback;
+  }
+
+  async getInsightFeedback(insightId: string): Promise<InsightFeedback[]> {
+    return await db
+      .select()
+      .from(insightFeedback)
+      .where(eq(insightFeedback.insightId, insightId))
+      .orderBy(desc(insightFeedback.createdAt));
+  }
+
+  // Ritual streak operations
+  async getRitualStreak(userId: string): Promise<RitualStreak | undefined> {
+    const [streak] = await db
+      .select()
+      .from(ritualStreaks)
+      .where(eq(ritualStreaks.userId, userId));
+    return streak;
+  }
+
+  async upsertRitualStreak(userId: string, streakData: InsertRitualStreak): Promise<RitualStreak> {
+    const [streak] = await db
+      .insert(ritualStreaks)
+      .values(streakData)
+      .onConflictDoUpdate({
+        target: ritualStreaks.userId,
+        set: streakData
+      })
+      .returning();
+    return streak;
+  }
+
+  // Life arc tags operations
+  async createLifeArcTag(userId: string, tagData: InsertLifeArcTag): Promise<LifeArcTag> {
+    const [tag] = await db
+      .insert(lifeArcTags)
+      .values({
+        userId,
+        ...tagData,
+      })
+      .returning();
+    return tag;
+  }
+
+  async getLifeArcTags(userId: string, limit: number = 100): Promise<LifeArcTag[]> {
+    return await db
+      .select()
+      .from(lifeArcTags)
+      .where(eq(lifeArcTags.userId, userId))
+      .orderBy(desc(lifeArcTags.createdAt))
+      .limit(limit);
+  }
+
+  async getUserLifeArcSummary(userId: string): Promise<{ topThemes: Array<{ tag: string; count: number }>; recentTags: string[] }> {
+    const allTags = await this.getLifeArcTags(userId, 100);
+    
+    // Count tag frequencies
+    const tagCounts = allTags.reduce((acc, tag) => {
+      acc[tag.tag] = (acc[tag.tag] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Get top themes
+    const topThemes = Object.entries(tagCounts)
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Get recent tags (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentTags = allTags
+      .filter(tag => new Date(tag.createdAt) >= thirtyDaysAgo)
+      .map(tag => tag.tag)
+      .slice(0, 10);
+
+    return { topThemes, recentTags };
   }
 }
 

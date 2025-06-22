@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { Sparkles, Brain, Heart } from 'lucide-react';
+import InsightFeedback from './InsightFeedback';
 
 export default function PersonalizedInsight() {
   const { user, trackBehavior } = useUser();
@@ -127,7 +128,7 @@ export default function PersonalizedInsight() {
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 mb-4">
         <button
           onClick={() => handleInteraction('reflect')}
           className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors"
@@ -141,6 +142,12 @@ export default function PersonalizedInsight() {
           Save for later
         </button>
       </div>
+
+      {/* Insight Feedback */}
+      <InsightFeedback 
+        insightId={`personalized-${Date.now()}`}
+        insightType={insight?.type || 'personalized'}
+      />
     </div>
   );
 }

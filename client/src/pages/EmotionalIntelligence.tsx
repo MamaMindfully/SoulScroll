@@ -2,6 +2,7 @@ import React from 'react';
 import EmotionalDashboard from '@/components/EmotionalDashboard';
 import BehaviorInsights from '@/components/BehaviorInsights';
 import AdaptiveJournalPrompt from '@/components/AdaptiveJournalPrompt';
+import RitualStreakDisplay from '@/components/RitualStreakDisplay';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, Clock, Compass, TrendingUp } from "lucide-react";
 
@@ -87,6 +88,11 @@ export default function EmotionalIntelligence() {
 
         {/* Behavior Insights */}
         <BehaviorInsights />
+
+        {/* Ritual Streak Display */}
+        <div className="mt-8">
+          <RitualStreakDisplay />
+        </div>
 
         {/* Additional Info */}
         <div className="mt-8 text-center">

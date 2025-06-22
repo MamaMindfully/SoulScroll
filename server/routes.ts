@@ -28,6 +28,10 @@ import memoryLoop from "./routes/memoryLoop";
 import emotionHistory from "./routes/emotionHistory";
 import userTraits from "./routes/userTraits";
 import personalizedInsights from "./routes/personalizedInsights";
+import vectorSearch from "./routes/vectorSearch";
+import insightFeedback from "./routes/insightFeedback";
+import ritualStreak from "./routes/ritualStreak";
+import lifeArcTags from "./routes/lifeArcTags";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1847,6 +1851,18 @@ End with a simple, poetic follow-up question.
 
   // Use personalized insights routes
   app.use('/', personalizedInsights);
+
+  // Use vector search routes
+  app.use('/', vectorSearch);
+
+  // Use insight feedback routes
+  app.use('/', insightFeedback);
+
+  // Use ritual streak routes
+  app.use('/', ritualStreak);
+
+  // Use life arc tags routes
+  app.use('/', lifeArcTags);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);
