@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { PremiumProvider } from "@/context/PremiumContext";
+import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";

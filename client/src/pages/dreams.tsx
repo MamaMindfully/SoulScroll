@@ -47,6 +47,25 @@ export default function Dreams() {
     return null;
   }
 
+  // Check feature access
+  if (!hasFeatureAccess('dreams')) {
+    return (
+      <ErrorBoundaryWrapper>
+        <div className="h-screen flex flex-col bg-gentle">
+          <AppHeader />
+          <main className="flex-1 overflow-hidden px-4 py-6">
+            <LockedFeatureMessage 
+              message="Upgrade to Premium to unlock AI-powered dream interpretation and mystical insights."
+              feature="Dream Mode"
+              description="Set intentions, log dreams, and receive personalized spiritual interpretations powered by AI."
+            />
+          </main>
+          <BottomNavigation />
+        </div>
+      </ErrorBoundaryWrapper>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gentle">
       {/* Header */}

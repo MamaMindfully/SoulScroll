@@ -45,6 +45,25 @@ export default function Community() {
     return null;
   }
 
+  // Check feature access
+  if (!hasFeatureAccess('community')) {
+    return (
+      <ErrorBoundaryWrapper>
+        <div className="h-screen flex flex-col bg-gentle">
+          <AppHeader />
+          <main className="flex-1 overflow-hidden px-4 py-6">
+            <LockedFeatureMessage 
+              message="Upgrade to Premium to access the Community features and connect with other mindful journalers."
+              feature="Community Feed"
+              description="Share reflections, send hearts, and find support in our mindful community."
+            />
+          </main>
+          <BottomNavigation />
+        </div>
+      </ErrorBoundaryWrapper>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">

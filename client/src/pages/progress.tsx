@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/context/AppContext";
 import AppHeader from "@/components/AppHeader";
 import BottomNavigation from "@/components/BottomNavigation";
 import VisualProgressTracker from "@/components/VisualProgressTracker";
@@ -9,10 +10,11 @@ import ErrorBoundaryWrapper from "@/components/ErrorBoundaryWrapper";
 export default function Progress() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const { setCurrentPage } = useAppContext();
 
-  // Enhanced authentication validation with logging
   useEffect(() => {
-    console.log('📊 Progress page auth check:', { isLoading, isAuthenticated });
+    setCurrentPage('/progress');
+    console.log('Progress page auth check:', { isLoading, isAuthenticated });
     
     if (!isLoading && !isAuthenticated) {
       console.warn('🚫 Progress access denied - redirecting to login');
@@ -28,9 +30,9 @@ export default function Progress() {
     }
     
     if (isAuthenticated) {
-      console.log('✅ Progress page access granted');
+      console.log('Progress page access granted');
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isAuthenticated, isLoading, toast, setCurrentPage]);
 
   if (isLoading) {
     return (
