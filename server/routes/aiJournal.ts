@@ -20,8 +20,8 @@ const journalAnalysisSchema = z.object({
   entryText: z.string().min(1, "Journal entry text is required")
 });
 
-// AI Journal Analysis Route (with rate limiting)
-router.post('/ai/journal', aiAnalysisRateLimit, isAuthenticated, async (req: Request, res: Response) => {
+// AI Journal Analysis Route (rate limiting disabled for development)
+router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { entryText } = journalAnalysisSchema.parse(req.body);
     const user = req.user;

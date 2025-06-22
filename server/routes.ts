@@ -1746,8 +1746,8 @@ End with a simple, poetic follow-up question.
     }
   });
 
-  // Use stripe routes with rate limiting
-  app.use('/api', stripeRateLimit, stripeRoutes);
+  // Use stripe routes (rate limiting disabled for development)
+  app.use('/api', stripeRoutes);
 
   // Use premium routes
   app.use('/api', premiumRoutes);
@@ -1761,8 +1761,8 @@ End with a simple, poetic follow-up question.
   // Use emotion scoring routes (rate limiting applied internally)
   app.use('/', emotionScore);
 
-  // Use billing portal routes with rate limiting
-  app.use('/', stripeRateLimit, billingPortal);
+  // Use billing portal routes (rate limiting disabled for development)
+  app.use('/', billingPortal);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

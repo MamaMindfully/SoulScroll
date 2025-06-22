@@ -21,8 +21,8 @@ const emotionScoreSchema = z.object({
   userId: z.string().optional()
 });
 
-// POST /api/emotion-score (with rate limiting)
-router.post('/api/emotion-score', aiAnalysisRateLimit, isAuthenticated, async (req: Request, res: Response) => {
+// POST /api/emotion-score (rate limiting disabled for development)
+router.post('/api/emotion-score', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { journalText } = emotionScoreSchema.parse(req.body);
     const user = req.user;
