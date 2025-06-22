@@ -22,7 +22,7 @@ const journalAnalysisSchema = z.object({
   entryId: z.number().optional()
 });
 
-// AI Journal Analysis Route (rate limiting disabled for development)
+// AI Journal Analysis Route with BullMQ Queue
 router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) => {
   try {
     const { entryText } = journalAnalysisSchema.parse(req.body);

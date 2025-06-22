@@ -11,6 +11,7 @@ import NavigationBar from "@/components/NavigationBar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
+import Fallback404 from "@/components/Fallback404";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import { fetchSoulScrollReply } from './utils/gptAPI';
@@ -81,7 +82,8 @@ function Router() {
           <Route path="/premium-success" component={withLazyLoading(() => import('@/pages/premium-success'), "Premium Success")} />
         </>
       )}
-      <Route component={NotFound} />
+      {/* 404 Fallback Route - Must be last */}
+      <Route path="*" component={Fallback404} />
     </Switch>
   );
 }
