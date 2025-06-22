@@ -96,9 +96,32 @@ function Router() {
   );
 }
 
+function AppRoutes() {
+  return (
+    <div className="app-container">
+      <NavigationBar />
+      <Router />
+      <Toaster />
+      <FloatingStartButton />
+      <PerformanceMonitor />
+      <DailyNotification />
+    </div>
+  );
+}
+
 function App() {
   // Initialize user status synchronization
   useUserStatusSync();
+  
+  const [showIntro, setShowIntro] = useState(() => {
+    // Check if user has seen intro before
+    return !localStorage.getItem('soul-scroll-intro-seen');
+  });
+
+  const handleContinue = () => {
+    localStorage.setItem('soul-scroll-intro-seen', 'true');
+    setShowIntro(false);
+  };
   
   return (
     <ErrorBoundary>
@@ -108,14 +131,11 @@ function App() {
             <PremiumProvider>
               <AppStoreMetadata />
               <MobileTouchOptimizations />
-              <div className="app-container">
-                <NavigationBar />
-                <Router />
-                <Toaster />
-                <FloatingStartButton />
-                <PerformanceMonitor />
-                <DailyNotification />
-              </div>
+              {showIntro ? (
+                <OnboardingIntro onContinue={handleContinue} />
+              ) : (
+                <AppRoutes />
+              )}
             </PremiumProvider>
           </ThemeProvider>
         </TooltipProvider>
