@@ -238,6 +238,14 @@ export interface IStorage {
   // Error logging operations
   createErrorLog(errorData: InsertErrorLog): Promise<ErrorLog>;
   getErrorLogs(limit?: number, type?: string): Promise<ErrorLog[]>;
+
+  // Emotion trends operations
+  upsertEmotionTrend(userId: string, trend: Omit<InsertEmotionTrend, 'userId'>): Promise<EmotionTrend>;
+  getEmotionTrends(userId: string, days?: number): Promise<EmotionTrend[]>;
+
+  // Tone vectors operations
+  upsertToneVector(userId: string, vector: any): Promise<ToneVector>;
+  getToneVector(userId: string): Promise<ToneVector | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1300,6 +1308,64 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await query;
+  }
+
+  // Emotion trends operations
+  async upsertEmotionTrend(userId: string, trendData: Omit<InsertEmotionTrend, 'userId'>): Promise<EmotionTrend> {
+    const [trend] = await db
+      .insert(emotionTrends)
+      .values({
+        userId,
+        ...trendData
+      })
+      .onConflictDoUpdate({
+        target: [emotionTrends.userId, emotionTrends.date],
+        set: {
+          score: trendData.score,
+          dominantEmotion: trendData.dominantEmotion
+        }
+      })
+      .returning();
+    return trend;
+  }
+
+  async getEmotionTrends(userId: string, days: number = 30): Promise<EmotionTrend[]> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    return await db
+      .select()
+      .from(emotionTrends)
+      .where(eq(emotionTrends.userId, userId))
+      .orderBy(desc(emotionTrends.date))
+      .limit(days);
+  }
+
+  // Tone vectors operations
+  async upsertToneVector(userId: string, vector: any): Promise<ToneVector> {
+    const [toneVector] = await db
+      .insert(toneVectors)
+      .values({
+        userId,
+        vector: JSON.stringify(vector)
+      })
+      .onConflictDoUpdate({
+        target: toneVectors.userId,
+        set: {
+          vector: JSON.stringify(vector),
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return toneVector;
+  }
+
+  async getToneVector(userId: string): Promise<ToneVector | undefined> {
+    const [toneVector] = await db
+      .select()
+      .from(toneVectors)
+      .where(eq(toneVectors.userId, userId));
+    return toneVector;
   }
 }
 

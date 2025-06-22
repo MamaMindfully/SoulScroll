@@ -90,6 +90,7 @@ function Router() {
           <Route path="/premium-success" component={withLazyLoading(() => import('@/pages/premium-success'), "Premium Success")} />
           <Route path="/demo-optimistic" component={withLazyLoading(() => import('@/pages/demo-optimistic'), "Optimistic UI Demo")} />
           <Route path="/emotional-intelligence" component={withLazyLoading(() => import('@/pages/EmotionalIntelligence'), "Emotional Intelligence")} />
+          <Route path="/admin/errors" component={withLazyLoading(() => import('@/pages/AdminErrors'), "Admin Errors")} />
         </>
       )}
       {/* Error and 404 Routes - Must be last */}

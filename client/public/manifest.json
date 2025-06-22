@@ -1,20 +1,78 @@
 {
-  "name": "SoulScroll",
   "short_name": "SoulScroll",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#6B73FF",
+  "name": "SoulScroll - AI-Powered Emotional Journaling",
+  "description": "Your emotional intelligence journaling companion with AI insights, pattern recognition, and personal growth tracking.",
   "icons": [
     {
       "src": "/icon-192.png",
+      "type": "image/png",
       "sizes": "192x192",
-      "type": "image/png"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512.png", 
+      "type": "image/png",
       "sizes": "512x512",
-      "type": "image/png"
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#000000",
+  "theme_color": "#1e1e1e",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["health", "lifestyle", "productivity"],
+  "shortcuts": [
+    {
+      "name": "New Journal Entry",
+      "short_name": "Journal",
+      "description": "Start writing a new journal entry",
+      "url": "/journal",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Insights",
+      "short_name": "Insights", 
+      "description": "Explore your emotional insights and patterns",
+      "url": "/insights",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Ask Arc",
+      "short_name": "Arc",
+      "description": "Get guidance from your AI companion",
+      "url": "/ask-arc",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "type": "image/png",
+      "sizes": "390x844",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "type": "image/png", 
+      "sizes": "1280x720",
+      "form_factor": "wide"
     }
   ]
 }

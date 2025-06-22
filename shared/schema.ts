@@ -687,6 +687,25 @@ export const errorLogs = pgTable("error_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Emotion trends table
+export const emotionTrends = pgTable("emotion_trends", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  date: varchar("date", { length: 10 }).notNull(),
+  score: real("score").notNull(),
+  dominantEmotion: varchar("dominant_emotion", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserDate: unique().on(table.userId, table.date),
+}));
+
+// Tone vectors table
+export const toneVectors = pgTable("tone_vectors", {
+  userId: varchar("user_id", { length: 255 }).primaryKey(),
+  vector: text("vector"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schema exports for new tables
 export const insertSecretScrollSchema = createInsertSchema(secretScrolls).omit({
   id: true,
@@ -739,6 +758,13 @@ export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
   createdAt: true
 });
 
+export const insertEmotionTrendSchema = createInsertSchema(emotionTrends).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertToneVectorSchema = createInsertSchema(toneVectors);
+
 export type InsertReflection = z.infer<typeof insertReflectionSchema>;
 export type Reflection = typeof reflections.$inferSelect;
 
@@ -765,3 +791,7 @@ export type InsertLifeArcTag = z.infer<typeof insertLifeArcTagSchema>;
 export type LifeArcTag = typeof lifeArcTags.$inferSelect;
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertEmotionTrend = z.infer<typeof insertEmotionTrendSchema>;
+export type EmotionTrend = typeof emotionTrends.$inferSelect;
+export type InsertToneVector = z.infer<typeof insertToneVectorSchema>;
+export type ToneVector = typeof toneVectors.$inferSelect;
