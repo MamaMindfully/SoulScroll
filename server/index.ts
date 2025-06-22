@@ -3,6 +3,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import stripeWebhook from "./stripeWebhook";
 import stripeRoutes from "./routes/stripeRoutes";
+// Initialize queue workers (will gracefully fallback if Redis unavailable)
+import "./queue/journalWorker";
 
 const app = express();
 app.use(express.json());

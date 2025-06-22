@@ -13,6 +13,8 @@ import webhookStripe from "./routes/webhookStripe";
 import aiJournal from "./routes/aiJournal";
 import emotionScore from "./routes/emotionScore";
 import billingPortal from "./routes/billingPortal";
+import queueBundle from "./routes/queueBundle";
+import userStatus from "./routes/userStatus";
 import stripeWebhook from "./stripeWebhook";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
@@ -1763,6 +1765,12 @@ End with a simple, poetic follow-up question.
 
   // Use billing portal routes (rate limiting disabled for development)
   app.use('/', billingPortal);
+
+  // Use queue bundle routes
+  app.use('/', queueBundle);
+
+  // Use user status routes
+  app.use('/', userStatus);
 
   // Use enhanced webhook routes
   app.use('/', webhookStripe);

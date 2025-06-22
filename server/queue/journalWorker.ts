@@ -1,30 +1,46 @@
-import { Worker, Job } from 'bullmq';
-import { OpenAI } from 'openai';
-import Redis from 'ioredis';
-import { storage } from '../storage';
 import { logger } from '../utils/logger';
-import { retryOpenAICall } from '../utils/retryUtils';
-import { captureError } from '../utils/errorHandler';
-import { tokenMonitor } from '../services/tokenMonitor';
 
-// Redis connection for worker
-const connection = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: 3,
-  retryDelayOnFailover: 100,
-  enableReadyCheck: false,
-  maxRetriesPerRequest: null,
-  enableOfflineQueue: false,
-});
+// Conditional worker initialization - only if Redis is available
+async function initializeWorkers() {
+  try {
+    // Check if we can use BullMQ workers
+    const Redis = (await import('ioredis')).default;
+    const connection = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      maxRetriesPerRequest: 1,
+      connectTimeout: 5000,
+      enableOfflineQueue: false,
+    });
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
+    await connection.ping();
+    
+    // If Redis is available, initialize BullMQ workers
+    await initializeBullMQWorkers(connection);
+    
+  } catch (error) {
+    logger.info('Redis not available, using memory queue processing', { 
+      error: error.message 
+    });
+    // Memory queues handle their own processing
+  }
+}
 
-// Journal Analysis Worker
-const journalWorker = new Worker('journalQueue', async (job: Job) => {
+async function initializeBullMQWorkers(connection: any) {
+  const { Worker } = await import('bullmq');
+  const { OpenAI } = await import('openai');
+  const { storage } = await import('../storage');
+  const { retryOpenAICall } = await import('../utils/retryUtils');
+  const { captureError } = await import('../utils/errorHandler');
+  const { tokenMonitor } = await import('../services/tokenMonitor');
+
+  const openai = new OpenAI({ 
+    apiKey: process.env.OPENAI_API_KEY 
+  });
+
+  // Journal Analysis Worker
+  const journalWorker = new Worker('journalQueue', async (job: any) => {
   const { userId, journalText, entryId } = job.data;
   
   logger.info('Processing journal analysis job', { 
@@ -291,33 +307,37 @@ function getMostCommonEmotion(emotions: string[]): string {
     .sort(([, a], [, b]) => b - a)[0]?.[0] || 'neutral';
 }
 
-// Worker event handlers
-journalWorker.on('completed', (job, result) => {
-  logger.info('Journal analysis job completed', { jobId: job.id, result });
-});
+  // Worker event handlers
+  journalWorker.on('completed', (job: any, result: any) => {
+    logger.info('Journal analysis job completed', { jobId: job.id, result });
+  });
 
-journalWorker.on('failed', (job, err) => {
-  logger.error('Journal analysis job failed', { jobId: job?.id, error: err.message });
-});
+  journalWorker.on('failed', (job: any, err: any) => {
+    logger.error('Journal analysis job failed', { jobId: job?.id, error: err.message });
+  });
 
-emotionWorker.on('completed', (job, result) => {
-  logger.info('Emotion analysis job completed', { jobId: job.id, result });
-});
+  emotionWorker.on('completed', (job: any, result: any) => {
+    logger.info('Emotion analysis job completed', { jobId: job.id, result });
+  });
 
-emotionWorker.on('failed', (job, err) => {
-  logger.error('Emotion analysis job failed', { jobId: job?.id, error: err.message });
-});
+  emotionWorker.on('failed', (job: any, err: any) => {
+    logger.error('Emotion analysis job failed', { jobId: job?.id, error: err.message });
+  });
 
-insightWorker.on('completed', (job, result) => {
-  logger.info('Insight generation job completed', { jobId: job.id, result });
-});
+  insightWorker.on('completed', (job: any, result: any) => {
+    logger.info('Insight generation job completed', { jobId: job.id, result });
+  });
 
-insightWorker.on('failed', (job, err) => {
-  logger.error('Insight generation job failed', { jobId: job?.id, error: err.message });
-});
+  insightWorker.on('failed', (job: any, err: any) => {
+    logger.error('Insight generation job failed', { jobId: job?.id, error: err.message });
+  });
 
-logger.info('BullMQ workers started', {
-  workers: ['journalWorker', 'emotionWorker', 'insightWorker']
-});
+  logger.info('BullMQ workers initialized', {
+    workers: ['journalWorker', 'emotionWorker', 'insightWorker']
+  });
+}
 
-export { journalWorker, emotionWorker, insightWorker };
+// Initialize workers
+initializeWorkers().catch(error => {
+  logger.error('Failed to initialize workers', { error: error.message });
+});
