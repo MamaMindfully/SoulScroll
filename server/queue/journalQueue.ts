@@ -6,12 +6,12 @@ let emotionQueue: any;
 let insightQueue: any;
 
 // Environment check for Redis availability
-const REDIS_ENABLED = process.env.REDIS_URL || process.env.NODE_ENV === 'production';
-
 async function initializeQueues() {
-  if (!REDIS_ENABLED) {
-    // Use memory-based queues for development
-    logger.info('Using memory-based queues for development');
+  const redisUrl = process.env.REDIS_URL;
+  
+  if (!redisUrl) {
+    // Use memory-based queues when Redis is not available
+    logger.info('REDIS_URL not configured. Using memory-based queues for deployment.');
     const memoryQueues = await import('./memoryQueue');
     journalQueue = memoryQueues.journalQueue;
     emotionQueue = memoryQueues.emotionQueue;
@@ -20,22 +20,27 @@ async function initializeQueues() {
   }
 
   try {
-    // Try BullMQ with Redis for production
+    // Try BullMQ with Redis when available
     const { Queue } = await import('bullmq');
     const Redis = (await import('ioredis')).default;
     
-    const connection = new Redis(process.env.REDIS_URL || {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      maxRetriesPerRequest: 3,
+    const connection = new Redis(redisUrl, {
       retryDelayOnFailover: 100,
-      connectTimeout: 10000,
+      connectTimeout: 5000,
+      commandTimeout: 3000,
       lazyConnect: true,
+      // Fail fast instead of endless retries
+      maxRetriesPerRequest: null
     });
 
-    // Test connection
-    await connection.ping();
+    // Test connection with timeout
+    const connectPromise = connection.ping();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+    );
+    
+    await Promise.race([connectPromise, timeoutPromise]);
+    logger.info('Redis connection established for queues.');
     
     const queueOptions = {
       connection,

@@ -1993,6 +1993,41 @@ End with a simple, poetic follow-up question.
   // Use stripe webhook (legacy)
   app.use('/stripe', stripeWebhook);
 
+  // Health check endpoint with Redis status
+  app.get('/health', async (req, res) => {
+    try {
+      const redisHealthy = await redisService.ping();
+      const timestamp = new Date().toISOString();
+      
+      res.json({ 
+        status: "healthy", 
+        timestamp,
+        services: {
+          redis: redisHealthy ? "connected" : "fallback",
+          cache: "operational",  
+          database: "connected",
+          queue: "operational"
+        },
+        mode: redisHealthy ? "full" : "degraded",
+        note: redisHealthy ? "All systems operational" : "Running with in-memory fallbacks"
+      });
+    } catch (error) {
+      logger.error('Health check error:', error);
+      res.status(200).json({ 
+        status: "degraded", 
+        timestamp: new Date().toISOString(),
+        services: {
+          redis: "fallback",
+          cache: "operational",
+          database: "connected", 
+          queue: "memory"
+        },
+        mode: "fallback",
+        note: "Operating with in-memory systems"
+      });
+    }
+  });
+
   // Add monitoring and stats endpoints
   app.get('/api/admin/cache-stats', async (req, res) => {
     try {

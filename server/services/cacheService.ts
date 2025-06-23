@@ -8,28 +8,36 @@ class CacheService {
   private tokenUsageCache: NodeCache;
 
   constructor() {
-    // General cache - 1 hour TTL
-    this.cache = new NodeCache({ 
-      stdTTL: 3600, // 1 hour
-      checkperiod: 600, // Check for expired keys every 10 minutes
-      useClones: false
-    });
+    try {
+      // General cache - 1 hour TTL
+      this.cache = new NodeCache({ 
+        stdTTL: 3600, // 1 hour
+        checkperiod: 600, // Check for expired keys every 10 minutes
+        useClones: false
+      });
 
-    // AI response cache - 24 hours TTL
-    this.aiCache = new NodeCache({
-      stdTTL: 86400, // 24 hours
-      checkperiod: 3600, // Check every hour
-      useClones: false
-    });
+      // AI response cache - 24 hours TTL
+      this.aiCache = new NodeCache({
+        stdTTL: 86400, // 24 hours
+        checkperiod: 3600, // Check every hour
+        useClones: false
+      });
 
-    // Token usage tracking - resets daily
-    this.tokenUsageCache = new NodeCache({
-      stdTTL: 86400, // 24 hours
-      checkperiod: 3600, // Check every hour
-      useClones: false
-    });
+      // Token usage tracking - resets daily
+      this.tokenUsageCache = new NodeCache({
+        stdTTL: 86400, // 24 hours
+        checkperiod: 3600, // Check every hour
+        useClones: false
+      });
 
-    logger.info('Cache service initialized');
+      logger.info('Cache service initialized successfully');
+    } catch (error) {
+      logger.error('Cache service initialization failed:', error);
+      // Create minimal fallback caches
+      this.cache = new NodeCache();
+      this.aiCache = new NodeCache();
+      this.tokenUsageCache = new NodeCache();
+    }
   }
 
   // Generate hash for cache key

@@ -3,39 +3,71 @@ import Redis from 'ioredis';
 let redis: Redis | null = null;
 const fallbackCache: Record<string, any> = {};
 
-// Initialize Redis connection with fallback
-try {
-  const redisUrl = process.env.REDIS_URL || 'rediss://default:AW4GAAIjcDE1ZGZlZWI3NjNjMjU0MTc5YWYyMzg5MDY1MjZiNWNmYnAxMA@solid-husky-28166.upstash.io:6379';
-  
-  if (redisUrl) {
-    redis = new Redis(redisUrl, {
+// Initialize Redis connection with robust fallback
+async function initializeRedis() {
+  try {
+    const redisUrl = process.env.REDIS_URL;
+    
+    if (!redisUrl) {
+      console.log('REDIS_URL not configured. Using fallback in-memory cache for deployment.');
+      return null;
+    }
+    
+    const redisClient = new Redis(redisUrl, {
       retryDelayOnFailover: 100,
-      maxRetriesPerRequest: 3,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
-      tls: {
+      maxRetriesPerRequest: null, // Disable retries to fail fast
+      connectTimeout: 5000, // Reduced timeout
+      commandTimeout: 3000,
+      lazyConnect: true, // Don't connect immediately
+      tls: redisUrl.startsWith('rediss://') ? {
         rejectUnauthorized: false
-      }
+      } : undefined
     });
     
-    redis.on('connect', () => {
+    // Test connection with timeout
+    const connectPromise = redisClient.connect();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+    );
+    
+    await Promise.race([connectPromise, timeoutPromise]);
+    
+    redisClient.on('connect', () => {
       console.log('Redis connection established successfully.');
     });
     
-    redis.on('error', (err) => {
+    redisClient.on('error', (err) => {
       console.error('Redis connection error:', err.message);
+      // Don't throw here, let operations handle individual failures
     });
 
-    redis.on('ready', () => {
+    redisClient.on('ready', () => {
       console.log('Redis client ready for operations.');
     });
-  } else {
-    console.log('REDIS_URL not found. Using fallback in-memory cache.');
+    
+    // Test with a simple ping
+    await redisClient.ping();
+    console.log('Redis ping successful.');
+    
+    return redisClient;
+  } catch (error) {
+    console.warn('Redis initialization failed, using fallback in-memory cache:', error.message);
+    return null;
   }
-} catch (error) {
-  console.error('Redis initialization failed. Using fallback in-memory store:', error);
-  redis = null;
 }
+
+// Initialize with proper error handling
+initializeRedis()
+  .then(client => {
+    redis = client;
+    if (!redis) {
+      console.log('Running in fallback mode with in-memory cache.');
+    }
+  })
+  .catch(error => {
+    console.error('Failed to initialize Redis service:', error);
+    redis = null;
+  });
 
 export class RedisService {
   // Service worker version management
