@@ -149,13 +149,13 @@ function App() {
     }
   }, [hasMounted]);
 
+  // Prevent hydration mismatch
+  if (!hasMounted) return null;
+
   const handleContinue = () => {
     localStorage.setItem('soul-scroll-intro-seen', 'true');
     setShowIntro(false);
   };
-  
-  // Prevent hydration mismatch
-  if (!hasMounted) return null;
   
   return (
     <ErrorBoundaryWrapper>

@@ -45,15 +45,6 @@ export default function EmotionalDashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-64 bg-gray-800 rounded-xl"></div>
-        <div className="h-32 bg-gray-800 rounded-xl"></div>
-      </div>
-    )
-  }
-
   useEffect(() => {
     // Track dashboard view
     trackBehavior('view_emotional_dashboard', {
@@ -62,6 +53,15 @@ export default function EmotionalDashboard() {
       hasMemoryInsight: !!memoryInsight
     })
   }, [trackBehavior, emotionData.length, memoryInsight])
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-64 bg-gray-800 rounded-xl"></div>
+        <div className="h-32 bg-gray-800 rounded-xl"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
