@@ -54,6 +54,17 @@ export async function analyzeEmotionalTone(text: string): Promise<EmotionalAnaly
     };
   } catch (error) {
     console.error("Error analyzing emotional tone:", error);
+    
+    // Return fallback analysis when API quota exceeded
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      return {
+        rating: 3,
+        confidence: 0.3,
+        keywords: ["reflection", "self-awareness", "introspection"],
+        insights: "Thank you for sharing your thoughts. Your willingness to journal shows self-awareness and emotional growth."
+      };
+    }
+    
     throw new Error("Failed to analyze emotional tone");
   }
 }
@@ -112,6 +123,16 @@ export async function generateCompassionateResponse(
     };
   } catch (error) {
     console.error("Error generating compassionate response:", error);
+    
+    // Return fallback response when API quota exceeded
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      return {
+        content: "Thank you for sharing your thoughts with me. Every entry is a step in your journey of self-discovery.",
+        suggestions: ["Take a moment to reflect on how you're feeling right now", "Consider what this experience taught you"],
+        connections: ["Your willingness to journal shows emotional awareness"]
+      };
+    }
+    
     throw new Error("Failed to generate AI response");
   }
 }
@@ -149,7 +170,17 @@ export async function generateDailyPrompt(category: string = 'general', isPremiu
     return response.choices[0].message.content?.trim() || "What is your heart trying to tell you today?";
   } catch (error) {
     console.error("Error generating daily prompt:", error);
-    return "What is your heart trying to tell you today?";
+    
+    // Fallback prompts when API quota exceeded
+    const fallbackPrompts = [
+      "What is your heart trying to tell you today?",
+      "How did you grow as a person today?",
+      "What emotion wants to be acknowledged right now?",
+      "What would you tell your past self about this moment?",
+      "What are you grateful for in this exact moment?"
+    ];
+    
+    return fallbackPrompts[Math.floor(Math.random() * fallbackPrompts.length)];
   }
 }
 
