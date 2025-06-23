@@ -85,33 +85,39 @@ export async function checkDeploymentReadiness(): Promise<DeploymentStatus> {
   return status;
 }
 
-// Startup readiness check
+// Startup readiness check with fast timeout
 export async function performStartupChecks(): Promise<void> {
   logger.info('Performing deployment readiness checks...');
   
-  const status = await checkDeploymentReadiness();
-  
-  if (status.ready) {
-    logger.info('✅ Deployment readiness check passed', {
-      mode: status.mode,
-      warnings: status.warnings.length,
-      redis: status.services.redis ? 'connected' : 'fallback'
-    });
+  try {
+    // Add overall timeout to prevent hanging
+    const checksPromise = checkDeploymentReadiness();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Deployment checks timeout')), 5000)
+    );
     
-    if (status.warnings.length > 0) {
-      status.warnings.forEach(warning => logger.warn('⚠️', warning));
-    }
-  } else {
-    logger.error('❌ Deployment readiness check failed', {
-      errors: status.errors,
-      services: status.services
-    });
+    const status = await Promise.race([checksPromise, timeoutPromise]);
     
-    // In production, don't exit - try to run in degraded mode
-    if (process.env.NODE_ENV === 'production') {
-      logger.warn('🔧 Attempting to start in emergency mode...');
+    if (status.ready) {
+      logger.info('✅ Deployment readiness check passed', {
+        mode: status.mode,
+        warnings: status.warnings.length,
+        redis: status.services.redis ? 'connected' : 'fallback'
+      });
+      
+      if (status.warnings.length > 0) {
+        status.warnings.forEach(warning => logger.warn('⚠️', warning));
+      }
     } else {
-      logger.warn('⚠️ Starting in development mode with limited services');
+      logger.warn('⚠️ Some services unavailable - running in degraded mode', {
+        mode: status.mode,
+        services: status.services
+      });
     }
+  } catch (error) {
+    logger.warn('⚠️ Deployment checks timed out - continuing with startup', {
+      error: error.message
+    });
+    // Don't fail startup, just continue
   }
 }

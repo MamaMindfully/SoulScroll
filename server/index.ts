@@ -9,6 +9,11 @@ import fs from "fs";
 import { gracefulDegradation, serviceFailureHandler, detectServiceAvailability } from "./middleware/gracefulDegradation";
 import { performStartupChecks } from "./utils/deploymentReadiness";
 import { deploymentSafetyMiddleware, redisErrorHandler } from "./middleware/deploymentSafety";
+import { initializeDeploymentSafety } from "./utils/deploymentSafety";
+
+// Initialize deployment safety measures before any Redis imports
+initializeDeploymentSafety();
+
 // Initialize queue workers (will gracefully fallback if Redis unavailable)
 import "./queue/journalWorker";
 
@@ -61,6 +66,9 @@ try {
   console.error('Failed to initialize Helmet middleware:', error);
   // Continue without Helmet in case of issues
 }
+
+// Add deployment safety middleware
+app.use(deploymentSafetyMiddleware);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
