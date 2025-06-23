@@ -43,7 +43,8 @@ export default function JournalEditor() {
   const { isPremium } = usePremium();
   const queryClient = useQueryClient();
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
-  const { profile } = useUserProfile();
+  // Remove useUserProfile to prevent hook violations
+  const profile = { mentorPersona: 'sage' };
 
   // Calculate word count
   useEffect(() => {

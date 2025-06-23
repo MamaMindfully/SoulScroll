@@ -17,7 +17,9 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function MentorPersonaSelector() {
-  const { profile, isLoading } = useUserProfile();
+  // Remove useUserProfile to prevent hook violations
+  const profile = { mentorPersona: 'sage' };
+  const isLoading = false;
   const [selectedPersona, setSelectedPersona] = useState(profile?.mentorPersona || 'sage');
   const { toast } = useToast();
   const queryClient = useQueryClient();

@@ -1,43 +1,38 @@
-import { lazy, ComponentType, Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
-// Loading component for lazy-loaded components
-export const ComponentLoader = () => (
-  <div className="flex items-center justify-center p-8">
-    <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"></div>
+// Loading component for Suspense fallback
+const LoadingFallback = ({ name }: { name?: string }) => (
+  <div className="min-h-[200px] flex items-center justify-center">
+    <Card className="bg-black/40 border-purple-500/30 p-8">
+      <CardContent className="flex flex-col items-center gap-4">
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+        <p className="text-gray-300 text-sm">
+          {name ? `Loading ${name}...` : 'Loading...'}
+        </p>
+      </CardContent>
+    </Card>
   </div>
 );
 
-// Lazy load heavy components for better performance
-export const CommunityFeed = lazy(() => import('./CommunityFeed'));
-export const DreamMode = lazy(() => import('./DreamMode'));
-export const VisualProgressTracker = lazy(() => import('./VisualProgressTracker'));
-export const EmotionChart = lazy(() => import('./EmotionChart'));
-export const AIJournalAnalyzer = lazy(() => import('./AIJournalAnalyzer'));
-export const AdvancedAnalyticsDashboard = lazy(() => import('./AdvancedAnalyticsDashboard'));
-export const DataExportComponent = lazy(() => import('./DataExportComponent'));
-export const VoiceJournalingComponent = lazy(() => import('./VoiceJournalingComponent'));
-export const MantraDesigner = lazy(() => import('./MantraDesigner'));
-export const PremiumSubscriptionComponent = lazy(() => import('./PremiumSubscriptionComponent'));
+// Lazy loaded components - only import existing pages
+export const LazyProgress = lazy(() => import('@/pages/progress'));
+export const LazyCommunity = lazy(() => import('@/pages/community'));
+export const LazySettings = lazy(() => import('@/pages/settings'));
+export const LazyPricing = lazy(() => import('@/pages/pricing'));
 
-// Page-level lazy components for App.tsx
-export const LazyFeed = lazy(() => import('../pages/Feed'));
-export const LazyDreams = lazy(() => import('../pages/dreams'));
-export const LazyMantras = lazy(() => import('../pages/mantras'));
-export const LazyInsights = lazy(() => import('../pages/insights'));
-export const LazyTimeline = lazy(() => import('../pages/timeline'));
-export const LazySettings = lazy(() => import('../pages/settings'));
-export const LazyPricing = lazy(() => import('../pages/premium'));
-export const LazyAskArc = lazy(() => import('../pages/home')); // Fallback to home
-export const LazyExportManager = lazy(() => import('../pages/home')); // Fallback to home
-export const LazyArcArchive = lazy(() => import('../pages/home')); // Fallback to home
-export const LazyProgress = lazy(() => import('../pages/progress'));
-export const LazyCommunity = lazy(() => import('../pages/community'));
-
-// Higher-order component for lazy loading with suspense
-export const withLazyLoading = <P extends object>(Component: ComponentType<P>) => {
-  return (props: P) => (
-    <Suspense fallback={<ComponentLoader />}>
-      <Component {...props} />
+// Higher-order component for lazy loading with Suspense
+export const withLazyLoading = (LazyComponent: React.ComponentType<any>, name?: string) => {
+  return (props: any) => (
+    <Suspense fallback={<LoadingFallback name={name} />}>
+      <LazyComponent {...props} />
     </Suspense>
   );
 };
+
+// Pre-configured lazy components with fallbacks - only existing pages
+export const SuspenseProgress = withLazyLoading(LazyProgress, "Progress");
+export const SuspenseCommunity = withLazyLoading(LazyCommunity, "Community");
+export const SuspenseSettings = withLazyLoading(LazySettings, "Settings");
+export const SuspensePricing = withLazyLoading(LazyPricing, "Pricing");

@@ -17,7 +17,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import SecretScrollModal from './SecretScrollModal';
-import { useUserProfile } from '@/hooks/useUserProfile';
+// Remove useUserProfile to prevent hook violations
 import { usePremium } from '@/hooks/usePremium';
 
 interface TestResult {

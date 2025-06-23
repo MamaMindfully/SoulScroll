@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, Clock, Layers, TrendingUp, Eye, ChevronDown, ChevronUp } from "lucide-react";
-import { useUserStatus } from '@/hooks/useUserStatus';
+// Remove useUserStatus to prevent hook violations
 
 interface MemoryEntry {
   id: string;
