@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           self.addEventListener('fetch', (event) => {
-            // Let network handle all requests
+            // Let network handle all requests - passthrough
           });
         `;
         
