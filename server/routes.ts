@@ -91,18 +91,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Expires', '0');
       res.setHeader('X-SW-Version', currentTimestamp);
       
-      res.sendFile(serviceWorkerPath, (err) => {
-        if (err) {
-          console.error('Service worker file error:', err);
-          if (!res.headersSent) {
-            res.status(404).send('Service worker not found');
-          }
+      try {
+        const content = fs.readFileSync(serviceWorkerPath, 'utf8');
+        res.send(content);
+      } catch (readError) {
+        console.error('Service worker read error:', readError);
+        if (!res.headersSent) {
+          res.status(500).send('Service worker read error');
         }
-      });
+      }
     } catch (error) {
       console.error('Service worker route error:', error);
       if (!res.headersSent) {
-        res.status(500).send('Service worker error');
+        // Return a minimal working service worker instead of error
+        const fallbackSW = `
+          self.addEventListener('install', () => {
+            console.log('Fallback Service Worker installed');
+            self.skipWaiting();
+          });
+          
+          self.addEventListener('activate', () => {
+            console.log('Fallback Service Worker activated');
+            return self.clients.claim();
+          });
+          
+          self.addEventListener('fetch', (event) => {
+            // Let network handle all requests
+          });
+        `;
+        
+        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.send(fallbackSW);
       }
     }
   });

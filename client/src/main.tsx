@@ -102,6 +102,11 @@ import('./utils/globalAuthHandler').then(({ initializeGlobalAuthHandler }) => {
   initializeGlobalAuthHandler();
 });
 
+// Initialize development auth fix
+import('./utils/authFix').then(({ initDevAuth }) => {
+  initDevAuth();
+});
+
 // Initialize error capture system
 import('./utils/errorCapture').then(() => {
   console.log('Error capture system initialized');
