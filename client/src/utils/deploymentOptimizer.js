@@ -135,7 +135,7 @@ export const optimizeLazyLoading = () => {
 // Memory cleanup for deployment
 export const cleanupDeployment = () => {
   // Clear any development-only references
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.PROD) {
     // Remove console logs
     console.log = () => {};
     console.warn = () => {};

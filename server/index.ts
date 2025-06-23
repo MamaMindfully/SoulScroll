@@ -7,6 +7,23 @@ import stripeRoutes from "./routes/stripeRoutes";
 import "./queue/journalWorker";
 
 const app = express();
+
+// Add Helmet security middleware first
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https://api.openai.com", "https://api.stripe.com", "wss:", "ws:"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

@@ -60,7 +60,6 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
-  console.log('SoulScroll Service Worker installing...');
   
   event.waitUntil(
     Promise.all([

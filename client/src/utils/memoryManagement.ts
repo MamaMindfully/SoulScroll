@@ -168,7 +168,7 @@ export const monitorMemory = () => {
 // Garbage collection helper for large objects
 export const forceGarbageCollection = () => {
   // Force garbage collection in development
-  if (process.env.NODE_ENV === 'development' && 'gc' in window) {
+  if (import.meta.env.DEV && 'gc' in window) {
     (window as any).gc();
   }
 };
