@@ -40,7 +40,9 @@ const OfflineIndicator: React.FC = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isOnline]);
+  }, [hasMounted]);
+
+  if (!hasMounted) return null;
 
   const syncOfflineData = async () => {
     try {

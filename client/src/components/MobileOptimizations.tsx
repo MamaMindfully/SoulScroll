@@ -49,7 +49,9 @@ export default function MobileOptimizations() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [toast]);
+  }, [hasMounted, toast]);
+
+  if (!hasMounted) return null;
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
