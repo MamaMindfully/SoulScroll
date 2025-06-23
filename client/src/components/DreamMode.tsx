@@ -69,6 +69,7 @@ const DreamMode = () => {
       const fullInput = `Dream Content: ${dreamLog}\nOriginal Intention: ${dreamIntent}`;
       
       const response = await fetch('/api/interpret-dream', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: fullInput }),

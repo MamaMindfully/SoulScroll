@@ -79,6 +79,7 @@ class FeatureFlagManager {
   async fetchRemoteFlags() {
     try {
       const response = await fetch('/api/feature-flags', {
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       })
       

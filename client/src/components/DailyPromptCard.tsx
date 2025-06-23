@@ -42,6 +42,7 @@ const DailyPromptCard: React.FC = () => {
     try {
       const userIdToUse = userId || localStorage.getItem('userId') || 'demo-user';
       await fetch('/api/daily-prompt/feedback', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userIdToUse, feedback })

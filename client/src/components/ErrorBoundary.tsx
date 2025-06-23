@@ -56,6 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
   logError = async (error: Error, errorInfo: ErrorInfo) => {
     try {
       await fetch('/api/error-logs', {
+        credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

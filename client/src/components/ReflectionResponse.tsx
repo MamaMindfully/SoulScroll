@@ -51,6 +51,7 @@ const ReflectionResponse: React.FC<ReflectionResponseProps> = ({
     
     try {
       const response = await fetch('/api/reflect', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entry: journalEntry })

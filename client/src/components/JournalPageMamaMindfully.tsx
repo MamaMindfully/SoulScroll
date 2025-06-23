@@ -52,6 +52,7 @@ const JournalPageMamaMindfully = () => {
 
     try {
       const response = await fetch('/api/mama-mindfully', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entry: entry.trim() }),

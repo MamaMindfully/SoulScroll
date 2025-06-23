@@ -46,6 +46,7 @@ export default function VoiceJournalingComponent({ entryId, onTranscriptionCompl
       if (entryId) formData.append('entryId', entryId.toString());
       
       const response = await fetch('/api/voice/transcribe', {
+        credentials: 'include',
         method: 'POST',
         body: formData,
       });
