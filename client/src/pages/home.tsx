@@ -31,15 +31,9 @@ export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
   const { isPremium, refreshPremiumStatus, premiumFeatures } = usePremium();
+  const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    if (hasMounted) {
-      setIsOnline(navigator.onLine);
-    }
-  }, [hasMounted]);
-
-  if (!hasMounted) return null;
-
+  // All hook calls must be at the top level
   const togglePremiumMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/user/toggle-premium");
@@ -53,7 +47,12 @@ export default function Home() {
       });
     },
   });
-  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (hasMounted) {
+      setIsOnline(navigator.onLine);
+    }
+  }, [hasMounted]);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -115,6 +114,9 @@ export default function Home() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Early return after all hooks
+  if (!hasMounted) return null;
 
   if (isLoading || !isAuthenticated) {
     return (

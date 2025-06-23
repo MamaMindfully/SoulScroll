@@ -10,9 +10,8 @@ const OfflineIndicator: React.FC = () => {
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  if (!hasMounted) return null;
-
   useEffect(() => {
+    if (!hasMounted) return;
     // Initialize online status
     setIsOnline(navigator.onLine);
     setShowOfflineBanner(!navigator.onLine);

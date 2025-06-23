@@ -18,9 +18,8 @@ export default function MobileOptimizations() {
   const [isStandalone, setIsStandalone] = useState(false);
   const { toast } = useToast();
 
-  if (!hasMounted) return null;
-
   useEffect(() => {
+    if (!hasMounted) return;
     // Check if app is already installed (running in standalone mode)
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
     setIsStandalone(isStandaloneMode);
