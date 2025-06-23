@@ -22,7 +22,13 @@ export class RedisHealthMonitor {
 
   private async checkHealth() {
     try {
-      this.isHealthy = await redisService.ping();
+      // Add timeout to prevent hanging
+      const pingPromise = redisService.ping();
+      const timeoutPromise = new Promise(resolve => 
+        setTimeout(() => resolve(false), 2000)
+      );
+      
+      this.isHealthy = await Promise.race([pingPromise, timeoutPromise]);
       this.lastCheck = new Date();
       
       if (!this.isHealthy) {
@@ -30,7 +36,7 @@ export class RedisHealthMonitor {
       }
     } catch (error) {
       this.isHealthy = false;
-      logger.error('Redis health monitor error:', error);
+      logger.warn('Redis health monitor error (non-critical):', error.message);
     }
   }
 

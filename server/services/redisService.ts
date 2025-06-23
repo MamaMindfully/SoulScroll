@@ -1,4 +1,10 @@
 import Redis from 'ioredis';
+import { getRedisConfig, suppressRedisErrors } from '../utils/redisFailsafe';
+
+// Suppress Redis errors during startup
+if (process.env.NODE_ENV === 'production') {
+  suppressRedisErrors();
+}
 
 let redis: Redis | null = null;
 const fallbackCache: Record<string, any> = {};
@@ -6,30 +12,24 @@ const fallbackCache: Record<string, any> = {};
 // Initialize Redis connection with robust fallback
 async function initializeRedis() {
   try {
-    const redisUrl = process.env.REDIS_URL;
+    const redisConfig = getRedisConfig();
     
-    if (!redisUrl) {
+    if (!redisConfig) {
       console.log('REDIS_URL not configured. Using fallback in-memory cache for deployment.');
       return null;
     }
     
-    const redisClient = new Redis(redisUrl, {
-      retryDelayOnFailover: 100,
-      maxRetriesPerRequest: 0, // Disable all retries to fail immediately
-      connectTimeout: 2000, // Very short timeout
-      commandTimeout: 2000,
-      lazyConnect: true, // Don't connect immediately
-      enableOfflineQueue: false, // Don't queue commands when offline
-      maxLoadingTimeout: 2000,
-      tls: redisUrl.startsWith('rediss://') ? {
+    const redisClient = new Redis(redisConfig.url, {
+      ...redisConfig.config,
+      tls: redisConfig.url.startsWith('rediss://') ? {
         rejectUnauthorized: false
       } : undefined
     });
     
-    // Test connection with very short timeout
+    // Test connection with timeout
     const connectPromise = redisClient.connect();
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Redis connection timeout')), 2000)
+      setTimeout(() => reject(new Error('Redis connection timeout')), redisConfig.config.connectTimeout)
     );
     
     await Promise.race([connectPromise, timeoutPromise]);
@@ -58,8 +58,13 @@ async function initializeRedis() {
   }
 }
 
-// Initialize with proper error handling
-let initializationPromise = initializeRedis()
+// Initialize with proper error handling and timeout
+let initializationPromise = Promise.race([
+  initializeRedis(),
+  new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Redis initialization timeout')), 3000)
+  )
+])
   .then(client => {
     redis = client;
     if (!redis) {
@@ -68,7 +73,7 @@ let initializationPromise = initializeRedis()
     return client;
   })
   .catch(error => {
-    console.error('Failed to initialize Redis service:', error);
+    console.warn('Redis initialization failed, using fallback mode:', error.message);
     redis = null;
     return null;
   });

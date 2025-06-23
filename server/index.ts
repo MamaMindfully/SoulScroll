@@ -17,14 +17,24 @@ const app = express();
 // Add comprehensive error handling for uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
+  // Never exit on Redis errors, just log them
+  if (error.message && error.message.includes('Redis')) {
+    console.warn('Redis error caught globally - continuing with fallback mode');
+    return;
+  }
   // Don't exit in production, just log the error
   if (process.env.NODE_ENV !== 'production') {
     process.exit(1);
   }
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason: any, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Never exit on Redis errors, just log them
+  if (reason?.message && reason.message.includes('Redis')) {
+    console.warn('Redis rejection caught globally - continuing with fallback mode');
+    return;
+  }
   // Don't exit in production, just log the error
   if (process.env.NODE_ENV !== 'production') {
     process.exit(1);
@@ -107,6 +117,9 @@ app.use((req, res, next) => {
 
     // Service failure handler (before global error handler)
     app.use(serviceFailureHandler);
+
+    // Add Redis error handler before general error handler
+    app.use(redisErrorHandler);
 
     // Enhanced error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
