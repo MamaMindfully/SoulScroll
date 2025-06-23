@@ -28,8 +28,6 @@ import OnboardingIntro from "@/components/OnboardingIntro";
 import OnboardingModal from "@/components/OnboardingModal";
 import FeedbackButton from "@/components/FeedbackButton";
 import { restoreSession } from "@/utils/restoreSession";
-// Removed // useHasMounted removed import - using local state instead
-// Remove imports that cause deployment errors
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";

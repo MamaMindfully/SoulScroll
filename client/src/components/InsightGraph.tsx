@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import type { InsightNode, InsightEdge, InsightGraphData, Constellation } from '../types/insight-graph';
 
 interface Node {
   id: number;
@@ -77,20 +78,10 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     const constellationContainer = svg.append('g').attr('class', 'constellations');
 
     // Create simulation with constellation clustering
-    interface D3Node extends d3.SimulationNodeDatum {
-      id: string;
-      theme: string;
-      emotion: string;
-      opacity?: number;
-    }
+    // Use proper types from the types file
 
-    interface D3Link extends d3.SimulationLinkDatum<D3Node> {
-      source: string | D3Node;
-      target: string | D3Node;
-    }
-
-    const simulation = d3.forceSimulation(fadedNodes as D3Node[])
-      .force('link', d3.forceLink<D3Node, D3Link>(data.edges).id((d: D3Node) => d.id).distance(60))
+    const simulation = d3.forceSimulation(fadedNodes)
+      .force('link', d3.forceLink<InsightNode, InsightEdge>(data.edges).id((d: InsightNode) => d.id).distance(60))
       .force('charge', d3.forceManyBody().strength(-150))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(12));
@@ -141,7 +132,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 2)
       .attr('stroke-dasharray', (d) => d.type === 'time' ? '5,5' : null)
-      .style('opacity', (d: D3Node) => {
+      .style('opacity', (d: InsightEdge) => {
         if (!activeTheme) return 1;
         return (d.source.theme === activeTheme || d.target.theme === activeTheme) ? 1 : 0.1;
       });
@@ -157,7 +148,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('stroke', '#ffffff')
       .attr('stroke-width', 2)
       .style('cursor', 'pointer')
-      .style('opacity', (d: D3Node) => d.opacity || 1)
+      .style('opacity', (d: InsightNode) => d.opacity || 1)
       .call(drag(simulation));
 
     // Add node labels
@@ -258,14 +249,14 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     // Update positions on simulation tick
     simulation.on('tick', () => {
       link
-        .attr('x1', (d: D3Link) => (d.source as D3Node).x)
-        .attr('y1', (d: any) => d.source.y)
-        .attr('x2', (d: any) => d.target.x)
-        .attr('y2', (d: any) => d.target.y);
+        .attr('x1', (d: InsightEdge) => (d.source as InsightNode).x || 0)
+        .attr('y1', (d: InsightEdge) => (d.source as InsightNode).y || 0)
+        .attr('x2', (d: InsightEdge) => (d.target as InsightNode).x || 0)
+        .attr('y2', (d: InsightEdge) => (d.target as InsightNode).y || 0);
 
       node
-        .attr('cx', (d: any) => d.x)
-        .attr('cy', (d: any) => d.y);
+        .attr('cx', (d: InsightNode) => d.x || 0)
+        .attr('cy', (d: InsightNode) => d.y || 0);
 
       label
         .attr('x', (d: any) => d.x)
