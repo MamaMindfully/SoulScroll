@@ -9,7 +9,7 @@ import { performanceMetrics } from "./utils/performanceMetrics";
 import { deploymentValidator } from "./utils/deploymentValidator";
 import { imageOptimizer } from "./utils/imageOptimization";
 import "./utils/polyfills";
-import { initializeServiceWorker } from "./utils/serviceWorkerRegistration";
+
 
 // Global fetch wrapper to handle 401 errors
 window.fetch = (originalFetch => {
@@ -51,15 +51,19 @@ performanceMonitor.startMark('app-initialization');
 
 // Initialize service worker for PWA functionality with auto-reload (browser only)
 if (typeof window !== 'undefined') {
-  initializeServiceWorker();
-  
-  // Listen for service worker updates and show notification
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'SW_UPDATE_AVAILABLE') {
-        console.log('Service worker update available');
-        // Optionally show user notification about update
+  import('./utils/serviceWorkerRegistration').then(({ register }) => {
+    register({
+      onUpdate: registration => {
+        if (registration && registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
       }
+    });
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
     });
   }
 }
