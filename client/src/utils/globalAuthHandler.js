@@ -5,6 +5,22 @@ export function initializeGlobalAuthHandler() {
   // Track authentication state
   let isHandlingAuth = false;
   
+  // Override global fetch to handle 401 errors automatically
+  window.fetch = (originalFetch => {
+    return (...args) => {
+      return originalFetch(...args).then(response => {
+        if (response.status === 401) {
+          console.error('Global 401 detected. Session expired.');
+          localStorage.removeItem('authToken'); // Clear invalid token
+          window.dispatchEvent(new CustomEvent('authExpired', { 
+            detail: { reason: 'API returned 401' } 
+          }));
+        }
+        return response;
+      });
+    };
+  })(window.fetch);
+  
   // Listen for auth expired events from global fetch wrapper
   window.addEventListener('authExpired', handleAuthExpiration);
   

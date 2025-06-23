@@ -30,9 +30,7 @@
     <link rel="preconnect" href="https://api.stripe.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
-    <!-- Preload critical assets -->
-    <link rel="preload" href="./icon-192.png" as="image" type="image/png" />
-    <link rel="preload" href="./src/index.css" as="style" />
+    <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
     
@@ -60,24 +58,22 @@
     <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./service-worker.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-              
-              // Request notification permission
-              if ('Notification' in window && navigator.serviceWorker) {
-                if (Notification.permission === 'default') {
-                  Notification.requestPermission().then(permission => {
-                    console.log('Notification permission:', permission);
-                  });
-                }
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered: ', registration);
+            
+            // Request notification permission
+            if ('Notification' in window && navigator.serviceWorker) {
+              if (Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                  console.log('Notification permission:', permission);
+                });
               }
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
+            }
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
       }
     </script>
     

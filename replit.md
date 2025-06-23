@@ -666,6 +666,15 @@ Changelog:
   * Application deployed and running on production Replit infrastructure
   * All authentication, database, and AI features operational
   * Complete mobile-optimized PWA ready for app store submission
+- June 23, 2025: Critical deployment fixes and authentication improvements:
+  * Enhanced global auth handler with automatic 401 error detection and session clearing
+  * Fixed service worker registration with proper relative path configuration
+  * Corrected duplicate credentials key in PushNotificationManager component
+  * Updated asset paths throughout HTML and manifest to use relative paths (./) 
+  * Created missing 144x144 icon file and updated manifest icon references
+  * Removed unused font preload references causing Vite build errors
+  * Applied comprehensive authentication error handling with user notifications
+  * Application now properly handles session expiration and authentication failures
 - June 23, 2025: Production enhancement features implemented:
   * Added comprehensive E2E testing with Cypress for journaling and premium flows
   * Implemented feature flags system for safe deployments and A/B testing
