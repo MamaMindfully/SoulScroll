@@ -96,7 +96,6 @@ export default function PushNotificationManager() {
 
       // Send subscription to server
       await fetch('/api/notifications/subscribe', {
-        credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
