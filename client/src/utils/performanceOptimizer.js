@@ -1,114 +1,113 @@
-// Performance optimization utilities to improve LCP and reduce load times
+// Performance optimization utilities
+class PerformanceOptimizer {
+  constructor() {
+    this.criticalResources = new Set();
+    this.lazyResources = new Map();
+    this.preloadQueue = [];
+  }
 
-// Lazy loading for heavy components
-export const optimizeImageLoading = () => {
-  // Add intersection observer for images
-  if ('IntersectionObserver' in window) {
+  // Mark resources as critical for immediate loading
+  markCritical(resource) {
+    this.criticalResources.add(resource);
+    this.preloadResource(resource);
+  }
+
+  // Preload resource with priority
+  preloadResource(href, as = 'script', type = null) {
+    if (document.querySelector(`link[href="${href}"]`)) {
+      return; // Already preloaded
+    }
+
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.href = href;
+    link.as = as;
+    if (type) link.type = type;
+    
+    document.head.appendChild(link);
+  }
+
+  // Lazy load non-critical resources
+  lazyLoad(resource, callback) {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        this.loadResource(resource, callback);
+      });
+    } else {
+      setTimeout(() => {
+        this.loadResource(resource, callback);
+      }, 100);
+    }
+  }
+
+  // Load resource with callback
+  loadResource(resource, callback) {
+    if (resource.endsWith('.js')) {
+      const script = document.createElement('script');
+      script.src = resource;
+      script.onload = callback;
+      script.onerror = () => console.error('Failed to load:', resource);
+      document.head.appendChild(script);
+    } else if (resource.endsWith('.css')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = resource;
+      link.onload = callback;
+      link.onerror = () => console.error('Failed to load:', resource);
+      document.head.appendChild(link);
+    }
+  }
+
+  // Optimize images with intersection observer
+  optimizeImages() {
+    const images = document.querySelectorAll('img[data-src]');
     const imageObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const img = entry.target;
-          if (img.dataset.src) {
-            img.src = img.dataset.src;
-            img.removeAttribute('data-src');
-            imageObserver.unobserve(img);
-          }
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          imageObserver.unobserve(img);
         }
       });
     });
 
-    document.querySelectorAll('img[data-src]').forEach(img => {
-      imageObserver.observe(img);
+    images.forEach(img => imageObserver.observe(img));
+  }
+
+  // Bundle and defer non-critical JavaScript
+  deferNonCritical() {
+    const nonCriticalScripts = [
+      '/src/components/AdminBetaDashboard.tsx',
+      '/src/components/analytics/',
+      '/src/utils/performanceOptimizer.js'
+    ];
+
+    requestIdleCallback(() => {
+      nonCriticalScripts.forEach(script => {
+        this.lazyLoad(script);
+      });
     });
   }
-};
 
-// Defer non-critical resource loading
-export const optimizeMemoryUsage = () => {
-  // Clean up event listeners and observers
-  const cleanup = () => {
-    // Remove stale listeners
-    const staleElements = document.querySelectorAll('[data-cleanup]');
-    staleElements.forEach(el => {
-      if (el.cleanup) el.cleanup();
-    });
-  };
-
-  // Run cleanup every 30 seconds
-  setInterval(cleanup, 30000);
-};
-
-// Bundle optimization for faster loading
-export const optimizeBundleLoading = () => {
-  // Preload critical routes
-  const criticalRoutes = ['/home', '/journal', '/insights'];
-  
-  criticalRoutes.forEach(route => {
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = route;
-    document.head.appendChild(link);
-  });
-};
-
-// Delay effect hook for performance optimizations
-export const useDelayedEffect = (callback, delay = 1000) => {
-  return setTimeout(callback, delay);
-};
-
-// Critical resource preloader
-export const preloadCriticalResources = () => {
-  // Preload critical fonts
-  const fontPreloads = [
-    '/fonts/Inter-Regular.woff2',
-    '/fonts/Inter-SemiBold.woff2'
-  ];
-
-  fontPreloads.forEach(font => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.href = font;
-    link.as = 'font';
-    link.type = 'font/woff2';
-    link.crossOrigin = 'anonymous';
-    document.head.appendChild(link);
-  });
-
-  // Preload service worker
-  if ('serviceWorker' in navigator) {
-    setTimeout(() => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .catch(error => console.log('SW registration failed'));
-    }, 2000);
-  }
-};
-
-// Reduce API call frequency
-export const debounceApiCalls = (func, delay = 300) => {
-  let timeoutId;
-  return (...args) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func.apply(null, args), delay);
-  };
-};
-
-// Memory leak prevention
-export const preventMemoryLeaks = () => {
-  // Clear intervals and timeouts on page unload
-  window.addEventListener('beforeunload', () => {
-    // Clear all timeouts and intervals
-    for (let i = 1; i < 99999; i++) {
-      window.clearTimeout(i);
-      window.clearInterval(i);
+  // Initialize all optimizations
+  init() {
+    // Preload critical resources
+    this.markCritical('/fonts/Inter.woff2');
+    this.markCritical('/icon-192.png');
+    
+    // Optimize images when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.optimizeImages();
+      });
+    } else {
+      this.optimizeImages();
     }
-  });
-};
 
-// Initialize all optimizations
-export const initializePerformanceOptimizations = () => {
-  preloadCriticalResources();
-  optimizeImageLoading();
-  optimizeMemoryUsage();
-  optimizeBundleLoading();
-  preventMemoryLeaks();
-};
+    // Defer non-critical resources
+    this.deferNonCritical();
+  }
+}
+
+export const performanceOptimizer = new PerformanceOptimizer();

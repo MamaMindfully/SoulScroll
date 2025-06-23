@@ -98,10 +98,55 @@ if (typeof window !== 'undefined') {
 }
 
 // Initialize global authentication handler
-initializeGlobalAuthHandler();
+import('./utils/globalAuthHandler').then(({ initializeGlobalAuthHandler }) => {
+  initializeGlobalAuthHandler();
+});
+
+// Initialize performance optimizer and image optimizer
+Promise.all([
+  import('./utils/performanceOptimizer.js'),
+  import('./utils/imageOptimizer')
+]).then(([{ performanceOptimizer }, { imageOptimizer }]) => {
+  performanceOptimizer.init();
+  
+  // Preload critical images
+  imageOptimizer.preloadCriticalImages([
+    '/icon-192.png',
+    '/icon-512.png',
+    '/insight-bg.png'
+  ]);
+});
 
 // Initialize performance metrics tracking
 console.log('SoulScroll performance tracking initialized');
+
+// Enhanced Performance Observer for production monitoring
+if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
+  requestIdleCallback(() => {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        list.getEntries().forEach(entry => {
+          if (entry.entryType === 'largest-contentful-paint') {
+            console.log('LCP:', entry.startTime + 'ms');
+          }
+          if (entry.entryType === 'first-input') {
+            console.log('FID:', entry.processingStart - entry.startTime + 'ms');
+          }
+          if (entry.entryType === 'layout-shift') {
+            console.log('CLS:', entry.value);
+          }
+        });
+      });
+      
+      // Observe Web Vitals
+      observer.observe({ type: 'largest-contentful-paint', buffered: true });
+      observer.observe({ type: 'first-input', buffered: true });
+      observer.observe({ type: 'layout-shift', buffered: true });
+    } catch (error) {
+      console.log('Performance Observer not supported:', error);
+    }
+  });
+}
 
 // Make deployment validator available globally for debugging
 window.validateDeployment = () => deploymentValidator.runAllChecks();
