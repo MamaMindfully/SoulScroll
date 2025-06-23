@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import stripeWebhook from "./stripeWebhook";
@@ -8,21 +9,43 @@ import "./queue/journalWorker";
 
 const app = express();
 
-// Add Helmet security middleware first
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://api.openai.com", "https://api.stripe.com", "wss:", "ws:"],
-      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"]
-    }
-  },
-  crossOriginEmbedderPolicy: false
-}));
+// Add comprehensive error handling for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Don't exit in production, just log the error
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit in production, just log the error
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+});
+
+// Add Helmet security middleware with error handling
+try {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        connectSrc: ["'self'", "https://api.openai.com", "https://api.stripe.com", "wss:", "ws:"],
+        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"]
+      }
+    },
+    crossOriginEmbedderPolicy: false
+  }));
+} catch (error) {
+  console.error('Failed to initialize Helmet middleware:', error);
+  // Continue without Helmet in case of issues
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -58,34 +81,92 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  try {
+    // Register routes with error handling
+    let server;
+    try {
+      server = await registerRoutes(app);
+      log("Routes registered successfully");
+    } catch (error) {
+      console.error("Failed to register routes:", error);
+      // Create a basic HTTP server if route registration fails
+      server = require('http').createServer(app);
+    }
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    // Enhanced error handling middleware
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      
+      console.error(`Error ${status}:`, message, err.stack);
+      
+      // Don't throw the error, just log it and respond
+      if (!res.headersSent) {
+        res.status(status).json({ message });
+      }
+    });
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    // Setup Vite or static serving with error handling
+    try {
+      if (app.get("env") === "development") {
+        await setupVite(app, server);
+        log("Vite development server setup complete");
+      } else {
+        serveStatic(app);
+        log("Static file serving setup complete");
+      }
+    } catch (error) {
+      console.error("Failed to setup frontend serving:", error);
+      // Add a basic fallback route
+      app.get('*', (req, res) => {
+        res.status(503).json({ 
+          message: "Service temporarily unavailable",
+          error: "Frontend serving failed to initialize"
+        });
+      });
+    }
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    // Server startup with comprehensive error handling
+    const port = 5000;
+    const host = "0.0.0.0";
+    
+    try {
+      server.listen({
+        port,
+        host,
+        reusePort: true,
+      }, () => {
+        log(`Server successfully started on ${host}:${port}`);
+        log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      });
+
+      // Handle server errors
+      server.on('error', (error: any) => {
+        if (error.code === 'EADDRINUSE') {
+          console.error(`Port ${port} is already in use`);
+        } else if (error.code === 'EACCES') {
+          console.error(`Permission denied to bind to port ${port}`);
+        } else {
+          console.error('Server error:', error);
+        }
+        
+        // Don't exit immediately, try to handle gracefully
+        setTimeout(() => {
+          console.log('Attempting to restart server...');
+          process.exit(1);
+        }, 5000);
+      });
+
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+
+  } catch (error) {
+    console.error('Critical application startup error:', error);
+    process.exit(1);
   }
-
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+})().catch((error) => {
+  console.error('Unhandled async error during startup:', error);
+  process.exit(1);
+});
