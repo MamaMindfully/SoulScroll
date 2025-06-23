@@ -28,6 +28,7 @@ interface JournalEntryData {
 }
 
 export default function JournalEditor() {
+  // Add test IDs for E2E testing
   const [content, setContent] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "pending">("saved");
