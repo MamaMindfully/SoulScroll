@@ -1,4 +1,4 @@
-const CACHE_NAME = 'soulscroll-cache-v1';
+const CACHE_NAME = 'soulscroll-cache-v' + new Date().getTime();
 const urlsToCache = ['/', '/index.html'];
 
 // Install event
@@ -27,12 +27,29 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch event
+// Fetch event with better error handling
 self.addEventListener('fetch', event => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request);
+      })
+      .catch(error => {
+        console.log('Fetch failed; returning offline page instead.', error);
+        // Return a basic offline response for navigation requests
+        if (event.request.mode === 'navigate') {
+          return caches.match('/');
+        }
+        throw error;
+      })
   );
 });
 

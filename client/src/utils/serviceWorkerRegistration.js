@@ -55,9 +55,10 @@ function registerValidSW(swUrl, config) {
 function checkValidServiceWorker(swUrl, config) {
   fetch(swUrl, { headers: { 'Service-Worker': 'script' } })
     .then(response => {
+      const contentType = response.headers.get('content-type');
       if (
         response.status === 404 ||
-        response.headers.get('content-type').indexOf('javascript') === -1
+        (contentType != null && contentType.indexOf('javascript') === -1)
       ) {
         navigator.serviceWorker.ready.then(registration => {
           registration.unregister().then(() => {

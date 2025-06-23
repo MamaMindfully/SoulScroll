@@ -49,6 +49,7 @@ import { queueService } from "./services/queueService";
 import { tokenMonitor } from "./services/tokenMonitor";
 import { errorHandler, captureError } from "./utils/errorHandler";
 import path from 'path';
+import fs from 'fs';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -57,18 +58,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/service-worker.js', (req, res) => {
     try {
       const serviceWorkerPath = path.resolve(__dirname, '../service-worker.js');
-      res.setHeader('Content-Type', 'application/javascript');
+      
+      // Check if file exists
+      if (!fs.existsSync(serviceWorkerPath)) {
+        console.error('Service worker file not found:', serviceWorkerPath);
+        return res.status(404).send('Service worker not found');
+      }
+      
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
       res.setHeader('Service-Worker-Allowed', '/');
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       res.sendFile(serviceWorkerPath, (err) => {
         if (err) {
           console.error('Service worker file error:', err);
-          res.status(404).send('Service worker not found');
+          if (!res.headersSent) {
+            res.status(404).send('Service worker not found');
+          }
         }
       });
     } catch (error) {
       console.error('Service worker route error:', error);
-      res.status(500).send('Service worker error');
+      if (!res.headersSent) {
+        res.status(500).send('Service worker error');
+      }
     }
   });
   // Auth middleware

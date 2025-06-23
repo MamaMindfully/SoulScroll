@@ -55,14 +55,21 @@ if (typeof window !== 'undefined') {
     register({
       onUpdate: registration => {
         if (registration && registration.waiting) {
+          console.log('New service worker version available, activating...');
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
+      },
+      onSuccess: registration => {
+        console.log('Service worker registered successfully');
       }
     });
+  }).catch(error => {
+    console.error('Service worker registration failed:', error);
   });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('Service worker controller changed, reloading page...');
       window.location.reload();
     });
   }
