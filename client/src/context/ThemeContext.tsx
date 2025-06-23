@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useHasMounted } from '@/utils/useHasMounted';
+import { // useHasMounted removed } from '@/utils/// useHasMounted removed';
 
 type ThemeType = 'calm' | 'galaxy' | 'forest' | 'sunset' | 'ocean';
 
@@ -52,7 +52,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   const [theme, setTheme] = useState<ThemeType>('calm');
   
   useEffect(() => {

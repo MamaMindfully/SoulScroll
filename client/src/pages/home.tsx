@@ -23,10 +23,10 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { useHasMounted } from "@/utils/useHasMounted";
+import { // useHasMounted removed } from "@/utils/// useHasMounted removed";
 
 export default function Home() {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
@@ -71,7 +71,7 @@ export default function Home() {
 
   // Auto-launch ritual flows during appropriate hours with user preferences
   useEffect(() => {
-    if (isAuthenticated && !isLoading && hasMounted) {
+    if (isAuthenticated && !isLoading) {
       const now = new Date();
       const hour = now.getHours();
       const today = new Date().toDateString();

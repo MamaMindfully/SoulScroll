@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { useHasMounted } from './useHasMounted';
+import { // useHasMounted removed } from './// useHasMounted removed';
 
 // Performance optimization hooks
 export const useDelayedEffect = (callback: () => void, delay: number = 2000) => {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   
   useEffect(() => {
     if (!hasMounted) return;
@@ -20,7 +20,7 @@ export const useIntersectionObserver = (
   callback: (entries: IntersectionObserverEntry[]) => void,
   options?: IntersectionObserverInit
 ) => {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   
   useEffect(() => {
     if (!hasMounted || typeof IntersectionObserver === 'undefined') return;

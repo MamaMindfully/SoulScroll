@@ -1,10 +1,10 @@
 import * as React from "react"
-import { useHasMounted } from "@/utils/useHasMounted"
+import { // useHasMounted removed } from "@/utils/// useHasMounted removed"
 
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
-  const hasMounted = useHasMounted()
+  const hasMounted = // useHasMounted removed()
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
 
   React.useEffect(() => {

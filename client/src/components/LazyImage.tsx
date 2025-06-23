@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useHasMounted } from '@/utils/useHasMounted';
+import { // useHasMounted removed } from '@/utils/// useHasMounted removed';
 
 interface LazyImageProps {
   src: string;
@@ -22,7 +22,7 @@ export default function LazyImage({
   loading = 'lazy',
   priority = false
 }: LazyImageProps) {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState('');
 

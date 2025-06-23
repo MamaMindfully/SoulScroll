@@ -34,7 +34,7 @@ import OnboardingIntro from "@/components/OnboardingIntro";
 import OnboardingModal from "@/components/OnboardingModal";
 import FeedbackButton from "@/components/FeedbackButton";
 import { restoreSession } from "@/utils/restoreSession";
-import { useHasMounted } from "@/utils/useHasMounted";
+// Removed // useHasMounted removed import - using local state instead
 import { useDelayedEffect, optimizeImageLoading, optimizeMemoryUsage, optimizeBundleLoading } from "@/utils/performanceOptimizer";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Community from "@/pages/community";
@@ -122,13 +122,14 @@ function AppRoutes() {
 }
 
 function App() {
-  const hasMounted = useHasMounted();
+  const [mounted, setMounted] = useState(false);
   
   // Initialize user status synchronization
   useUserStatusSync();
   
   // Set up global error handlers and performance optimizations
   useEffect(() => {
+    setMounted(true);
     setupGlobalErrorHandlers();
   }, []);
 
@@ -143,14 +144,14 @@ function App() {
   
   // Handle localStorage access after hydration
   useEffect(() => {
-    if (hasMounted) {
+    if (mounted) {
       const hasSeenIntro = localStorage.getItem('soul-scroll-intro-seen');
       setShowIntro(!hasSeenIntro);
     }
-  }, [hasMounted]);
+  }, [mounted]);
 
   // Prevent hydration mismatch
-  if (!hasMounted) return null;
+  if (!mounted) return null;
 
   const handleContinue = () => {
     localStorage.setItem('soul-scroll-intro-seen', 'true');

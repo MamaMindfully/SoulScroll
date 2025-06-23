@@ -3,14 +3,14 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wifi, WifiOff, Shield, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useHasMounted } from "@/utils/useHasMounted";
+import { // useHasMounted removed } from "@/utils/// useHasMounted removed";
 
 interface LocalModeToggleProps {
   onModeChange?: (isLocal: boolean) => void;
 }
 
 export default function LocalModeToggle({ onModeChange }: LocalModeToggleProps) {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   const [isLocalMode, setIsLocalMode] = useState(false);
   const { toast } = useToast();
 

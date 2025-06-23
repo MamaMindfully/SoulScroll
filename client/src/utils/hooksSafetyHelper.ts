@@ -1,11 +1,11 @@
 // Utility to help prevent React hooks ordering violations
 
-import { useHasMounted } from './useHasMounted';
+import { // useHasMounted removed } from './// useHasMounted removed';
 
 // Higher-order component to ensure hooks safety
 export function withHooksSafety<T extends {}>(Component: React.ComponentType<T>) {
   return function SafeComponent(props: T) {
-    const hasMounted = useHasMounted();
+    const hasMounted = // useHasMounted removed();
     
     if (!hasMounted) {
       return null;
@@ -20,7 +20,7 @@ export function useSafeBrowserAPI<T>(
   browserAPIFn: () => T,
   fallback: T
 ): T {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   
   if (!hasMounted) {
     return fallback;

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Smartphone, Battery, Wifi, Download, Share2, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useHasMounted } from "@/utils/useHasMounted";
+import { // useHasMounted removed } from "@/utils/// useHasMounted removed";
 
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -11,7 +11,7 @@ interface InstallPromptEvent extends Event {
 }
 
 export default function MobileOptimizations() {
-  const hasMounted = useHasMounted();
+  const hasMounted = // useHasMounted removed();
   const [deferredPrompt, setDeferredPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
