@@ -12,7 +12,7 @@ export function register(config) {
     if (publicUrl.origin !== window.location.origin) return;
 
     window.addEventListener('load', () => {
-      const swUrl = `/service-worker.js`;
+      const swUrl = `./service-worker.js`;
 
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
