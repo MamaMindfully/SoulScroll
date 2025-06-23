@@ -13,7 +13,7 @@ import { User, Crown, Sparkles } from "lucide-react";
 import { mentorPersonas, getPersonaByKey } from '@/constants/mentorPersonas';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useUserProfile } from '@/hooks/useUserProfile';
+// Remove useUserProfile import to prevent hook violations
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function MentorPersonaSelector() {

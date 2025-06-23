@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import { TrendingUp, Clock, Heart, MessageSquare, BarChart3 } from 'lucide-react';
 
 export default function BehaviorInsights() {

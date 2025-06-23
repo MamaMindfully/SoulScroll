@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 
 export default function JournalAwakening({ onAwaken }) {
   const { trackBehavior } = useUser();

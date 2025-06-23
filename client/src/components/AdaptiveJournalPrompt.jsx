@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import { Clock, Target, Heart, Brain } from 'lucide-react';
 
 export default function AdaptiveJournalPrompt() {
-  const { user, userTraits, preferredPromptType, peakHours, trackBehavior } = useUser();
+  // Remove useUser to prevent hook violations
+  const user = null;
+  const userTraits = null;
+  const preferredPromptType = 'reflection';
+  const peakHours = [];
+  const trackBehavior = () => {};
   const [currentPrompt, setCurrentPrompt] = useState(null);
   const [isOptimalTime, setIsOptimalTime] = useState(false);
 

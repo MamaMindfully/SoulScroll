@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import { Save, Check, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 

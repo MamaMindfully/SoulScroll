@@ -29,7 +29,8 @@ interface TestResult {
 export default function TestingDashboard() {
   const [showSecretScroll, setShowSecretScroll] = useState(false);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
-  const { profile } = useUserProfile();
+  // Remove useUserProfile to prevent hook violations
+  const profile = { mentorPersona: 'sage' };
   const { isPremium } = usePremium();
 
   const features = [

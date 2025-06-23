@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import { ThumbsUp, ThumbsDown, Check } from 'lucide-react';
 
 export default function InsightFeedback({ insightId, insightType = 'general' }) {

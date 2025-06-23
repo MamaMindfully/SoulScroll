@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import { Flame, Calendar, Trophy, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 

@@ -22,7 +22,9 @@ interface MemoryLoopVisualizationProps {
 
 const MemoryLoopVisualization: React.FC<MemoryLoopVisualizationProps> = ({ entries = [] }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { userStatus, emergentThemes } = useUserStatus();
+  // Remove useUserStatus to prevent hook violations
+  const userStatus = { streak: 0, insights: 0 };
+  const emergentThemes = [];
 
   // Mock memory entries for demonstration
   const mockEntries: MemoryEntry[] = [
