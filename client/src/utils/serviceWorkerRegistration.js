@@ -141,22 +141,31 @@ export function addToHomeScreen() {
   });
 }
 
-// Initialize service worker with offline detection
+// Initialize service worker with auto-reload functionality
 export function initializeServiceWorker() {
   // Only initialize in browser environment
   if (typeof window === 'undefined') return;
   
   register({
-    onUpdate: (registration) => {
-      // Show update available notification
-      if (confirm('A new version of SoulScroll is available. Update now?')) {
-        window.location.reload();
+    onUpdate: registration => {
+      if (registration && registration.waiting) {
+        // Skip waiting and activate new service worker immediately
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        console.log('New version detected, activating update...');
       }
     },
     onSuccess: (registration) => {
       console.log('SoulScroll is ready for offline use');
     }
   });
+  
+  // Auto-reload when the new service worker takes control
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('Service worker updated, reloading page...');
+      window.location.reload();
+    });
+  }
   
   // Initialize PWA features
   addToHomeScreen();

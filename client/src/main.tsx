@@ -49,9 +49,19 @@ import { initializePerformanceOptimizations } from "./utils/finalOptimizations";
 initSentry();
 performanceMonitor.startMark('app-initialization');
 
-// Initialize service worker for PWA functionality (browser only)
+// Initialize service worker for PWA functionality with auto-reload (browser only)
 if (typeof window !== 'undefined') {
   initializeServiceWorker();
+  
+  // Listen for service worker updates and show notification
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'SW_UPDATE_AVAILABLE') {
+        console.log('Service worker update available');
+        // Optionally show user notification about update
+      }
+    });
+  }
 }
 
 // Initialize global authentication handler
