@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { isAuthenticated } from "../replitAuth";
 import { logger } from "../utils/logger";
+import { storage } from "../storage";
 import { runMemoryLoop } from "../utils/memoryLoopWorker";
 
 const router = Router();

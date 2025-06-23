@@ -19,10 +19,8 @@ export const useIntersectionObserver = (
   callback: (entries: IntersectionObserverEntry[]) => void,
   options?: IntersectionObserverInit
 ) => {
-  
-  
   useEffect(() => {
-    if (!hasMounted || typeof IntersectionObserver === 'undefined') return;
+    if (typeof IntersectionObserver === 'undefined') return;
     
     const observer = new IntersectionObserver(callback, options);
     return () => observer.disconnect();

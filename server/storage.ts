@@ -25,6 +25,8 @@ import {
   secretScrolls,
   savedReflections,
   rituals,
+  memoryLoops,
+  innerCompassPrompts,
   type User,
   type UpsertUser,
   type JournalEntry,
@@ -71,6 +73,10 @@ import {
   type InsertUserAchievement,
   type UserChallenge,
   type InsertUserChallenge,
+  type MemoryLoop,
+  type InsertMemoryLoop,
+  type InnerCompassPrompt,
+  type InsertInnerCompassPrompt,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
@@ -203,6 +209,14 @@ export interface IStorage {
   createMonthlyConstellation(userId: string, constellation: InsertMonthlyConstellation): Promise<MonthlyConstellation>;
   getMonthlyConstellations(userId: string, limit?: number): Promise<MonthlyConstellation[]>;
   getLatestConstellation(userId: string): Promise<MonthlyConstellation | undefined>;
+
+  // Memory loop operations
+  createMemoryLoop(userId: string, memoryLoopData: InsertMemoryLoop): Promise<MemoryLoop>;
+  getMemoryLoops(userId: string, limit?: number): Promise<MemoryLoop[]>;
+
+  // Inner compass operations
+  createInnerCompassPrompt(userId: string, promptData: InsertInnerCompassPrompt): Promise<InnerCompassPrompt>;
+  getTodaysPrompt(userId: string): Promise<InnerCompassPrompt | undefined>;
 
   // Memory loop operations
   createMemoryLoop(userId: string, memoryLoop: InsertMemoryLoop): Promise<MemoryLoop>;
