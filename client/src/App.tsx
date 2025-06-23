@@ -36,6 +36,7 @@ import FeedbackButton from "@/components/FeedbackButton";
 import { restoreSession } from "@/utils/restoreSession";
 import { useHasMounted } from "@/utils/useHasMounted";
 import { useDelayedEffect, optimizeImageLoading, optimizeMemoryUsage, optimizeBundleLoading } from "@/utils/performanceOptimizer";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
