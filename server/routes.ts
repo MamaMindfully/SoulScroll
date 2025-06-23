@@ -48,14 +48,15 @@ import { cacheService } from "./services/cacheService";
 import { queueService } from "./services/queueService";
 import { tokenMonitor } from "./services/tokenMonitor";
 import { errorHandler, captureError } from "./utils/errorHandler";
+import { redisService } from "./services/redisService";
 import path from 'path';
 import fs from 'fs';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve service worker from project root with proper headers
-  app.get('/service-worker.js', (req, res) => {
+  // Serve service worker from project root with proper headers and Redis caching
+  app.get('/service-worker.js', async (req, res) => {
     try {
       const serviceWorkerPath = path.resolve(__dirname, '../service-worker.js');
       
@@ -64,12 +65,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Service worker file not found:', serviceWorkerPath);
         return res.status(404).send('Service worker not found');
       }
+
+      // Update deployment timestamp in Redis for version tracking
+      const currentTimestamp = Date.now().toString();
+      await redisService.setDeploymentTimestamp();
+      await redisService.setServiceWorkerVersion(currentTimestamp);
       
+      // Set response headers for service worker
       res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
       res.setHeader('Service-Worker-Allowed', '/');
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
+      res.setHeader('X-SW-Version', currentTimestamp);
       
       res.sendFile(serviceWorkerPath, (err) => {
         if (err) {
@@ -84,6 +92,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!res.headersSent) {
         res.status(500).send('Service worker error');
       }
+    }
+  });
+
+  // Service worker version check endpoint
+  app.get('/api/sw-version', async (req, res) => {
+    try {
+      const currentVersion = await redisService.getServiceWorkerVersion();
+      const lastDeployment = await redisService.getLastDeploymentTimestamp();
+      
+      res.json({
+        version: currentVersion || Date.now().toString(),
+        lastDeployment: lastDeployment || Date.now().toString(),
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('SW version check error:', error);
+      res.status(500).json({ error: 'Version check failed' });
     }
   });
   // Auth middleware

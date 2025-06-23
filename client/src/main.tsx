@@ -51,7 +51,11 @@ performanceMonitor.startMark('app-initialization');
 
 // Initialize service worker for PWA functionality with auto-reload (browser only)
 if (typeof window !== 'undefined') {
-  import('./utils/serviceWorkerRegistration').then(({ register }) => {
+  Promise.all([
+    import('./utils/serviceWorkerRegistration'),
+    import('./utils/versionChecker')
+  ]).then(([{ register }, { versionChecker }]) => {
+    // Register service worker
     register({
       onUpdate: registration => {
         if (registration && registration.waiting) {
@@ -61,16 +65,34 @@ if (typeof window !== 'undefined') {
       },
       onSuccess: registration => {
         console.log('Service worker registered successfully');
+        // Start version checking after successful registration
+        versionChecker.startChecking();
+      }
+    });
+
+    // Listen for version updates
+    versionChecker.onUpdate((type, data) => {
+      if (type === 'update-available') {
+        console.log('Auto-update triggered:', data);
+        versionChecker.forceUpdate();
       }
     });
   }).catch(error => {
-    console.error('Service worker registration failed:', error);
+    console.error('Service worker initialization failed:', error);
   });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('Service worker controller changed, reloading page...');
       window.location.reload();
+    });
+
+    // Listen for service worker messages
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data && event.data.type === 'SW_UPDATED') {
+        console.log('Service worker updated notification received:', event.data);
+        // Page will reload via controllerchange event
+      }
     });
   }
 }

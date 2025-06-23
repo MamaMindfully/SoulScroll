@@ -1,4 +1,5 @@
-const CACHE_NAME = 'soulscroll-cache-v' + new Date().getTime();
+const CACHE_VERSION = new Date().getTime();
+const CACHE_NAME = 'soulscroll-cache-v' + CACHE_VERSION;
 const urlsToCache = ['/', '/index.html'];
 
 // Install event
@@ -11,20 +12,37 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activate event
+// Activate event - unified handler
 self.addEventListener('activate', event => {
+  console.log('Service worker activating with version:', CACHE_VERSION);
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Clear old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Claim all clients immediately
+      self.clients.claim(),
+      // Notify all clients of the update
+      self.clients.matchAll().then(clients => {
+        console.log('Notifying', clients.length, 'clients of service worker update');
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            version: CACHE_VERSION,
+            timestamp: Date.now()
+          });
+        });
+      })
+    ])
   );
-  self.clients.claim();
 });
 
 // Fetch event with better error handling
@@ -53,9 +71,18 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Listen for skipWaiting message
+// Listen for skipWaiting message and cache management
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service worker received SKIP_WAITING message');
     self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({
+      type: 'VERSION_RESPONSE',
+      version: CACHE_VERSION,
+      timestamp: Date.now()
+    });
   }
 });
