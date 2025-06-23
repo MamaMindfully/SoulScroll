@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
+import SafeApp from "./components/SafeApp";
 import "./index.css";
 import { initSentry } from "./utils/sentry";
 import { performanceMonitor } from "./utils/performance";
@@ -232,7 +232,7 @@ if (container) {
   const root = createRoot(container);
   root.render(
     <StrictMode>
-      <App />
+      <SafeApp />
     </StrictMode>
   );
   

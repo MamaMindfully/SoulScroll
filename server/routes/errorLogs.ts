@@ -29,12 +29,13 @@ router.post('/api/error-logs', async (req: Request, res: Response) => {
           message: errorData.message || 'Unknown error',
           stack: errorData.stack || '',
           userId: errorData.userId || null,
-          path: errorData.path || null
+          path: errorData.path || null,
+          userAgent: errorData.userAgent
         });
       }
     } catch (storageError) {
       // If database fails, still log to console
-      logger.error('Storage error logging failed', { storageError: storageError.message });
+      logger.error('Storage error logging failed', { storageError: storageError?.message || 'Unknown storage error' });
     }
 
     // Also log to backend logger for immediate visibility

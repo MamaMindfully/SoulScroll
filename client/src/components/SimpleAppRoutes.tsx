@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch, Route } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import Landing from "@/pages/landing";
+import SimpleLanding from "@/pages/SimpleLanding";
 import SimpleHome from "@/pages/SimpleHome";
 import NotFound from "@/pages/NotFound";
 
@@ -19,7 +19,7 @@ export default function SimpleAppRoutes() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <Route path="/" component={SimpleLanding} />
       ) : (
         <>
           <Route path="/" component={SimpleHome} />
