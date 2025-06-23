@@ -56,6 +56,18 @@ function Router() {
 
   useEffect(() => {
     setHasMounted(true);
+    
+    // Listen for global auth expiration events
+    const handleAuthExpired = () => {
+      console.warn('Authentication expired globally');
+      // Handle auth expiration in app context if needed
+    };
+    
+    window.addEventListener('authExpired', handleAuthExpired);
+    
+    return () => {
+      window.removeEventListener('authExpired', handleAuthExpired);
+    };
   }, []);
 
   // Check if user has completed onboarding

@@ -4,6 +4,32 @@ import App from "./App";
 import "./index.css";
 import { initSentry } from "./utils/sentry";
 import { performanceMonitor } from "./utils/performance";
+import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
+
+// Global fetch wrapper to handle 401 errors
+window.fetch = (originalFetch => {
+  return (...args) => {
+    return originalFetch(...args).then(response => {
+      if (response.status === 401) {
+        console.warn('Global 401 detected. Session expired.');
+        
+        // Clear auth state
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('isAuthenticated');
+        
+        // Emit auth expired event
+        window.dispatchEvent(new CustomEvent('authExpired', {
+          detail: { reason: 'Session expired' }
+        }));
+        
+        // Optional: Redirect to login (uncomment if needed)
+        // window.location.href = '/login';
+      }
+      return response;
+    });
+  };
+})(window.fetch);
 import { setupCleanupHandlers, monitorMemory } from "./utils/memoryManagement";
 import { 
   preloadCriticalRoutes, 
@@ -17,6 +43,9 @@ import { initializePerformanceOptimizations } from "./utils/finalOptimizations";
 // Initialize Sentry and performance monitoring
 initSentry();
 performanceMonitor.startMark('app-initialization');
+
+// Initialize global authentication handler
+initializeGlobalAuthHandler();
 
 // Initialize comprehensive performance optimizations
 initializePerformanceOptimizations();
