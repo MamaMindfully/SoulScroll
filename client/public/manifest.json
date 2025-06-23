@@ -1,11 +1,11 @@
 {
-  "name": "SoulScroll - AI Emotional Journaling",
+  "name": "SoulScroll",
   "short_name": "SoulScroll",
   "description": "AI-powered emotional journaling app for self-discovery and mental wellness",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#7c3aed",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
@@ -14,14 +14,7 @@
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png", 
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ],
   "shortcuts": [
