@@ -35,7 +35,21 @@
   </head>
   <body class="bg-calm">
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" defer></script>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/icon-192.png" as="image" type="image/png" />
+    <link rel="preload" href="/src/index.css" as="style" />
+    
+    <!-- Service worker registration -->
+    <script defer>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .catch(err => console.log('SW registration failed'));
+        });
+      }
+    </script>
     
     <!-- Service Worker Registration -->
     <script>
