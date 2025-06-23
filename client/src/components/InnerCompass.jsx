@@ -7,18 +7,23 @@ export default function InnerCompass() {
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/inner-compass')
-      .then(res => res.json())
-      .then(data => setPrompt(data.prompt))
-      .catch(err => {
-        console.error('Error fetching inner compass:', err)
+    const fetchCompass = async () => {
+      try {
+        const response = await fetch('/api/inner-compass');
+        const data = await response.json(); // Call this ONLY once
+        setPrompt(data.prompt);
+      } catch (error) {
+        console.error('Error fetching inner compass:', error);
         // Fallback prompt for development
         setPrompt({
           base: "What is your heart telling you right now that your mind might be overlooking?",
           deeper: "Sometimes our deepest wisdom comes not from thinking, but from feeling. What emotion is asking for your attention today?"
-        })
-      })
-  })
+        });
+      }
+    };
+    
+    fetchCompass();
+  }, [])
 
   if (!prompt) return null
 

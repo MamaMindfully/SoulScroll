@@ -21,14 +21,16 @@ router.post('/api/error-logs', async (req: Request, res: Response) => {
 
     const errorData = errorSchema.parse(req.body);
 
-    // Log to backend storage
-    await storage.createErrorLog({
-      type: errorData.type,
-      message: errorData.message || 'Unknown error',
-      stack: errorData.stack || '',
-      userId: errorData.userId || null,
-      path: errorData.path || null
-    });
+    // Log to backend storage with proper error handling
+    if (storage.createErrorLog) {
+      await storage.createErrorLog({
+        type: errorData.type,
+        message: errorData.message || 'Unknown error',
+        stack: errorData.stack || '',
+        userId: errorData.userId || null,
+        path: errorData.path || null
+      });
+    }
 
     // Also log to backend logger for immediate visibility
     logger.error('Client error logged', {
