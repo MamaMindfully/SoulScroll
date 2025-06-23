@@ -6,6 +6,8 @@ import stripeWebhook from "./stripeWebhook";
 import stripeRoutes from "./routes/stripeRoutes";
 import path from "path";
 import fs from "fs";
+import { gracefulDegradation, serviceFailureHandler, detectServiceAvailability } from "./middleware/gracefulDegradation";
+import { performStartupChecks } from "./utils/deploymentReadiness";
 // Initialize queue workers (will gracefully fallback if Redis unavailable)
 import "./queue/journalWorker";
 
