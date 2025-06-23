@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useUser } from '@/hooks/useUser'
-
+// Remove useUser import to prevent React hook violations
 export default function InnerCompass() {
-  const { trackBehavior } = useUser()
+  // Remove trackBehavior to prevent hook violations
+  const trackBehavior = () => {};
   const [prompt, setPrompt] = useState(null)
   const [expanded, setExpanded] = useState(false)
 

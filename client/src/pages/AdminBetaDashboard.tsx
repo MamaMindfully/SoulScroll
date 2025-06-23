@@ -66,11 +66,10 @@ export default function AdminBetaDashboard() {
         throw new Error('Failed to fetch dashboard data');
       }
 
-      const [usageData, emotionAnalytics, activityData] = await Promise.all([
-        usageResponse.json(),
-        emotionResponse.json(),
-        activityResponse.json()
-      ]);
+      // Store responses in variables first, then call json() ONCE
+      const usageData = await usageResponse.json();
+      const emotionAnalytics = await emotionResponse.json();
+      const activityData = await activityResponse.json();
 
       setUsage(usageData);
       setEmotionData(emotionAnalytics);

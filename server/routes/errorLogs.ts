@@ -22,14 +22,19 @@ router.post('/api/error-logs', async (req: Request, res: Response) => {
     const errorData = errorSchema.parse(req.body);
 
     // Log to backend storage with proper error handling
-    if (storage.createErrorLog) {
-      await storage.createErrorLog({
-        type: errorData.type,
-        message: errorData.message || 'Unknown error',
-        stack: errorData.stack || '',
-        userId: errorData.userId || null,
-        path: errorData.path || null
-      });
+    try {
+      if (storage.createErrorLog) {
+        await storage.createErrorLog({
+          type: errorData.type,
+          message: errorData.message || 'Unknown error',
+          stack: errorData.stack || '',
+          userId: errorData.userId || null,
+          path: errorData.path || null
+        });
+      }
+    } catch (storageError) {
+      // If database fails, still log to console
+      logger.error('Storage error logging failed', { storageError: storageError.message });
     }
 
     // Also log to backend logger for immediate visibility

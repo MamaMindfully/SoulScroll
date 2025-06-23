@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { logReactError } from '@/utils/errorLogger';
-import { useUser } from '@/hooks/useUser';
+// Removed useUser import to prevent React hook violations
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -39,7 +39,8 @@ class ErrorBoundary extends React.Component {
 }
 
 function ErrorFallback({ error, resetError, fallbackComponent }) {
-  const { user } = useUser();
+  // Remove useUser hook to prevent React violations
+  const user = null;
 
   if (fallbackComponent) {
     return fallbackComponent;
@@ -91,12 +92,11 @@ function ErrorFallback({ error, resetError, fallbackComponent }) {
   );
 }
 
-// Wrapper component with user context
+// Wrapper component without user context to prevent hook violations
 export default function ErrorBoundaryWrapper({ children, fallbackComponent }) {
-  const { user } = useUser();
-  
+  // Remove useUser hook call to prevent React violations
   return (
-    <ErrorBoundary userId={user?.id} fallbackComponent={fallbackComponent}>
+    <ErrorBoundary userId={null} fallbackComponent={fallbackComponent}>
       {children}
     </ErrorBoundary>
   );

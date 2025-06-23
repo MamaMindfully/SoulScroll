@@ -27,6 +27,15 @@ import {
   rituals,
   memoryLoops,
   innerCompassPrompts,
+  errorLogs,
+  userTraits,
+  journalEmbeddings,
+  insightFeedback,
+  ritualStreaks,
+  lifeArcTags,
+  emotionTrends,
+  toneVectors,
+  insightLogs,
   type User,
   type UpsertUser,
   type JournalEntry,
@@ -77,6 +86,24 @@ import {
   type InsertMemoryLoop,
   type InnerCompassPrompt,
   type InsertInnerCompassPrompt,
+  type ErrorLog,
+  type InsertErrorLog,
+  type UserTraits,
+  type InsertUserTraits,
+  type JournalEmbedding,
+  type InsertJournalEmbedding,
+  type InsightFeedback,
+  type InsertInsightFeedback,
+  type RitualStreak,
+  type InsertRitualStreak,
+  type LifeArcTag,
+  type InsertLifeArcTag,
+  type EmotionTrend,
+  type InsertEmotionTrend,
+  type ToneVector,
+  type InsertToneVector,
+  type InsightLog,
+  type InsertInsightLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
@@ -1551,6 +1578,29 @@ export class DatabaseStorage implements IStorage {
     }
 
     return activity.reverse(); // Most recent first
+  }
+
+  // Error logging operations
+  async createErrorLog(errorData: InsertErrorLog): Promise<ErrorLog> {
+    const [errorLog] = await this.db
+      .insert(errorLogs)
+      .values(errorData)
+      .returning();
+    return errorLog;
+  }
+
+  async getErrorLogs(limit: number = 50, type?: string): Promise<ErrorLog[]> {
+    let query = this.db
+      .select()
+      .from(errorLogs)
+      .orderBy(desc(errorLogs.createdAt))
+      .limit(limit);
+
+    if (type) {
+      query = query.where(eq(errorLogs.type, type));
+    }
+
+    return await query;
   }
 }
 
