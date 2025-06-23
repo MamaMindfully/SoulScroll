@@ -48,10 +48,29 @@ import { cacheService } from "./services/cacheService";
 import { queueService } from "./services/queueService";
 import { tokenMonitor } from "./services/tokenMonitor";
 import { errorHandler, captureError } from "./utils/errorHandler";
+import path from 'path';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve service worker from project root with proper headers
+  app.get('/service-worker.js', (req, res) => {
+    try {
+      const serviceWorkerPath = path.resolve(__dirname, '../service-worker.js');
+      res.setHeader('Content-Type', 'application/javascript');
+      res.setHeader('Service-Worker-Allowed', '/');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.sendFile(serviceWorkerPath, (err) => {
+        if (err) {
+          console.error('Service worker file error:', err);
+          res.status(404).send('Service worker not found');
+        }
+      });
+    } catch (error) {
+      console.error('Service worker route error:', error);
+      res.status(500).send('Service worker error');
+    }
+  });
   // Auth middleware
   await setupAuth(app);
 
