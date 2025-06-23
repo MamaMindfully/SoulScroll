@@ -60,9 +60,18 @@ import {
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const { profile, savePreferences } = useUserProfile();
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Check if user has completed onboarding
   const hasCompletedOnboarding = profile.intent && profile.ritualTime;
+
+  if (!hasMounted) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Switch>

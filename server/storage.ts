@@ -1081,54 +1081,74 @@ export class DatabaseStorage implements IStorage {
 
   // Memory loop operations
   async createMemoryLoop(userId: string, memoryLoopData: InsertMemoryLoop): Promise<MemoryLoop> {
-    const [memoryLoop] = await db
-      .insert(memoryLoops)
-      .values({
-        userId,
-        ...memoryLoopData,
-      })
-      .returning();
-    return memoryLoop;
+    try {
+      const [memoryLoop] = await db
+        .insert(memoryLoops)
+        .values({
+          userId,
+          ...memoryLoopData,
+        })
+        .returning();
+      return memoryLoop;
+    } catch (error) {
+      console.error('Error creating memory loop:', error);
+      throw error;
+    }
   }
 
   async getMemoryLoops(userId: string, limit: number = 10): Promise<MemoryLoop[]> {
-    return await db
-      .select()
-      .from(memoryLoops)
-      .where(eq(memoryLoops.userId, userId))
-      .orderBy(desc(memoryLoops.createdAt))
-      .limit(limit);
+    try {
+      return await db
+        .select()
+        .from(memoryLoops)
+        .where(eq(memoryLoops.userId, userId))
+        .orderBy(desc(memoryLoops.createdAt))
+        .limit(limit);
+    } catch (error) {
+      console.error('Error getting memory loops:', error);
+      return [];
+    }
   }
 
   // Inner compass operations
   async createInnerCompassPrompt(userId: string, promptData: InsertInnerCompassPrompt): Promise<InnerCompassPrompt> {
-    const [prompt] = await db
-      .insert(innerCompassPrompts)
-      .values({
-        userId,
-        ...promptData,
-      })
-      .returning();
-    return prompt;
+    try {
+      const [prompt] = await db
+        .insert(innerCompassPrompts)
+        .values({
+          userId,
+          ...promptData,
+        })
+        .returning();
+      return prompt;
+    } catch (error) {
+      console.error('Error creating inner compass prompt:', error);
+      throw error;
+    }
   }
 
   async getTodaysPrompt(userId: string): Promise<InnerCompassPrompt | undefined> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const [prompt] = await db
-      .select()
-      .from(innerCompassPrompts)
-      .where(
-        and(
-          eq(innerCompassPrompts.userId, userId),
-          gte(innerCompassPrompts.createdAt, today)
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const [prompt] = await db
+        .select()
+        .from(innerCompassPrompts)
+        .where(
+          and(
+            eq(innerCompassPrompts.userId, userId),
+            gte(innerCompassPrompts.createdAt, today)
+          )
         )
-      )
-      .orderBy(desc(innerCompassPrompts.createdAt))
-      .limit(1);
-    
-    return prompt;
+        .orderBy(desc(innerCompassPrompts.createdAt))
+        .limit(1);
+      
+      return prompt;
+    } catch (error) {
+      console.error('Error getting today\'s prompt:', error);
+      return undefined;
+    }
   }
 
   async getInnerCompassPrompts(userId: string, limit: number = 20): Promise<InnerCompassPrompt[]> {

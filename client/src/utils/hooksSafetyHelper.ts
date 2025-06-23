@@ -1,12 +1,17 @@
-// Utility to help prevent React hooks ordering violations
+import React, { useState, useEffect } from 'react';
 
+// Utility to help prevent React hooks ordering violations
 
 // Higher-order component to ensure hooks safety
 export function withHooksSafety<T extends {}>(Component: React.ComponentType<T>) {
   return function SafeComponent(props: T) {
+    const [mounted, setMounted] = useState(false);
     
+    useEffect(() => {
+      setMounted(true);
+    }, []);
     
-    // Component safety check {
+    if (!mounted) {
       return null;
     }
     
@@ -19,9 +24,13 @@ export function useSafeBrowserAPI<T>(
   browserAPIFn: () => T,
   fallback: T
 ): T {
+  const [mounted, setMounted] = useState(false);
   
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
-  // Component safety check {
+  if (!mounted) {
     return fallback;
   }
   

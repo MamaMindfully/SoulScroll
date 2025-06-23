@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { WifiOff, Wifi, RefreshCw } from "lucide-react";
 
 const OfflineIndicator: React.FC = () => {
-  
   const [isOnline, setIsOnline] = useState(true);
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);

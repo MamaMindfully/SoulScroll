@@ -15,9 +15,21 @@ router.get('/api/inner-compass', isAuthenticated, async (req: Request, res: Resp
 
     logger.info('Generating inner compass prompt', { userId });
 
-    // Get recent journal insights for context
-    const recentInsights = await storage.getEmotionalInsights(userId, 'week');
-    const recentThemes = await storage.getTopUserThemes(userId, 3);
+    // Get recent journal insights for context with error handling
+    let recentInsights = [];
+    let recentThemes = [];
+    
+    try {
+      recentInsights = await storage.getEmotionalInsights(userId, 'week');
+    } catch (error) {
+      logger.error('Failed to get emotional insights', { error, userId });
+    }
+    
+    try {
+      recentThemes = await storage.getTopUserThemes(userId, 3);
+    } catch (error) {
+      logger.error('Failed to get user themes', { error, userId });
+    }
 
     // Build context from user's recent themes
     const themeContext = recentThemes.length > 0 
