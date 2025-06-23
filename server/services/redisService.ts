@@ -5,20 +5,29 @@ const fallbackCache: Record<string, any> = {};
 
 // Initialize Redis connection with fallback
 try {
-  if (process.env.REDIS_URL) {
-    redis = new Redis(process.env.REDIS_URL, {
+  const redisUrl = process.env.REDIS_URL || 'rediss://default:AW4GAAIjcDE1ZGZlZWI3NjNjMjU0MTc5YWYyMzg5MDY1MjZiNWNmYnAxMA@solid-husky-28166.upstash.io:6379';
+  
+  if (redisUrl) {
+    redis = new Redis(redisUrl, {
       retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3,
       connectTimeout: 10000,
       commandTimeout: 5000,
+      tls: {
+        rejectUnauthorized: false
+      }
     });
     
     redis.on('connect', () => {
-      console.log('Redis connection established.');
+      console.log('Redis connection established successfully.');
     });
     
     redis.on('error', (err) => {
       console.error('Redis connection error:', err.message);
+    });
+
+    redis.on('ready', () => {
+      console.log('Redis client ready for operations.');
     });
   } else {
     console.log('REDIS_URL not found. Using fallback in-memory cache.');
