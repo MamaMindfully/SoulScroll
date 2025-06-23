@@ -316,7 +316,7 @@ export default function JournalEditor() {
               </Button>
             )}
             {/* Word Count */}
-            <span className="text-xs text-wisdom/60">{wordCount} words</span>
+            <span data-testid="word-count" className="text-xs text-wisdom/60">{wordCount} words</span>
           </div>
         </div>
         
@@ -335,6 +335,7 @@ export default function JournalEditor() {
         <div className="p-4 bg-gentle/50 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
+              data-testid="submit-journal"
               variant="ghost"
               size="sm"
               onClick={() => handleSave(false)}
@@ -386,7 +387,7 @@ export default function JournalEditor() {
           
           {/* AI Reflection Display */}
           {reflection && !loadingReflection && (
-            <div id="journal-editor-insight" className="space-y-4 fade-in">
+            <div data-testid="ai-reflection" id="journal-editor-insight" className="space-y-4 fade-in">
               {/* Insight */}
               <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
                 <CardContent className="p-4">

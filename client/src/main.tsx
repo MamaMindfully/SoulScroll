@@ -5,6 +5,8 @@ import "./index.css";
 import { initSentry } from "./utils/sentry";
 import { performanceMonitor } from "./utils/performance";
 import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
+import { performanceMetrics } from "./utils/performanceMetrics";
+import { deploymentValidator } from "./utils/deploymentValidator";
 
 // Global fetch wrapper to handle 401 errors
 window.fetch = (originalFetch => {
@@ -46,6 +48,12 @@ performanceMonitor.startMark('app-initialization');
 
 // Initialize global authentication handler
 initializeGlobalAuthHandler();
+
+// Initialize performance metrics tracking
+console.log('SoulScroll performance tracking initialized');
+
+// Make deployment validator available globally for debugging
+window.validateDeployment = () => deploymentValidator.runAllChecks();
 
 // Initialize comprehensive performance optimizations
 initializePerformanceOptimizations();
