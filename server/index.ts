@@ -4,6 +4,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import stripeWebhook from "./stripeWebhook";
 import stripeRoutes from "./routes/stripeRoutes";
+import path from "path";
+import fs from "fs";
 // Initialize queue workers (will gracefully fallback if Redis unavailable)
 import "./queue/journalWorker";
 
@@ -112,8 +114,17 @@ app.use((req, res, next) => {
         await setupVite(app, server);
         log("Vite development server setup complete");
       } else {
-        serveStatic(app);
-        log("Static file serving setup complete");
+        // Enhanced static serving for Replit deployment
+        const distPath = path.resolve(__dirname, "..", "dist");
+        if (fs.existsSync(distPath)) {
+          app.use(express.static(distPath));
+          app.get('*', (req, res) => {
+            res.sendFile(path.resolve(distPath, "index.html"));
+          });
+          log("Static file serving setup complete");
+        } else {
+          throw new Error(`Build directory not found: ${distPath}`);
+        }
       }
     } catch (error) {
       console.error("Failed to setup frontend serving:", error);

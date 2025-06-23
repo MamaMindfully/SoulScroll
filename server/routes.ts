@@ -55,14 +55,26 @@ import fs from 'fs';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve service worker from project root with proper headers and Redis caching
+  // Serve service worker with Replit-compatible paths
   app.get('/service-worker.js', async (req, res) => {
     try {
-      const serviceWorkerPath = path.resolve(__dirname, '../service-worker.js');
+      // Try multiple possible locations for service worker
+      const possiblePaths = [
+        path.resolve(__dirname, '../service-worker.js'),
+        path.resolve(__dirname, '../client/public/service-worker.js'),
+        path.resolve(__dirname, '../dist/service-worker.js')
+      ];
       
-      // Check if file exists
-      if (!fs.existsSync(serviceWorkerPath)) {
-        console.error('Service worker file not found:', serviceWorkerPath);
+      let serviceWorkerPath = null;
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(possiblePath)) {
+          serviceWorkerPath = possiblePath;
+          break;
+        }
+      }
+      
+      if (!serviceWorkerPath) {
+        console.error('Service worker file not found in any location:', possiblePaths);
         return res.status(404).send('Service worker not found');
       }
 
