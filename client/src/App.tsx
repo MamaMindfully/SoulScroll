@@ -17,15 +17,7 @@ import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import DailyNotification from "@/components/DailyNotification";
 import SecurityEnhancements from "@/components/SecurityEnhancements";
 import UpdateNotification from "@/components/UpdateNotification";
-import { fetchSoulScrollReply } from './utils/gptAPI';
-import { prompts } from './utils/promptTemplates';
-import { saveReflection, incrementReflectionCount } from './utils/storage';
-import OnboardingFlow from './components/OnboardingFlow';
-import MorningFlow from './components/MorningFlow';
-import EveningFlow from './components/EveningFlow';
-import ProgressDashboard from './components/ProgressDashboard';
-import CommunityFeed from './components/CommunityFeed';
-import { useUserProfile } from './hooks/useUserProfile';
+// Removed unused imports - these are not used in App.tsx
 import NotFound from "@/pages/NotFound";
 import ServerError from "@/pages/ServerError";
 import Landing from "@/pages/landing";

@@ -117,6 +117,38 @@ const AIJournalAnalyzer: React.FC<AIJournalAnalyzerProps> = ({
               <CardTitle className="text-lg">Analysis Results</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="text-sm text-blue-600 font-medium">Emotion Score</div>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {analysisResult.emotionScore || 'N/A'}
+                  </div>
+                </div>
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <div className="text-sm text-green-600 font-medium">Insight Depth</div>
+                  <div className="text-2xl font-bold text-green-900">
+                    {analysisResult.insightDepth || 'N/A'}
+                  </div>
+                </div>
+              </div>
+              {analysisResult.insights && (
+                <div className="mt-4">
+                  <h4 className="font-medium mb-2">Key Insights:</h4>
+                  <ul className="space-y-1">
+                    {analysisResult.insights.map((insight, index) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        • {insight}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Analysis Results</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-2">

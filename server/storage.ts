@@ -521,7 +521,7 @@ export class DatabaseStorage implements IStorage {
     return {
       totalEntries: totalEntriesResult.count,
       currentStreak: user.streakCount || 0,
-      longestStreak: user.streakCount || 0, // TODO: Track separately
+      longestStreak: user.streakCount || 0, // Using current streak as longest for now
       averageMood,
     };
   }

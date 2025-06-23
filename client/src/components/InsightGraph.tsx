@@ -77,8 +77,20 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     const constellationContainer = svg.append('g').attr('class', 'constellations');
 
     // Create simulation with constellation clustering
-    const simulation = d3.forceSimulation(fadedNodes as any)
-      .force('link', d3.forceLink(data.edges).id((d: any) => d.id).distance(60))
+    interface D3Node extends d3.SimulationNodeDatum {
+      id: string;
+      theme: string;
+      emotion: string;
+      opacity?: number;
+    }
+
+    interface D3Link extends d3.SimulationLinkDatum<D3Node> {
+      source: string | D3Node;
+      target: string | D3Node;
+    }
+
+    const simulation = d3.forceSimulation(fadedNodes as D3Node[])
+      .force('link', d3.forceLink<D3Node, D3Link>(data.edges).id((d: D3Node) => d.id).distance(60))
       .force('charge', d3.forceManyBody().strength(-150))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(12));
@@ -129,7 +141,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 2)
       .attr('stroke-dasharray', (d) => d.type === 'time' ? '5,5' : null)
-      .style('opacity', (d: any) => {
+      .style('opacity', (d: D3Node) => {
         if (!activeTheme) return 1;
         return (d.source.theme === activeTheme || d.target.theme === activeTheme) ? 1 : 0.1;
       });
@@ -145,8 +157,8 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
       .attr('stroke', '#ffffff')
       .attr('stroke-width', 2)
       .style('cursor', 'pointer')
-      .style('opacity', (d: any) => d.opacity || 1)
-      .call(drag(simulation) as any);
+      .style('opacity', (d: D3Node) => d.opacity || 1)
+      .call(drag(simulation));
 
     // Add node labels
     const label = svg.append('g')
@@ -190,8 +202,8 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
 
         tooltip.html(`
           <div><strong>${d.label}</strong></div>
-          <div>Theme: ${d.theme || 'Unknown'}</div>
-          <div>Emotion: ${d.emotion || 'Unknown'}</div>
+          <div>Theme: ${d.theme || 'General'}</div>
+          <div>Emotion: ${d.emotion || 'Neutral'}</div>
           ${constellation ? `<div style="margin-top: 4px; font-style: italic;">Part of: ${constellation.title}</div>` : ''}
         `)
           .style('left', (event.pageX + 10) + 'px')
@@ -246,7 +258,7 @@ const InsightGraph: React.FC<InsightGraphProps> = ({ data }) => {
     // Update positions on simulation tick
     simulation.on('tick', () => {
       link
-        .attr('x1', (d: any) => d.source.x)
+        .attr('x1', (d: D3Link) => (d.source as D3Node).x)
         .attr('y1', (d: any) => d.source.y)
         .attr('x2', (d: any) => d.target.x)
         .attr('y2', (d: any) => d.target.y);
