@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import { gracefulDegradation, serviceFailureHandler, detectServiceAvailability } from "./middleware/gracefulDegradation";
 import { performStartupChecks } from "./utils/deploymentReadiness";
+import { deploymentSafetyMiddleware, redisErrorHandler } from "./middleware/deploymentSafety";
 // Initialize queue workers (will gracefully fallback if Redis unavailable)
 import "./queue/journalWorker";
 

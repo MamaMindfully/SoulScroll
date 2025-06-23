@@ -39,9 +39,14 @@ export async function checkDeploymentReadiness(): Promise<DeploymentStatus> {
     logger.error('Database check failed:', error);
   }
 
-  // Check Redis connection (optional)
+  // Check Redis connection (optional, with timeout)
   try {
-    const redisHealthy = await redisService.ping();
+    const redisPromise = redisService.ping();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Redis health check timeout')), 1000)
+    );
+    
+    const redisHealthy = await Promise.race([redisPromise, timeoutPromise]);
     status.services.redis = redisHealthy;
     if (!redisHealthy) {
       status.warnings.push('Redis unavailable - using in-memory fallbacks');
@@ -49,7 +54,8 @@ export async function checkDeploymentReadiness(): Promise<DeploymentStatus> {
       logger.info('Redis connection verified');
     }
   } catch (error) {
-    status.warnings.push(`Redis connection failed: ${error.message} - using fallbacks`);
+    status.services.redis = false;
+    status.warnings.push('Redis unavailable - using in-memory fallbacks');
     logger.warn('Redis check failed, using fallbacks:', error.message);
   }
 

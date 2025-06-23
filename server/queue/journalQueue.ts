@@ -25,18 +25,17 @@ async function initializeQueues() {
     const Redis = (await import('ioredis')).default;
     
     const connection = new Redis(redisUrl, {
-      retryDelayOnFailover: 100,
-      connectTimeout: 5000,
-      commandTimeout: 3000,
+      connectTimeout: 2000, // Very short timeout
+      commandTimeout: 2000,
+      maxRetriesPerRequest: 0, // Disable all retries
       lazyConnect: true,
-      // Fail fast instead of endless retries
-      maxRetriesPerRequest: null
+      enableOfflineQueue: false, // Don't queue commands when offline
     });
 
-    // Test connection with timeout
+    // Test connection with very short timeout
     const connectPromise = connection.ping();
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+      setTimeout(() => reject(new Error('Redis connection timeout')), 2000)
     );
     
     await Promise.race([connectPromise, timeoutPromise]);

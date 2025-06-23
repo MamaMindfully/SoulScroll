@@ -15,19 +15,21 @@ async function initializeRedis() {
     
     const redisClient = new Redis(redisUrl, {
       retryDelayOnFailover: 100,
-      maxRetriesPerRequest: null, // Disable retries to fail fast
-      connectTimeout: 5000, // Reduced timeout
-      commandTimeout: 3000,
+      maxRetriesPerRequest: 0, // Disable all retries to fail immediately
+      connectTimeout: 2000, // Very short timeout
+      commandTimeout: 2000,
       lazyConnect: true, // Don't connect immediately
+      enableOfflineQueue: false, // Don't queue commands when offline
+      maxLoadingTimeout: 2000,
       tls: redisUrl.startsWith('rediss://') ? {
         rejectUnauthorized: false
       } : undefined
     });
     
-    // Test connection with timeout
+    // Test connection with very short timeout
     const connectPromise = redisClient.connect();
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
+      setTimeout(() => reject(new Error('Redis connection timeout')), 2000)
     );
     
     await Promise.race([connectPromise, timeoutPromise]);
@@ -166,18 +168,24 @@ export class RedisService {
     }
   }
 
-  // Health check
+  // Health check with timeout
   async ping(): Promise<boolean> {
-    if (redis) {
-      try {
-        const result = await redis.ping();
-        return result === 'PONG';
-      } catch (err) {
-        console.error('Redis ping failed:', err);
-        return false;
-      }
+    if (!redis) {
+      return false;
     }
-    return false;
+    
+    try {
+      const pingPromise = redis.ping();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Redis ping timeout')), 1000)
+      );
+      
+      const result = await Promise.race([pingPromise, timeoutPromise]);
+      return result === 'PONG';
+    } catch (err) {
+      console.error('Redis ping failed:', err.message);
+      return false;
+    }
   }
 
   // Cleanup

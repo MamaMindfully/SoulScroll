@@ -10,17 +10,28 @@ async function initializeWorkers() {
   }
 
   try {
-    // Only initialize BullMQ workers if Redis is available in production
+    // Only initialize BullMQ workers if Redis URL is explicitly provided
+    if (!process.env.REDIS_URL) {
+      logger.info('REDIS_URL not configured, skipping Redis worker initialization');
+      return;
+    }
+
     const Redis = (await import('ioredis')).default;
-    const connection = new Redis(process.env.REDIS_URL || {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      maxRetriesPerRequest: 3,
+    const connection = new Redis(process.env.REDIS_URL, {
+      connectTimeout: 2000,
+      commandTimeout: 2000,
+      maxRetriesPerRequest: 0, // Disable retries
       lazyConnect: true,
+      enableOfflineQueue: false,
     });
 
-    await connection.ping();
+    // Test connection with timeout
+    const connectPromise = connection.ping();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Redis connection timeout')), 2000)
+    );
+    
+    await Promise.race([connectPromise, timeoutPromise]);
     await initializeBullMQWorkers(connection);
     
   } catch (error) {
