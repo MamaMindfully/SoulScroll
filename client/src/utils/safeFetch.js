@@ -62,12 +62,16 @@ class SafeFetchManager {
     // Set timeout
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
+    // Get auth token and add to headers
+    const authHeaders = this.getAuthHeaders();
+    
     try {
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
           ...options.headers
         }
       });
@@ -87,6 +91,11 @@ class SafeFetchManager {
       }
       
       if (!response.ok) {
+        // Handle 401 unauthorized globally
+        if (response.status === 401) {
+          this.handleUnauthorized();
+        }
+        
         throw new FetchError(
           `HTTP ${response.status}: ${response.statusText}`,
           response.status,
@@ -170,6 +179,47 @@ class SafeFetchManager {
 
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  getAuthHeaders() {
+    const headers = {};
+    
+    // Check for auth token in localStorage
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    // Check for session ID in cookies
+    const sessionId = this.getCookie('connect.sid') || this.getCookie('session');
+    if (sessionId) {
+      headers['Cookie'] = `connect.sid=${sessionId}`;
+    }
+    
+    return headers;
+  }
+
+  getCookie(name) {
+    if (typeof document === 'undefined') return null;
+    
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  }
+
+  handleUnauthorized() {
+    console.warn('Unauthorized request detected. Session may have expired.');
+    
+    // Clear stored auth data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('isAuthenticated');
+    
+    // Emit event for components to handle
+    window.dispatchEvent(new CustomEvent('authExpired', {
+      detail: { reason: 'Session expired or invalid' }
+    }));
   }
 
   clearCache() {

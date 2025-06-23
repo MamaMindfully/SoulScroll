@@ -100,23 +100,25 @@ export function usePerformanceMonitor() {
   });
 
   useEffect(() => {
-    // Largest Contentful Paint
-    if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
-      const lcpObserver = new PerformanceObserver((entryList) => {
-        const entries = entryList.getEntries();
-        const lastEntry = entries[entries.length - 1];
-        metrics.current.lcp = lastEntry.startTime;
+    // Delay DOM observation until idle for better performance
+    if (typeof window !== 'undefined' && 'PerformanceObserver' in window && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        // Largest Contentful Paint
+        const lcpObserver = new PerformanceObserver((entryList) => {
+          const entries = entryList.getEntries();
+          const lastEntry = entries[entries.length - 1];
+          metrics.current.lcp = lastEntry.startTime;
+          
+          if (lastEntry.startTime > 2500) {
+            console.warn('LCP is slow:', lastEntry.startTime + 'ms');
+          }
+        });
         
-        if (lastEntry.startTime > 2500) {
-          console.warn('LCP is slow:', lastEntry.startTime + 'ms');
+        try {
+          lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+        } catch (e) {
+          // LCP not supported
         }
-      });
-      
-      try {
-        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      } catch (e) {
-        // LCP not supported
-      }
 
       // First Input Delay
       const fidObserver = new PerformanceObserver((entryList) => {

@@ -96,6 +96,7 @@ export default function LazyImage({
         <motion.img
           src={getOptimizedSrc()}
           alt={alt}
+          loading="lazy"
           className={`w-full h-full object-cover transition-opacity duration-300 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}

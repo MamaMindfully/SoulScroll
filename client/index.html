@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SoulScroll – Discover Yourself</title>
     <meta name="description" content="A journaling app powered by AI that helps you grow, reflect, and stay connected to your inner compass." />
     <meta property="og:image" content="/preview.png" />
@@ -13,6 +13,16 @@
     
     <!-- Apple touch icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Preconnect to external services for faster API calls -->
+    <link rel="preconnect" href="https://api.openai.com" />
+    <link rel="preconnect" href="https://api.stripe.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="/icon-192.png" as="image" type="image/png" />
+    <link rel="preload" href="/src/index.css" as="style" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     

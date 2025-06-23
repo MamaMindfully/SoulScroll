@@ -1,0 +1,137 @@
+// ========================
+// 📂 1. AUTH HEADER FIX
+// ========================
+// Example: API call with auth token
+async function fetchWithAuth(endpoint) {
+  const token = localStorage.getItem('authToken');
+
+  if (!token) {
+    console.error('No auth token found. User may not be logged in.');
+    return null;
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.status === 401) {
+      console.error('Unauthorized: Token may be expired. Redirect to login.');
+      // Optional: Redirect to login or refresh token flow here.
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API fetch error:', error);
+    return null;
+  }
+}
+
+// ========================
+// 📂 2. DELAY DOM OBSERVATION
+// ========================
+// Safely observe performance after DOM stabilizes
+if ('PerformanceObserver' in window) {
+  requestIdleCallback(() => {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        console.log('Observed entry:', entry);
+      }
+    });
+
+    observer.observe({ type: 'largest-contentful-paint', buffered: true });
+  });
+}
+
+// ========================
+// 📂 3. LAZY LOAD IMAGES
+// ========================
+// Example: in your HTML
+// <img src="/images/example.jpg" loading="lazy" alt="Example">
+
+// ========================
+// 📂 4. PRELOAD CRITICAL ASSETS
+// ========================
+// Example: Add this to your HTML head
+// <link rel="preload" href="/fonts/your-font.woff2" as="font" type="font/woff2" crossorigin>
+// <link rel="preload" href="/icon-192.png" as="image">
+
+// ========================
+// 📂 5. FIX MANIFEST ICON
+// ========================
+// Ensure the icon is at: public/icon-192.png
+// And manifest.json references it correctly:
+// {
+//   "icons": [
+//     {
+//       "src": "/icon-192.png",
+//       "sizes": "192x192",
+//       "type": "image/png"
+//     }
+//   ]
+// }
+
+// ========================
+// 📂 6. SERVICE WORKER CACHE CONTROL
+// ========================
+// Inside service-worker.js
+self.addEventListener('install', (event) => {
+  console.log('SoulScroll Service Worker installing...');
+  event.waitUntil(
+    caches.open('soulscroll-static-v1.0.0').then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/icon-192.png',
+        '/manifest.json',
+        '/styles.css',
+        '/index-DpI_W6kn.js'
+      ]);
+    })
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('SoulScroll Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== 'soulscroll-static-v1.0.0') {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// ========================
+// 📂 7. PERFORMANCE PREVENTION TIPS
+// ========================
+// In your index.html head:
+// <meta name="viewport" content="width=device-width, initial-scale=1">
+// <link rel="preconnect" href="https://fonts.googleapis.com">
+// <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+// Add loading="lazy" to all images
+// Add requestIdleCallback to heavy scripts
+// Compress images using tools like TinyPNG
+// Minimize initial JavaScript bundle size (tree-shaking)
+
+// ========================
+// 📂 8. HANDLE UNAUTHORIZED ERRORS GLOBALLY
+// ========================
+// Optional: Global fetch wrapper
+window.fetch = (originalFetch => {
+  return (...args) => {
+    return originalFetch(...args).then(response => {
+      if (response.status === 401) {
+        console.error('Global 401 detected. Consider redirecting to login.');
+        // Redirect logic here
+      }
+      return response;
+    });
+  };
+})(window.fetch);
