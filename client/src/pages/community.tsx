@@ -8,7 +8,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 export default function Community() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const featureAccess = useFeatureAccess();
+  const featureAccess = { community: true }; // Simplified access
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -40,15 +40,12 @@ export default function Community() {
     return (
       <ErrorBoundaryWrapper>
         <div className="h-screen flex flex-col bg-gentle">
-          <AppHeader />
           <main className="flex-1 overflow-hidden px-4 py-6">
-            <LockedFeatureMessage 
-              message="Upgrade to Premium to access the Community features and connect with other mindful journalers."
-              feature="Community Feed"
-              description="Share reflections, send hearts, and find support in our mindful community."
-            />
+            <div className="text-center p-6">
+              <h2 className="text-xl font-semibold mb-2">Community Coming Soon</h2>
+              <p className="text-gray-600">Connect with other mindful journalers</p>
+            </div>
           </main>
-          <BottomNavigation />
         </div>
       </ErrorBoundaryWrapper>
     );
