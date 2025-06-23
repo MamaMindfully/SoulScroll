@@ -9,6 +9,7 @@ import { performanceMetrics } from "./utils/performanceMetrics";
 import { deploymentValidator } from "./utils/deploymentValidator";
 import { imageOptimizer } from "./utils/imageOptimization";
 import "./utils/polyfills";
+import { initializeServiceWorker } from "./utils/serviceWorkerRegistration";
 
 // Global fetch wrapper to handle 401 errors
 window.fetch = (originalFetch => {

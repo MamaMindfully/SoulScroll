@@ -1,0 +1,175 @@
+// ========================
+// 📂 1. AUTH WRAPPER
+// ========================
+// 📄 client/src/utils/api.js
+export async function fetchWithAuth(endpoint) {
+  const token = localStorage.getItem('authToken');
+
+  if (!token) {
+    console.error('No auth token found. Redirecting to login.');
+    window.location.href = '/login';
+    return null;
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.status === 401) {
+      console.error('Unauthorized. Redirecting to login.');
+      window.location.href = '/login';
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API fetch error:', error);
+    return null;
+  }
+}
+
+// ========================
+// 📂 2. GLOBAL FETCH CATCH
+// ========================
+// 📄 client/src/index.js (top)
+window.fetch = (originalFetch => {
+  return (...args) => {
+    return originalFetch(...args).then(response => {
+      if (response.status === 401) {
+        console.error('Global 401 detected. Redirecting to login.');
+        window.location.href = '/login';
+      }
+      return response;
+    });
+  };
+})(window.fetch);
+
+// ========================
+// 📂 3. PERFORMANCE OBSERVER
+// ========================
+// 📄 client/src/index.js or App.js (in useEffect)
+if ('PerformanceObserver' in window) {
+  requestIdleCallback(() => {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        console.log('Observed entry:', entry);
+      }
+    });
+
+    observer.observe({ type: 'largest-contentful-paint', buffered: true });
+  });
+}
+
+// ========================
+// 📂 4. LAZY LOADING IMAGES
+// ========================
+// 📄 In your components:
+// <img src="/images/your-image.jpg" loading="lazy" alt="Descriptive Text" />
+
+// ========================
+// 📂 5. PRELOAD CRITICAL ASSETS
+// ========================
+// 📄 public/index.html (inside <head>)
+// <link rel="preload" href="/icon-192.png" as="image">
+// <link rel="preconnect" href="https://fonts.googleapis.com">
+// <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+// ========================
+// 📂 6. MANIFEST FIX
+// ========================
+// 📄 public/manifest.json
+// Ensure correct paths:
+{
+  "name": "SoulScroll",
+  "short_name": "SoulScroll",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}
+
+// ========================
+// 📂 7. SERVICE WORKER CACHE
+// ========================
+// 📄 service-worker.js
+self.addEventListener('install', (event) => {
+  console.log('SoulScroll Service Worker installing...');
+  event.waitUntil(
+    caches.open('soulscroll-static-v1.0.0').then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/icon-192.png',
+        '/manifest.json',
+        '/styles.css',
+        '/index-DpI_W6kn.js'
+      ]);
+    })
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('SoulScroll Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== 'soulscroll-static-v1.0.0') {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// ========================
+// 📂 8. SECURITY HEADERS
+// ========================
+// 📄 server/index.js or main Express file
+import helmet from 'helmet';
+app.use(helmet());
+
+// ========================
+// 📂 9. SEO FIXES
+// ========================
+// 📄 public/index.html (inside <head>)
+// <meta name="viewport" content="width=device-width, initial-scale=1">
+// <meta name="description" content="SoulScroll - A mindful journaling app for reflection and growth.">
+// <link rel="canonical" href="https://soul-scroll-ai-1-lennonpace09.replit.app/">
+// <title>SoulScroll - Daily Reflection</title>
+
+// ========================
+// 📂 10. ACCESSIBILITY IMPROVEMENTS
+// ========================
+// 📄 In your components:
+// Ensure all images have alt text: <img src="..." alt="Descriptive text" />
+// Use semantic tags: <header>, <main>, <nav>, <footer>
+// Ensure proper heading order: <h1>, <h2>, <h3> (no skipping levels)
+// Add aria-labels for buttons: <button aria-label="Submit Form">Submit</button>
+// Ensure all buttons/links are at least 48x48px for tap targets
+
+// ========================
+// 📂 11. ROUTE LAZY LOADING
+// ========================
+// 📄 client/src/App.js or router file
+import React, { Suspense, lazy } from 'react';
+
+const Home = lazy(() => import('./pages/Home'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+
+// In Router
+<Suspense fallback={<div>Loading...</div>}>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/dashboard" element={<Dashboard />} />
+  </Routes>
+</Suspense>

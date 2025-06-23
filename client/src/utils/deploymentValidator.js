@@ -180,10 +180,12 @@ class DeploymentValidator {
       serviceWorker: 'serviceWorker' in navigator,
       manifest: document.querySelector('link[rel="manifest"]') !== null,
       offlineCapability: !!localStorage.getItem,
-      installPrompt: true // Handled by PWAInstallPrompt component
+      installPrompt: true, // Handled by PWAInstallPrompt component
+      cacheStorage: 'caches' in window,
+      serviceWorkerRegistered: navigator.serviceWorker && navigator.serviceWorker.controller !== null
     };
 
-    const passed = Object.values(pwaChecks).filter(check => check).length >= 3;
+    const passed = Object.values(pwaChecks).filter(check => check).length >= 4;
     
     this.checks.set('pwa', {
       passed,
