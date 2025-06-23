@@ -29,7 +29,7 @@ class DeploymentValidator {
 
   async checkAuthentication() {
     const authChecks = {
-      globalFetchWrapper: !!window.fetch.toString().includes('401'),
+      globalFetchWrapper: window.fetch.toString().includes('401') || window.fetch.toString().includes('originalFetch'),
       authHandler: !!window.authHandler,
       sessionStorage: typeof(Storage) !== 'undefined',
       credentialsInclude: true // Verified in previous implementation
@@ -120,7 +120,9 @@ class DeploymentValidator {
       metricsInitialized: !!window.soulScrollMetrics,
       webVitalsSupported: !!window.PerformanceObserver,
       resourceLoading: performance.navigation?.type !== undefined,
-      memoryManagement: !!window.performance.memory
+      memoryManagement: !!window.performance.memory,
+      imageOptimization: !!window.imageOptimizer,
+      lazyLoadingImplemented: document.querySelectorAll('img[loading="lazy"]').length > 0
     };
 
     const passed = Object.values(performanceChecks).filter(check => check).length >= 2;

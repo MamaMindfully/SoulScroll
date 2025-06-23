@@ -7,6 +7,7 @@ import { performanceMonitor } from "./utils/performance";
 import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
 import { performanceMetrics } from "./utils/performanceMetrics";
 import { deploymentValidator } from "./utils/deploymentValidator";
+import { imageOptimizer } from "./utils/imageOptimization";
 
 // Global fetch wrapper to handle 401 errors
 window.fetch = (originalFetch => {
@@ -54,6 +55,39 @@ console.log('SoulScroll performance tracking initialized');
 
 // Make deployment validator available globally for debugging
 window.validateDeployment = () => deploymentValidator.runAllChecks();
+
+// Enhanced Performance Observer for Web Vitals
+if ('PerformanceObserver' in window) {
+  requestIdleCallback(() => {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        console.log('Performance entry observed:', {
+          name: entry.name,
+          startTime: entry.startTime,
+          value: entry.value || entry.duration,
+          type: entry.entryType
+        });
+        
+        // Track in our metrics system
+        if (window.soulScrollMetrics) {
+          window.soulScrollMetrics.recordMetric(
+            entry.entryType, 
+            entry.value || entry.duration || entry.startTime,
+            'ms'
+          );
+        }
+      }
+    });
+
+    // Observe multiple performance entry types
+    observer.observe({ type: 'largest-contentful-paint', buffered: true });
+    observer.observe({ type: 'first-input', buffered: true });
+    observer.observe({ type: 'layout-shift', buffered: true });
+    observer.observe({ type: 'resource', buffered: true });
+    
+    console.log('Performance Observer initialized with Web Vitals tracking');
+  });
+}
 
 // Initialize comprehensive performance optimizations
 initializePerformanceOptimizations();
