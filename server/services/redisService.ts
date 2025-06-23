@@ -57,17 +57,22 @@ async function initializeRedis() {
 }
 
 // Initialize with proper error handling
-initializeRedis()
+let initializationPromise = initializeRedis()
   .then(client => {
     redis = client;
     if (!redis) {
-      console.log('Running in fallback mode with in-memory cache.');
+      console.log('Redis service running in fallback mode with in-memory cache.');
     }
+    return client;
   })
   .catch(error => {
     console.error('Failed to initialize Redis service:', error);
     redis = null;
+    return null;
   });
+
+// Export initialization promise for health checks
+export const redisInitialization = initializationPromise;
 
 export class RedisService {
   // Service worker version management

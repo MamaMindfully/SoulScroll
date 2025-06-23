@@ -23,11 +23,21 @@ class QueueService extends EventEmitter {
   private processing: boolean = false;
   private concurrency: number = 3; // Process 3 jobs concurrently
   private activeJobs: Set<string> = new Set();
+  private fallbackMode: boolean = false;
 
   constructor() {
     super();
+    this.detectEnvironment();
     this.startProcessor();
-    logger.info('Queue service initialized');
+    logger.info('Queue service initialized in', this.fallbackMode ? 'fallback' : 'full', 'mode');
+  }
+
+  private detectEnvironment() {
+    // Check if Redis is available
+    this.fallbackMode = !process.env.REDIS_URL;
+    if (this.fallbackMode) {
+      logger.info('Queue service running in fallback mode (no Redis)');
+    }
   }
 
   // Add job to queue

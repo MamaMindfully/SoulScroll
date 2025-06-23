@@ -52,6 +52,10 @@ try {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Detect service availability and apply graceful degradation
+const services = detectServiceAvailability();
+app.use(gracefulDegradation(services));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -84,6 +88,9 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
+    // Perform deployment readiness checks
+    await performStartupChecks();
+    
     // Register routes with error handling
     let server;
     try {
@@ -94,6 +101,9 @@ app.use((req, res, next) => {
       // Create a basic HTTP server if route registration fails
       server = require('http').createServer(app);
     }
+
+    // Service failure handler (before global error handler)
+    app.use(serviceFailureHandler);
 
     // Enhanced error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
