@@ -704,6 +704,7 @@ Changelog:
   * Validated global auth handler with Bearer token support and 401 error management
   * Created vite.config.replit.js with proper base: './' configuration for future builds
   * Application fully functional on Replit with all critical deployment requirements met
+  * CRITICAL NOTE: Main vite.config.ts still needs manual addition of base: './' for production builds
 - June 23, 2025: Production enhancement features implemented:
   * Added comprehensive E2E testing with Cypress for journaling and premium flows
   * Implemented feature flags system for safe deployments and A/B testing
