@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Lotus, Sun } from "lucide-react";
+import { Heart, Flower, Sun } from "lucide-react";
 
 export default function MantraDesigner() {
   return (
@@ -9,7 +9,7 @@ export default function MantraDesigner() {
         <Card className="bg-black/40 border-orange-500/30 backdrop-blur-lg">
           <CardHeader className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Lotus className="w-8 h-8 text-orange-400" />
+              <Flower className="w-8 h-8 text-orange-400" />
               <Heart className="w-6 h-6 text-red-400" />
               <Sun className="w-6 h-6 text-yellow-400" />
             </div>
