@@ -1,8 +1,11 @@
+import { captureApiError, captureNetworkError, captureAuthError } from './errorCapture';
+
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem('authToken');
 
   if (!token) {
-    console.error('No token found. Redirecting to login.');
+    const authError = new Error('No authentication token found');
+    captureAuthError(authError, { apiEndpoint: endpoint, action: 'token_missing' });
     window.location.href = '/login';
     return null;
   }
@@ -20,20 +23,42 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
     const response = await fetch(endpoint, authOptions);
 
     if (response.status === 401) {
-      console.error('Unauthorized: Token expired.');
+      const authError = new Error('Authentication token expired');
+      captureAuthError(authError, { 
+        apiEndpoint: endpoint, 
+        action: 'token_expired',
+        metadata: { statusCode: response.status }
+      });
       localStorage.removeItem('authToken');
       window.location.href = '/login';
       return null;
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const apiError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+      captureApiError(apiError, endpoint, { 
+        action: 'http_error',
+        metadata: { 
+          statusCode: response.status,
+          statusText: response.statusText 
+        }
+      });
+      throw apiError;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('API error:', error);
-    return null;
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      captureNetworkError(error as Error, { 
+        apiEndpoint: endpoint,
+        action: 'network_failure'
+      });
+    } else if (!(error as Error).message.includes('HTTP')) {
+      // Don't double-capture HTTP errors
+      captureApiError(error as Error, endpoint, { action: 'unexpected_error' });
+    }
+    
+    throw error;
   }
 }
 

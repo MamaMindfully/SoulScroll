@@ -102,6 +102,11 @@ import('./utils/globalAuthHandler').then(({ initializeGlobalAuthHandler }) => {
   initializeGlobalAuthHandler();
 });
 
+// Initialize error capture system
+import('./utils/errorCapture').then(() => {
+  console.log('Error capture system initialized');
+});
+
 // Initialize performance optimizations with lazy loading
 if (typeof window !== 'undefined') {
   // Use standard setTimeout for better compatibility
