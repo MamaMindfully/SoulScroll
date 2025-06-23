@@ -11,7 +11,7 @@ import NavigationBar from "@/components/NavigationBar";
 import ErrorBoundaryWrapper from "@/components/ErrorBoundary";
 import FloatingStartButton from "@/components/FloatingStartButton";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
-import { useUserStatusSync } from "@/hooks/useUserStatusSync";
+// Removed useUserStatusSync to prevent hook violations
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import DailyNotification from "@/components/DailyNotification";
@@ -132,9 +132,10 @@ function AppRoutes() {
 
 function App() {
   const [mounted, setMounted] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   
-  // Initialize user status synchronization
-  useUserStatusSync();
+  // User status synchronization removed to prevent hook violations
   
   // Set up global error handlers and performance optimizations
   useEffect(() => {
@@ -142,28 +143,41 @@ function App() {
     setupGlobalErrorHandlers();
   }, []);
 
+  // Check if user needs intro
+  useEffect(() => {
+    if (mounted) {
+      const hasSeenIntro = localStorage.getItem('hasSeenIntro');
+      if (!hasSeenIntro) {
+        setShowIntro(true);
+      }
+    }
+  }, [mounted]);
+
   // Delayed performance optimizations
   useDelayedEffect(() => {
     optimizeImageLoading();
     optimizeMemoryUsage();
     optimizeBundleLoading();
   }, 2000);
-  
-  const [showIntro, setShowIntro] = useState(false);
-  
-  // Handle localStorage access after hydration
-  useEffect(() => {
-    if (mounted) {
-      const hasSeenIntro = localStorage.getItem('soul-scroll-intro-seen');
-      setShowIntro(!hasSeenIntro);
-    }
-  }, [mounted]);
+
+  // Handle intro completion
+  const handleIntroComplete = () => {
+    localStorage.setItem('hasSeenIntro', 'true');
+    setShowIntro(false);
+  };
+
+  // Handle onboarding modal
+  const handleOnboardingComplete = () => {
+    setShowOnboardingModal(false);
+  };
 
   // Prevent hydration mismatch
-  if (!mounted) return null;
+  if (!mounted) {
+    return <div>Loading...</div>;
+  }
 
   const handleContinue = () => {
-    localStorage.setItem('soul-scroll-intro-seen', 'true');
+    localStorage.setItem('hasSeenIntro', 'true');
     setShowIntro(false);
   };
   
@@ -175,11 +189,16 @@ function App() {
             <PremiumProvider>
               <AppStoreMetadata />
               <MobileTouchOptimizations />
-              {showIntro ? (
-                <OnboardingIntro onContinue={handleContinue} />
-              ) : (
+              <>
+                {showIntro && (
+                  <OnboardingIntro onComplete={handleContinue} />
+                )}
+                {showOnboardingModal && (
+                  <OnboardingModal onComplete={handleOnboardingComplete} />
+                )}
                 <AppRoutes />
-              )}
+                <FeedbackButton />
+              </>
             </PremiumProvider>
           </ThemeProvider>
         </TooltipProvider>
