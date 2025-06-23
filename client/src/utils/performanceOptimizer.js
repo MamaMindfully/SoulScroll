@@ -1,19 +1,17 @@
 // Performance optimization utilities
-class PerformanceOptimizer {
-  constructor() {
-    this.criticalResources = new Set();
-    this.lazyResources = new Map();
-    this.preloadQueue = [];
-  }
+function createPerformanceOptimizer() {
+  const criticalResources = new Set();
+  const lazyResources = new Map();
+  const preloadQueue = [];
 
   // Mark resources as critical for immediate loading
-  markCritical(resource) {
-    this.criticalResources.add(resource);
-    this.preloadResource(resource);
+  function markCritical(resource) {
+    criticalResources.add(resource);
+    preloadResource(resource);
   }
 
   // Preload resource with priority
-  preloadResource(href, as = 'script', type = null) {
+  function preloadResource(href, as = 'script', type = null) {
     if (document.querySelector(`link[href="${href}"]`)) {
       return; // Already preloaded
     }
@@ -27,40 +25,11 @@ class PerformanceOptimizer {
     document.head.appendChild(link);
   }
 
-  // Lazy load non-critical resources
-  lazyLoad(resource, callback) {
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => {
-        this.loadResource(resource, callback);
-      });
-    } else {
-      setTimeout(() => {
-        this.loadResource(resource, callback);
-      }, 100);
-    }
-  }
-
-  // Load resource with callback
-  loadResource(resource, callback) {
-    if (resource.endsWith('.js')) {
-      const script = document.createElement('script');
-      script.src = resource;
-      script.onload = callback;
-      script.onerror = () => console.error('Failed to load:', resource);
-      document.head.appendChild(script);
-    } else if (resource.endsWith('.css')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = resource;
-      link.onload = callback;
-      link.onerror = () => console.error('Failed to load:', resource);
-      document.head.appendChild(link);
-    }
-  }
-
   // Optimize images with intersection observer
-  optimizeImages() {
+  function optimizeImages() {
     const images = document.querySelectorAll('img[data-src]');
+    if (!images.length) return;
+
     const imageObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -75,39 +44,38 @@ class PerformanceOptimizer {
     images.forEach(img => imageObserver.observe(img));
   }
 
-  // Bundle and defer non-critical JavaScript
-  deferNonCritical() {
-    const nonCriticalScripts = [
-      '/src/components/AdminBetaDashboard.tsx',
-      '/src/components/analytics/',
-      '/src/utils/performanceOptimizer.js'
-    ];
-
-    requestIdleCallback(() => {
-      nonCriticalScripts.forEach(script => {
-        this.lazyLoad(script);
-      });
-    });
-  }
-
   // Initialize all optimizations
-  init() {
-    // Preload critical resources
-    this.markCritical('/fonts/Inter.woff2');
-    this.markCritical('/icon-192.png');
-    
-    // Optimize images when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        this.optimizeImages();
-      });
-    } else {
-      this.optimizeImages();
+  function init() {
+    try {
+      // Preload critical resources
+      markCritical('/fonts/Inter.woff2');
+      markCritical('/icon-192.png');
+      
+      // Optimize images when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', optimizeImages);
+      } else {
+        optimizeImages();
+      }
+    } catch (error) {
+      console.log('Performance optimization error:', error);
     }
-
-    // Defer non-critical resources
-    this.deferNonCritical();
   }
+
+  return {
+    markCritical,
+    preloadResource,
+    optimizeImages,
+    init
+  };
 }
 
-export const performanceOptimizer = new PerformanceOptimizer();
+// Create and export the optimizer
+const performanceOptimizer = createPerformanceOptimizer();
+
+// Make available globally for debugging
+if (typeof window !== 'undefined') {
+  window.performanceOptimizer = performanceOptimizer;
+}
+
+export { performanceOptimizer };

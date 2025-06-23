@@ -1372,11 +1372,16 @@ export class DatabaseStorage implements IStorage {
 
   // Error logging operations
   async createErrorLog(errorData: InsertErrorLog): Promise<ErrorLog> {
-    const [error] = await this.db
-      .insert(errorLogs)
-      .values(errorData)
-      .returning();
-    return error;
+    try {
+      const [errorLog] = await this.db
+        .insert(errorLogs)
+        .values(errorData)
+        .returning();
+      return errorLog;
+    } catch (error) {
+      console.error('Error creating error log:', error);
+      throw error;
+    }
   }
 
   async getErrorLogs(limit: number = 50, type?: string): Promise<ErrorLog[]> {

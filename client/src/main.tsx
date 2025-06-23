@@ -102,20 +102,30 @@ import('./utils/globalAuthHandler').then(({ initializeGlobalAuthHandler }) => {
   initializeGlobalAuthHandler();
 });
 
-// Initialize performance optimizer and image optimizer
-Promise.all([
-  import('./utils/performanceOptimizer.js'),
-  import('./utils/imageOptimizer')
-]).then(([{ performanceOptimizer }, { imageOptimizer }]) => {
-  performanceOptimizer.init();
-  
-  // Preload critical images
-  imageOptimizer.preloadCriticalImages([
-    '/icon-192.png',
-    '/icon-512.png',
-    '/insight-bg.png'
-  ]);
-});
+// Initialize performance optimizations with lazy loading
+if (typeof window !== 'undefined') {
+  // Use standard setTimeout for better compatibility
+  setTimeout(() => {
+    Promise.all([
+      import('./utils/performanceOptimizer.js').catch(() => null),
+      import('./utils/imageOptimizer').catch(() => null)
+    ]).then(([perfModule, imgModule]) => {
+      if (perfModule?.performanceOptimizer) {
+        perfModule.performanceOptimizer.init();
+      }
+      
+      if (imgModule?.imageOptimizer) {
+        imgModule.imageOptimizer.preloadCriticalImages([
+          '/icon-192.png',
+          '/icon-512.png',
+          '/insight-bg.png'
+        ]);
+      }
+    }).catch(() => {
+      // Silent fail for performance optimizations
+    });
+  }, 100);
+}
 
 // Initialize performance metrics tracking
 console.log('SoulScroll performance tracking initialized');
