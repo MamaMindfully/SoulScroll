@@ -122,10 +122,11 @@ class DeploymentValidator {
       resourceLoading: performance.navigation?.type !== undefined,
       memoryManagement: !!window.performance.memory,
       imageOptimization: !!window.imageOptimizer,
-      lazyLoadingImplemented: document.querySelectorAll('img[loading="lazy"]').length > 0
+      lazyLoadingImplemented: document.querySelectorAll('img[loading="lazy"]').length > 0,
+      polyfillsLoaded: !!window.requestIdleCallback
     };
 
-    const passed = Object.values(performanceChecks).filter(check => check).length >= 2;
+    const passed = Object.values(performanceChecks).filter(check => check).length >= 4;
     
     this.checks.set('performance', {
       passed,

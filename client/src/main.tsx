@@ -8,6 +8,7 @@ import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
 import { performanceMetrics } from "./utils/performanceMetrics";
 import { deploymentValidator } from "./utils/deploymentValidator";
 import { imageOptimizer } from "./utils/imageOptimization";
+import "./utils/polyfills";
 
 // Global fetch wrapper to handle 401 errors
 window.fetch = (originalFetch => {
@@ -58,7 +59,8 @@ window.validateDeployment = () => deploymentValidator.runAllChecks();
 
 // Enhanced Performance Observer for Web Vitals
 if ('PerformanceObserver' in window) {
-  requestIdleCallback(() => {
+  const runWhenIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+  runWhenIdle(() => {
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         console.log('Performance entry observed:', {
