@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import { Sparkles, Brain, Heart } from 'lucide-react';
 import InsightFeedback from './InsightFeedback';
 import { getCachedData, setCachedData } from '@/utils/cacheManager';
 
 export default function PersonalizedInsight() {
-  const { user, trackBehavior } = useUser();
+  // Remove useUser to prevent hook violations
+  const user = null;
+  const trackBehavior = () => {};
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(true);
 

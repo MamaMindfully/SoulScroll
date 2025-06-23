@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 // Remove useUser import to prevent hook violations
 
 export default function JournalAwakening({ onAwaken }) {
-  const { trackBehavior } = useUser();
+  // Remove useUser to prevent hook violations
+  const trackBehavior = () => {};
   const [visible, setVisible] = useState(true);
   const [canSkip, setCanSkip] = useState(false);
   

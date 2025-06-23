@@ -42,18 +42,10 @@ import MamaMindfully from "@/pages/mama-mindfully";
 import SettingsPrivacy from "@/pages/SettingsPrivacy";
 
 import { 
-  LazyFeed, 
-  LazyDreams, 
-  LazyMantras, 
-  LazyInsights, 
-  LazyTimeline, 
-  LazySettings, 
-  LazyPricing,
-  LazyAskArc,
-  LazyExportManager,
-  LazyArcArchive,
   LazyProgress,
   LazyCommunity,
+  LazySettings,
+  LazyPricing,
   withLazyLoading 
 } from "@/components/LazyComponents";
 
@@ -86,18 +78,14 @@ function Router() {
           <Route path="/evening" component={EveningFlow} />
           <Route path="/progress" component={withLazyLoading(LazyProgress, "Progress")} />
           <Route path="/community" component={withLazyLoading(LazyCommunity, "Community")} />
-          <Route path="/dreams" component={withLazyLoading(LazyDreams, "Dreams")} />
-          <Route path="/mantras" component={withLazyLoading(LazyMantras, "Mantras")} />
+          <Route path="/dreams" component={withLazyLoading(() => import('@/pages/dreams'), "Dreams")} />
+          <Route path="/mantras" component={withLazyLoading(() => import('@/pages/mantras'), "Mantras")} />
           <Route path="/mama-mindfully" component={MamaMindfully} />
           <Route path="/settings/privacy" component={SettingsPrivacy} />
-          <Route path="/timeline" component={withLazyLoading(LazyTimeline, "Timeline")} />
-          <Route path="/insights" component={withLazyLoading(LazyInsights, "Insights")} />
           <Route path="/settings" component={withLazyLoading(LazySettings, "Settings")} />
           <Route path="/pricing" component={withLazyLoading(LazyPricing, "Pricing")} />
-          <Route path="/feed" component={withLazyLoading(LazyFeed, "Feed")} />
-          <Route path="/export" component={withLazyLoading(LazyExportManager, "Export Manager")} />
           <Route path="/ask-arc" component={withLazyLoading(() => import('@/components/AskArc'), "Ask Arc")} />
-          <Route path="/arc-archive" component={withLazyLoading(LazyArcArchive, "Arc Archive")} />
+          <Route path="/arc-archive" component={withLazyLoading(() => import('@/pages/arc-archive'), "Arc Archive")} />
           <Route path="/arc-settings" component={withLazyLoading(() => import('@/components/ArcPersonaSettings'), "Arc Settings")} />
           <Route path="/constellation" component={withLazyLoading(() => import('@/pages/Constellation'), "Constellation")} />
           <Route path="/constellations" component={withLazyLoading(() => import('@/pages/Constellations'), "Constellations")} />

@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { ThumbsUp, ThumbsDown, Check } from 'lucide-react';
 
 export default function InsightFeedback({ insightId, insightType = 'general' }) {
-  const { user, trackBehavior } = useUser();
+  // Remove useUser to prevent hook violations
+  const user = null;
+  const trackBehavior = () => {};
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

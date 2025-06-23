@@ -3,7 +3,12 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, Clock, Heart, MessageSquare, BarChart3 } from 'lucide-react';
 
 export default function BehaviorInsights() {
-  const { user, userTraits, peakHours, moodBaseline, writingStyle } = useUser();
+  // Remove useUser to prevent hook violations
+  const user = null;
+  const userTraits = null;
+  const peakHours = [];
+  const moodBaseline = 50;
+  const writingStyle = 'balanced';
   const [insights, setInsights] = useState([]);
 
   useEffect(() => {

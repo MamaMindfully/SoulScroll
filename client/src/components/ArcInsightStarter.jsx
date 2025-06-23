@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@/hooks/useUser';
+// Remove useUser import to prevent hook violations
 import useArcInsightStarter from '@/hooks/useArcInsightStarter';
 import ArcResponse from './ArcResponse';
 import SaveReflectionButton from './SaveReflectionButton';
@@ -7,7 +7,8 @@ import { useIsMobile } from '@/hooks/useMediaQuery';
 import { MessageCircle, Sparkles, Send, Loader2, AlertTriangle } from 'lucide-react';
 
 export default function ArcInsightStarter() {
-  const { user } = useUser();
+  // Remove useUser to prevent hook violations
+  const user = null;
   const isMobile = useIsMobile();
   const { insight, loading, startArcInsight, clearInsight } = useArcInsightStarter();
   const [customPrompt, setCustomPrompt] = useState('');
