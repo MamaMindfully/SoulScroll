@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sun, Heart, Target, Smile, AlertCircle } from "lucide-react";
-import { morningEntrySchema, markFlowCompleted, safeLocalStorageSet } from "@/utils/flowValidation";
+import { Sun, Heart, Target, Smile } from "lucide-react";
 
 interface MorningEntry {
   type: 'morning';
@@ -25,78 +24,48 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
   const [mood, setMood] = useState('');
   const [step, setStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  const validateCurrentStep = useCallback(() => {
-    const newErrors: Record<string, string> = {};
-    
-    if (step === 1 && gratitude.trim().length < 5) {
-      newErrors.gratitude = 'Please write at least 5 characters about what you\'re grateful for';
-    }
-    if (step === 2 && intention.trim().length < 5) {
-      newErrors.intention = 'Please write at least 5 characters about your intention';
-    }
-    if (step === 3 && !mood) {
-      newErrors.mood = 'Please select your current mood';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [step, gratitude, intention, mood]);
-
-  const handleNext = useCallback(async () => {
-    if (!validateCurrentStep()) return;
-    
+  const handleNext = () => {
     if (step === 3) {
-      setIsSubmitting(true);
-      
       try {
-        // Validate complete entry
-        const entryData = {
-          gratitude: gratitude.trim(),
-          intention: intention.trim(),
-          mood
-        };
-        
-        const validatedData = morningEntrySchema.parse(entryData);
-        
         const entry: MorningEntry = {
           type: 'morning',
           timestamp: new Date().toISOString(),
-          ...validatedData,
+          gratitude: gratitude.trim(),
+          intention: intention.trim(),
+          mood,
         };
         
-        // Save with error handling
         const existing = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
-        const success = safeLocalStorageSet('soulscroll-entries', [...existing, entry]);
+        localStorage.setItem('soulscroll-entries', JSON.stringify([...existing, entry]));
         
-        if (success) {
-          markFlowCompleted('morning');
-          
-          if (onComplete) {
-            onComplete();
-          } else {
-            setLocation('/');
-          }
+        const today = new Date().toDateString();
+        localStorage.setItem('last-morning-ritual', today);
+        
+        const completedRituals = JSON.parse(localStorage.getItem('soulscroll-completed-rituals') || '[]');
+        if (!completedRituals.includes(today)) {
+          completedRituals.push(today);
+          localStorage.setItem('soulscroll-completed-rituals', JSON.stringify(completedRituals));
+        }
+        
+        if (onComplete) {
+          onComplete();
         } else {
-          throw new Error('Failed to save entry');
+          setLocation('/');
         }
       } catch (error) {
         console.error('Error saving morning ritual:', error);
-        setErrors({ submit: 'Failed to save your ritual. Please try again.' });
-      } finally {
-        setIsSubmitting(false);
+        setLocation('/');
       }
     } else {
       setStep(step + 1);
     }
-  }, [step, gratitude, intention, mood, validateCurrentStep, onComplete, setLocation]);
+  };
 
   const getStepIcon = () => {
     switch (step) {
@@ -152,23 +121,10 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
               <p className="text-lg font-medium text-center">What intention do you want to carry into the day?</p>
               <Textarea 
                 value={intention} 
-                onChange={(e) => {
-                  setIntention(e.target.value);
-                  if (errors.intention) setErrors(prev => ({ ...prev, intention: '' }));
-                }}
+                onChange={(e) => setIntention(e.target.value)}
                 placeholder="Today I intend to..."
-                className={`min-h-[120px] resize-none ${errors.intention ? 'border-red-500' : ''}`}
-                maxLength={200}
+                className="min-h-[120px] resize-none"
               />
-              {errors.intention && (
-                <div className="flex items-center gap-1 text-red-500 text-xs">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.intention}
-                </div>
-              )}
-              <div className="text-xs text-gray-400 text-right">
-                {intention.length}/200 characters
-              </div>
               <p className="text-xs text-wisdom/50 text-center">
                 Set a guiding purpose for your day ahead
               </p>
@@ -178,11 +134,8 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
           {step === 3 && (
             <div className="space-y-4">
               <p className="text-lg font-medium text-center">How are you feeling right now?</p>
-              <Select value={mood} onValueChange={(value) => {
-                setMood(value);
-                if (errors.mood) setErrors(prev => ({ ...prev, mood: '' }));
-              }}>
-                <SelectTrigger className={errors.mood ? 'border-red-500' : ''}>
+              <Select value={mood} onValueChange={setMood}>
+                <SelectTrigger>
                   <SelectValue placeholder="Choose your current mood" />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,18 +168,11 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
             
             <Button 
               onClick={handleNext} 
-              disabled={isSubmitting}
+              disabled={isNextDisabled()}
               className="px-8"
             >
-              {isSubmitting ? 'Saving...' : step === 3 ? 'Complete Ritual' : 'Next'}
+              {step === 3 ? 'Complete Ritual' : 'Next'}
             </Button>
-            
-            {errors.submit && (
-              <div className="flex items-center gap-1 text-red-500 text-xs mt-2">
-                <AlertCircle className="w-3 h-3" />
-                {errors.submit}
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

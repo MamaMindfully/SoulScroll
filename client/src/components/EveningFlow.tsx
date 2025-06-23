@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Moon, Star, BookOpen, Heart, AlertCircle } from "lucide-react";
-import { eveningEntrySchema, markFlowCompleted, safeLocalStorageSet } from "@/utils/flowValidation";
+import { Moon, Star, BookOpen, Heart } from "lucide-react";
 
 interface EveningEntry {
   type: 'evening';
@@ -25,78 +24,48 @@ const EveningFlow = ({ onComplete }: EveningFlowProps) => {
   const [emotion, setEmotion] = useState('');
   const [step, setStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  const validateCurrentStep = useCallback(() => {
-    const newErrors: Record<string, string> = {};
-    
-    if (step === 1 && highPoint.trim().length < 5) {
-      newErrors.highPoint = 'Please write at least 5 characters about your best moment';
-    }
-    if (step === 2 && lesson.trim().length < 5) {
-      newErrors.lesson = 'Please write at least 5 characters about what you learned';
-    }
-    if (step === 3 && !emotion) {
-      newErrors.emotion = 'Please select your closing emotion';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [step, highPoint, lesson, emotion]);
-
-  const handleNext = useCallback(async () => {
-    if (!validateCurrentStep()) return;
-    
+  const handleNext = () => {
     if (step === 3) {
-      setIsSubmitting(true);
-      
       try {
-        // Validate complete entry
-        const entryData = {
-          highPoint: highPoint.trim(),
-          lesson: lesson.trim(),
-          emotion
-        };
-        
-        const validatedData = eveningEntrySchema.parse(entryData);
-        
         const entry: EveningEntry = {
           type: 'evening',
           timestamp: new Date().toISOString(),
-          ...validatedData,
+          highPoint: highPoint.trim(),
+          lesson: lesson.trim(),
+          emotion,
         };
         
-        // Save with error handling
         const existing = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
-        const success = safeLocalStorageSet('soulscroll-entries', [...existing, entry]);
+        localStorage.setItem('soulscroll-entries', JSON.stringify([...existing, entry]));
         
-        if (success) {
-          markFlowCompleted('evening');
-          
-          if (onComplete) {
-            onComplete();
-          } else {
-            setLocation('/');
-          }
+        const today = new Date().toDateString();
+        localStorage.setItem('last-evening-ritual', today);
+        
+        const completedRituals = JSON.parse(localStorage.getItem('soulscroll-completed-rituals') || '[]');
+        if (!completedRituals.includes(today)) {
+          completedRituals.push(today);
+          localStorage.setItem('soulscroll-completed-rituals', JSON.stringify(completedRituals));
+        }
+        
+        if (onComplete) {
+          onComplete();
         } else {
-          throw new Error('Failed to save entry');
+          setLocation('/');
         }
       } catch (error) {
         console.error('Error saving evening ritual:', error);
-        setErrors({ submit: 'Failed to save your ritual. Please try again.' });
-      } finally {
-        setIsSubmitting(false);
+        setLocation('/');
       }
     } else {
       setStep(step + 1);
     }
-  }, [step, highPoint, lesson, emotion, validateCurrentStep, onComplete, setLocation]);
+  };
 
   const getStepIcon = () => {
     switch (step) {
