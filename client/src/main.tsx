@@ -49,6 +49,9 @@ import { initializePerformanceOptimizations } from "./utils/finalOptimizations";
 initSentry();
 performanceMonitor.startMark('app-initialization');
 
+// Initialize service worker for PWA functionality
+initializeServiceWorker();
+
 // Initialize global authentication handler
 initializeGlobalAuthHandler();
 

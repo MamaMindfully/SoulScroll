@@ -90,7 +90,7 @@ export default function PWAInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
+    <div data-testid="pwa-install-prompt" className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
       <Card className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white border-0 shadow-xl">
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
@@ -99,6 +99,7 @@ export default function PWAInstallPrompt() {
               <h3 className="font-semibold">Install SoulScroll</h3>
             </div>
             <Button
+              data-testid="install-dismiss"
               variant="ghost"
               size="sm"
               onClick={handleDismiss}
@@ -114,6 +115,7 @@ export default function PWAInstallPrompt() {
           
           <div className="flex space-x-2">
             <Button
+              data-testid="install-accept"
               onClick={handleInstallClick}
               className="flex-1 bg-white text-purple-600 hover:bg-white/90"
               size="sm"
