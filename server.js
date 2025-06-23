@@ -4,18 +4,52 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from Vite's dist folder
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve static files from Vite's dist folder with proper headers
+app.use(express.static(path.join(__dirname, 'dist'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
 
 // Service worker direct serving (Replit-specific fix)
 app.get('/service-worker.js', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'));
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'), (err) => {
+    if (err) {
+      console.log('Service worker not found, serving fallback');
+      res.send(`
+        self.addEventListener('install', () => {
+          console.log('Fallback Service Worker installed');
+          self.skipWaiting();
+        });
+        self.addEventListener('activate', () => {
+          console.log('Fallback Service Worker activated');
+          return self.clients.claim();
+        });
+        self.addEventListener('fetch', (event) => {
+          // Passthrough all requests
+        });
+      `);
+    }
+  });
 });
 
 // Serve manifest icons directly
-app.use('/icon-192.png', express.static(path.join(__dirname, 'dist', 'icon-192.png')));
-app.use('/icon-512.png', express.static(path.join(__dirname, 'dist', 'icon-512.png')));
-app.use('/icon-144x144.png', express.static(path.join(__dirname, 'dist', 'icon-144x144.png')));
+app.get('/icon-192.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'icon-192.png'));
+});
+app.get('/icon-512.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'icon-512.png'));
+});
+app.get('/icon-144x144.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'icon-144x144.png'));
+});
 
 // Handle SPA fallback - send index.html for all other routes
 app.get('*', (req, res) => {

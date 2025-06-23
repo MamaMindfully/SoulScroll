@@ -2,19 +2,36 @@
 // Provides centralized 401 error handling and session management
 
 export function initializeGlobalAuthHandler() {
+  console.log('Token from localStorage:', localStorage.getItem('authToken'));
+  
   // Track authentication state
   let isHandlingAuth = false;
   
-  // Override global fetch to handle 401 errors automatically
+  // Override global fetch to handle 401 errors and add auth headers
   window.fetch = (originalFetch => {
-    return (...args) => {
-      return originalFetch(...args).then(response => {
+    return (url, options = {}) => {
+      // Add authentication header if token exists
+      const token = localStorage.getItem('authToken');
+      if (token && !options.headers?.Authorization) {
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+      }
+      
+      return originalFetch(url, options).then(response => {
         if (response.status === 401) {
           console.error('Global 401 detected. Session expired.');
           localStorage.removeItem('authToken'); // Clear invalid token
           window.dispatchEvent(new CustomEvent('authExpired', { 
             detail: { reason: 'API returned 401' } 
           }));
+          
+          // For production, redirect to login
+          if (process.env.NODE_ENV === 'production') {
+            window.location.href = '/login';
+          }
         }
         return response;
       });
