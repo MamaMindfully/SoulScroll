@@ -15,6 +15,7 @@ import PerformanceMonitor from "@/components/PerformanceMonitor";
 import MobileTouchOptimizations from "@/components/MobileTouchOptimizations";
 import { AppStoreMetadata } from "@/components/AppStoreOptimization";
 import DailyNotification from "@/components/DailyNotification";
+import SecurityEnhancements from "@/components/SecurityEnhancements";
 import { fetchSoulScrollReply } from './utils/gptAPI';
 import { prompts } from './utils/promptTemplates';
 import { saveReflection, incrementReflectionCount } from './utils/storage';

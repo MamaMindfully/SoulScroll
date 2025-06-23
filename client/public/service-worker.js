@@ -1,24 +1,65 @@
-const CACHE_NAME = 'soulscroll-v1';
-const STATIC_CACHE_NAME = 'soulscroll-static-v1';
-const DYNAMIC_CACHE_NAME = 'soulscroll-dynamic-v1';
+// SoulScroll Service Worker with Advanced Cache Control
+self.addEventListener('install', (event) => {
+  console.log('SoulScroll Service Worker installing...');
+  event.waitUntil(
+    caches.open('soulscroll-static-v1.0.0').then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/icon-192.png',
+        '/manifest.json',
+        '/styles.css'
+      ]);
+    })
+  );
+});
 
-// Files to cache immediately
-const STATIC_FILES = [
-  '/',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
+self.addEventListener('activate', (event) => {
+  console.log('SoulScroll Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== 'soulscroll-static-v1.0.0') {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
 
-// API routes to cache
-const API_CACHE_ROUTES = [
-  '/api/user/stats',
-  '/api/user/premium-status',
-  '/api/prompts/daily'
-];
-
-// Install event
-self.addEventListener('install', event => {
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Cache hit - return response
+        if (response) {
+          return response;
+        }
+        
+        // Network request with cache fallback
+        return fetch(event.request).then((response) => {
+          // Don't cache API responses or non-GET requests
+          if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
+            return response;
+          }
+          
+          // Cache static assets
+          if (event.request.url.includes('.js') || event.request.url.includes('.css') || event.request.url.includes('.png')) {
+            const responseToCache = response.clone();
+            caches.open('soulscroll-static-v1.0.0')
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+          }
+          
+          return response;
+        });
+      })
+  );
+});
   console.log('SoulScroll Service Worker installing...');
   
   event.waitUntil(
