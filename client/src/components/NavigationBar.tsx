@@ -24,13 +24,15 @@ const NavigationBar: React.FC = () => {
           if (hasAccess) {
             return (
               <Link key={item.path} href={item.path}>
-                <span className={`
-                  px-3 py-2 rounded-md text-sm font-medium transition-colors
-                  ${isActive 
-                    ? 'bg-purple-100 text-purple-700' 
-                    : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
-                  }
-                `}>
+                <span 
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                  className={`
+                    px-3 py-2 rounded-md text-sm font-medium transition-colors
+                    ${isActive 
+                      ? 'bg-purple-100 text-purple-700' 
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                    }
+                  `}>
                   {item.label}
                 </span>
               </Link>
