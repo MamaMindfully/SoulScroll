@@ -1,5 +1,4 @@
 import { lazy, Suspense } from 'react';
-import { // useHasMounted removed } from '@/utils/// useHasMounted removed';
 
 // Dynamic imports for heavy components
 const ConstellationMap = lazy(() => import('@/components/InsightGraph'));
@@ -17,7 +16,7 @@ function DynamicComponentWrapper({
   fallback = <div className="text-muted-foreground">Loading insights...</div>,
   ssr = false 
 }: DynamicComponentWrapperProps) {
-  const hasMounted = // useHasMounted removed();
+  
   
   if (!ssr && !hasMounted) {
     return <>{fallback}</>;

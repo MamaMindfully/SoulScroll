@@ -23,10 +23,9 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { // useHasMounted removed } from "@/utils/// useHasMounted removed";
 
 export default function Home() {
-  const hasMounted = // useHasMounted removed();
+  
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
@@ -49,10 +48,10 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (hasMounted) {
+    // Access localStorage safely after mount
       setIsOnline(navigator.onLine);
     }
-  }, [hasMounted]);
+  }, []);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -112,7 +111,7 @@ export default function Home() {
         }
       }
     }
-  }, [isAuthenticated, isLoading, setLocation, hasMounted]);
+  }, [isAuthenticated, isLoading, setLocation]);
 
   // Handle online/offline status
   useEffect(() => {
@@ -129,7 +128,7 @@ export default function Home() {
   }, []);
 
   // Early return after all hooks
-  if (!hasMounted) return null;
+  // Component renders normally without hydration checks
 
   if (isLoading || !isAuthenticated) {
     return (

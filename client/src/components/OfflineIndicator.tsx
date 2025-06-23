@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WifiOff, Wifi, RefreshCw } from "lucide-react";
-import { // useHasMounted removed } from "@/utils/// useHasMounted removed";
 
 const OfflineIndicator: React.FC = () => {
-  const hasMounted = // useHasMounted removed();
+  
   const [isOnline, setIsOnline] = useState(true);
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (!hasMounted) return;
+    
     // Initialize online status
     setIsOnline(navigator.onLine);
     setShowOfflineBanner(!navigator.onLine);
@@ -40,9 +39,9 @@ const OfflineIndicator: React.FC = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [hasMounted]);
+  }, []);
 
-  if (!hasMounted) return null;
+  
 
   const syncOfflineData = async () => {
     try {

@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Smartphone, Battery, Wifi, Download, Share2, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { // useHasMounted removed } from "@/utils/// useHasMounted removed";
 
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -11,7 +10,7 @@ interface InstallPromptEvent extends Event {
 }
 
 export default function MobileOptimizations() {
-  const hasMounted = // useHasMounted removed();
+  
   const [deferredPrompt, setDeferredPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -19,7 +18,7 @@ export default function MobileOptimizations() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!hasMounted) return;
+    
     // Check if app is already installed (running in standalone mode)
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
     setIsStandalone(isStandaloneMode);
@@ -49,9 +48,9 @@ export default function MobileOptimizations() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, [hasMounted, toast]);
+  }, [toast]);
 
-  if (!hasMounted) return null;
+  
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;

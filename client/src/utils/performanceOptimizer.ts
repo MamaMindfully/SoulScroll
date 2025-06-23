@@ -1,33 +1,32 @@
 import { useEffect } from 'react';
-import { // useHasMounted removed } from './// useHasMounted removed';
 
 // Performance optimization hooks
 export const useDelayedEffect = (callback: () => void, delay: number = 2000) => {
-  const hasMounted = // useHasMounted removed();
+  
   
   useEffect(() => {
-    if (!hasMounted) return;
+    
     
     const timer = setTimeout(() => {
       callback();
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [hasMounted, callback, delay]);
+  }, [callback, delay]);
 };
 
 export const useIntersectionObserver = (
   callback: (entries: IntersectionObserverEntry[]) => void,
   options?: IntersectionObserverInit
 ) => {
-  const hasMounted = // useHasMounted removed();
+  
   
   useEffect(() => {
     if (!hasMounted || typeof IntersectionObserver === 'undefined') return;
     
     const observer = new IntersectionObserver(callback, options);
     return () => observer.disconnect();
-  }, [hasMounted, callback, options]);
+  }, [callback, options]);
 };
 
 // Image optimization utilities

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { // useHasMounted removed } from '@/utils/// useHasMounted removed';
 
 interface LazyImageProps {
   src: string;
@@ -22,12 +21,12 @@ export default function LazyImage({
   loading = 'lazy',
   priority = false
 }: LazyImageProps) {
-  const hasMounted = // useHasMounted removed();
+  
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState('');
 
   useEffect(() => {
-    if (!hasMounted) return;
+    
     
     if (priority) {
       // Load immediately for priority images
@@ -41,9 +40,9 @@ export default function LazyImage({
       };
       img.src = src;
     }
-  }, [hasMounted, src, priority]);
+  }, [src, priority]);
 
-  if (!hasMounted) {
+  // Component safety check {
     return (
       <div 
         className={`bg-gray-200 animate-pulse ${className}`}
