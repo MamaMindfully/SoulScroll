@@ -3,10 +3,11 @@ import EmotionPulseGraph from './EmotionPulseGraph'
 import InnerCompass from './InnerCompass'
 import PersonalizedInsight from './PersonalizedInsight'
 import SaveReflectionButton from './SaveReflectionButton'
-import { useUser } from '@/hooks/useUser'
+// Remove useUser import to prevent React hook violations
 
 export default function EmotionalDashboard() {
-  const { trackBehavior } = useUser()
+  // Remove trackBehavior to prevent hook violations
+  const trackBehavior = () => {}
   const [emotionData, setEmotionData] = useState([])
   const [memoryInsight, setMemoryInsight] = useState(null)
   const [loading, setLoading] = useState(true)

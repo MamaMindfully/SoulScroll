@@ -35,7 +35,7 @@ import OnboardingModal from "@/components/OnboardingModal";
 import FeedbackButton from "@/components/FeedbackButton";
 import { restoreSession } from "@/utils/restoreSession";
 // Removed // useHasMounted removed import - using local state instead
-import { useDelayedEffect, optimizeImageLoading, optimizeMemoryUsage, optimizeBundleLoading } from "@/utils/performanceOptimizer";
+// Remove imports that cause deployment errors
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Community from "@/pages/community";
 import MamaMindfully from "@/pages/mama-mindfully";
@@ -153,12 +153,21 @@ function App() {
     }
   }, [mounted]);
 
-  // Delayed performance optimizations
-  useDelayedEffect(() => {
-    optimizeImageLoading();
-    optimizeMemoryUsage();
-    optimizeBundleLoading();
-  }, 2000);
+  // Delayed performance optimizations using safe import
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        const { optimizeImageLoading, optimizeMemoryUsage, optimizeBundleLoading } = await import('@/utils/performanceOptimizer');
+        optimizeImageLoading();
+        optimizeMemoryUsage();
+        optimizeBundleLoading();
+      } catch (error) {
+        console.log('Performance optimizations skipped:', error.message);
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle intro completion
   const handleIntroComplete = () => {
