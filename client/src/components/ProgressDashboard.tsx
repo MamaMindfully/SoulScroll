@@ -55,7 +55,7 @@ const ProgressDashboard = () => {
       setWeeklyProgress(0);
       setUnlockables([]);
     }
-  }, []);
+  });
 
   const calculateStreak = (entries: JournalEntry[]) => {
     const uniqueDays = new Set(entries.map(e => new Date(e.timestamp).toDateString()));

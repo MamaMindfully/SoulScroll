@@ -27,7 +27,7 @@ const DismissibleBanner: React.FC<DismissibleBannerProps> = ({
 
   useEffect(() => {
     checkShouldShow();
-  }, []);
+  });
 
   const checkShouldShow = () => {
     // Check user preferences and history

@@ -41,7 +41,7 @@ export default function MobileTouchOptimizations() {
       window.removeEventListener('mouseover', removeTouchClass);
       window.removeEventListener('orientationchange', updateSafeAreas);
     };
-  }, []);
+  });
 
   return null;
 }

@@ -46,7 +46,7 @@ export function AppStoreMetadata() {
         document.head.appendChild(link);
       }
     });
-  }, []);
+  });
 
   return null;
 }

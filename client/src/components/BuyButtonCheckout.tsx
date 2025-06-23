@@ -33,7 +33,7 @@ export default function BuyButtonCheckout() {
         document.head.removeChild(existingScript);
       }
     };
-  }, []);
+  });
 
   const features = [
     'AI-powered emotional insights',

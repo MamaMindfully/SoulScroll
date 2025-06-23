@@ -43,7 +43,7 @@ const WisdomFeed: React.FC = () => {
 
   useEffect(() => {
     setDisplayQuotes(getRandomQuotes());
-  }, []);
+  });
 
   // Combine community wisdom with inspirational quotes
   const allWisdom = [

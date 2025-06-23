@@ -27,7 +27,7 @@ export default function DeploymentOptimizations() {
 
   useEffect(() => {
     performDeploymentChecks();
-  }, []);
+  });
 
   const performDeploymentChecks = () => {
     const deploymentChecks: DeploymentCheck[] = [

@@ -127,7 +127,7 @@ export function LimitedTimeOffer({ onAccept }: { onAccept: () => void }) {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  });
 
   return (
     <Card className="p-6 bg-gradient-to-r from-primary to-accent text-white relative overflow-hidden">

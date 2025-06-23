@@ -42,7 +42,7 @@ const MantraDesigner = () => {
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('soulscroll-mantras') || '[]');
     setMantraList(stored);
-  }, []);
+  });
 
   const handleAdd = () => {
     if (!newMantra.trim()) return;

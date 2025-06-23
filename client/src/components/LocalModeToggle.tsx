@@ -14,7 +14,7 @@ export default function LocalModeToggle({ onModeChange }: LocalModeToggleProps) 
   const { toast } = useToast();
 
   useEffect(() => {
-    // Component mounted safely {
+    {
       const savedMode = localStorage.getItem('luma_local_mode');
       setIsLocalMode(savedMode === 'true');
     }

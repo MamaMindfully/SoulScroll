@@ -37,7 +37,7 @@ export default function WeeklyPortalCard() {
 
   useEffect(() => {
     loadPortalData();
-  }, []);
+  });
 
   const loadPortalData = async () => {
     try {

@@ -39,7 +39,7 @@ export default function AffirmationActionCard() {
   useEffect(() => {
     loadDailyAction();
     loadProgress();
-  }, []);
+  });
 
   const loadDailyAction = async () => {
     try {

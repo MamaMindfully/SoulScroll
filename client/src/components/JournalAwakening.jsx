@@ -41,7 +41,7 @@ export default function JournalAwakening({ onAwaken }) {
       clearTimeout(skipTimer);
       clearTimeout(proceedTimer);
     };
-  }, []);
+  });
 
   const handleAwaken = () => {
     setVisible(false);
@@ -144,7 +144,7 @@ function BreathGuidance() {
     };
     
     cycle();
-  }, []);
+  });
 
   return (
     <div className="flex flex-col items-center space-y-6">

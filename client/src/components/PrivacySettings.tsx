@@ -61,7 +61,7 @@ const PrivacySettings = () => {
       }
     });
     setSettings(loadedSettings);
-  }, []);
+  });
 
   const toggleSetting = (settingId: string) => {
     const newSettings = {

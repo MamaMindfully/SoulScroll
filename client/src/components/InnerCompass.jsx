@@ -18,7 +18,7 @@ export default function InnerCompass() {
           deeper: "Sometimes our deepest wisdom comes not from thinking, but from feeling. What emotion is asking for your attention today?"
         })
       })
-  }, [])
+  })
 
   if (!prompt) return null
 

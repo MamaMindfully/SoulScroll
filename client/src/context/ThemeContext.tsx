@@ -56,11 +56,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<ThemeType>('calm');
   
   useEffect(() => {
-    // Component mounted safely {
-      const saved = localStorage.getItem('soulscroll-theme');
-      if (saved) {
-        setTheme(saved as ThemeType);
-      }
+    const saved = localStorage.getItem('soulscroll-theme');
+    if (saved) {
+      setTheme(saved as ThemeType);
     }
   }, []);
 

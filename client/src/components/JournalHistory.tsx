@@ -51,7 +51,7 @@ const JournalHistory: React.FC<JournalHistoryProps> = ({
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  });
 
   useEffect(() => {
     filterEntries();

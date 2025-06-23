@@ -14,7 +14,7 @@ export default function OnboardingModal() {
       
       return () => clearTimeout(timer);
     }
-  }, []);
+  });
 
   const handleDismiss = () => {
     localStorage.setItem('soulscroll_seen_intro', 'true');

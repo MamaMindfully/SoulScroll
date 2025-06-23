@@ -38,7 +38,7 @@ const VisualProgressTracker: React.FC = () => {
 
   useEffect(() => {
     loadProgressData();
-  }, []);
+  });
 
   const loadProgressData = () => {
     console.log('📊 Loading progress data...');

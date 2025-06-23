@@ -14,7 +14,7 @@ const PerformanceMonitor: React.FC = () => {
     if (process.env.NODE_ENV === 'development') {
       setIsVisible(true);
     }
-  }, []);
+  });
 
   const refreshStats = () => {
     const currentStats = performanceMonitor.getStats();

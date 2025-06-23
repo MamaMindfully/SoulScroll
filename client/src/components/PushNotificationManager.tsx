@@ -38,7 +38,7 @@ export default function PushNotificationManager() {
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
-  }, []);
+  });
 
   const requestPermission = async () => {
     if (!isSupported) {

@@ -116,7 +116,7 @@ const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ children })
     measurePerformance();
 
     return cleanupMemory;
-  }, []);
+  });
 
   return <>{children}</>;
 };

@@ -48,9 +48,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    // Access localStorage safely after mount
-      setIsOnline(navigator.onLine);
-    }
+    setIsOnline(navigator.onLine);
   }, []);
 
   // Redirect to home if not authenticated

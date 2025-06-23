@@ -88,7 +88,7 @@ export default function EnhancedPrompts({ onPromptSelect }: { onPromptSelect: (p
     const today = new Date();
     const dayIndex = today.getDate() % soulfulPrompts.length;
     setCurrentPrompt(soulfulPrompts[dayIndex]);
-  }, []);
+  });
 
   const changePrompt = () => {
     setIsChanging(true);
