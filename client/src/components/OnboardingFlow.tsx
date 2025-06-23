@@ -20,16 +20,33 @@ const OnboardingFlow = ({ saveUserPreferences }: OnboardingFlowProps) => {
   const [intent, setIntent] = useState('');
   const [ritualTime, setRitualTime] = useState('');
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 2) {
-      saveUserPreferences({ intent, ritualTime });
-      setLocation('/'); // Navigate to home
+      try {
+        // Save preferences with validation
+        const preferences = { 
+          intent: intent.trim(), 
+          ritualTime: ritualTime.trim() 
+        };
+        
+        await saveUserPreferences(preferences);
+        
+        // Mark onboarding as completed
+        localStorage.setItem('soulscroll-onboarding-completed', 'true');
+        localStorage.setItem('soulscroll-user-preferences', JSON.stringify(preferences));
+        
+        setLocation('/'); // Navigate to home
+      } catch (error) {
+        console.error('Error saving user preferences:', error);
+        // Still navigate to prevent user being stuck
+        setLocation('/');
+      }
     } else {
       setStep(step + 1);
     }
   };
 
-  const isNextDisabled = (step === 1 && !intent) || (step === 2 && !ritualTime);
+  const isNextDisabled = (step === 1 && !intent.trim()) || (step === 2 && !ritualTime.trim());
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-purple-50">

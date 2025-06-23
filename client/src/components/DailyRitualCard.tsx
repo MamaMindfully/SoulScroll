@@ -128,7 +128,15 @@ const DailyRitualCard: React.FC<DailyRitualCardProps> = ({
 
   const getCurrentTimeType = (): 'morning' | 'evening' => {
     const hour = new Date().getHours();
-    return hour >= 5 && hour < 18 ? 'morning' : 'evening';
+    const userPreferences = JSON.parse(localStorage.getItem('soulscroll-user-preferences') || '{}');
+    const preferredTime = userPreferences.ritualTime;
+    
+    // Respect user's preferred ritual time
+    if (preferredTime === 'morning' && hour >= 5 && hour < 12) return 'morning';
+    if (preferredTime === 'evening' && hour >= 17) return 'evening';
+    
+    // Default time-based logic
+    return hour >= 5 && hour < 17 ? 'morning' : 'evening';
   };
 
   const handleRefresh = () => {

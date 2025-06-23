@@ -69,37 +69,50 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  // Auto-launch ritual flows during appropriate hours
+  // Auto-launch ritual flows during appropriate hours with user preferences
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated && !isLoading && hasMounted) {
       const now = new Date();
       const hour = now.getHours();
       const today = new Date().toDateString();
       
-      // Check if it's morning time (4 AM to 10 AM) and user hasn't done morning ritual today
-      if (hour >= 4 && hour <= 10) {
-        const lastMorningRitual = localStorage.getItem('last-morning-ritual');
-        
-        if (lastMorningRitual !== today) {
-          // Navigate to morning flow if not completed today
-          setTimeout(() => {
-            setLocation('/morning');
-          }, 1000);
+      // Get user preferences to respect their ritual time choice
+      const userPreferences = JSON.parse(localStorage.getItem('soulscroll-user-preferences') || '{}');
+      const preferredTime = userPreferences.ritualTime;
+      
+      // Check if user wants auto-launch (respect their preference)
+      const autoLaunchDisabled = localStorage.getItem('soulscroll-disable-auto-launch') === 'true';
+      
+      if (!autoLaunchDisabled) {
+        // Check if it's morning time (5 AM to 11 AM) and user prefers morning/flexible
+        if (hour >= 5 && hour <= 11 && (preferredTime === 'morning' || preferredTime === 'flexible')) {
+          const lastMorningRitual = localStorage.getItem('last-morning-ritual');
+          
+          if (lastMorningRitual !== today) {
+            // Navigate to morning flow if not completed today
+            const timeoutId = setTimeout(() => {
+              setLocation('/morning');
+            }, 2000); // Increased delay for better UX
+            
+            return () => clearTimeout(timeoutId);
+          }
         }
-      }
-      // Check if it's evening time (6 PM to 11 PM) and user hasn't done evening ritual today
-      else if (hour >= 18 && hour <= 23) {
-        const lastEveningRitual = localStorage.getItem('last-evening-ritual');
-        
-        if (lastEveningRitual !== today) {
-          // Navigate to evening flow if not completed today
-          setTimeout(() => {
-            setLocation('/evening');
-          }, 1000);
+        // Check if it's evening time (6 PM to 11 PM) and user prefers evening/flexible
+        else if (hour >= 18 && hour <= 23 && (preferredTime === 'evening' || preferredTime === 'flexible')) {
+          const lastEveningRitual = localStorage.getItem('last-evening-ritual');
+          
+          if (lastEveningRitual !== today) {
+            // Navigate to evening flow if not completed today
+            const timeoutId = setTimeout(() => {
+              setLocation('/evening');
+            }, 2000); // Increased delay for better UX
+            
+            return () => clearTimeout(timeoutId);
+          }
         }
       }
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+  }, [isAuthenticated, isLoading, setLocation, hasMounted]);
 
   // Handle online/offline status
   useEffect(() => {
