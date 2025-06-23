@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,13 @@ const EveningFlow = ({ onComplete }: EveningFlowProps) => {
   const [lesson, setLesson] = useState('');
   const [emotion, setEmotion] = useState('');
   const [step, setStep] = useState(1);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    // Ensure component is properly mounted
+    setIsLoaded(true);
+  }, []);
 
   const handleNext = () => {
     if (step === 3) {
@@ -70,6 +76,17 @@ const EveningFlow = ({ onComplete }: EveningFlowProps) => {
       default: return false;
     }
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50">
+        <div className="text-center">
+          <Moon className="w-8 h-8 text-indigo-500 animate-pulse mx-auto mb-2" />
+          <p className="text-indigo-600">Loading Evening Ritual...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-50 to-purple-50">

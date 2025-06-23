@@ -73,8 +73,8 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
-          <Route path="/morning" component={() => <MorningFlow />} />
-          <Route path="/evening" component={() => <EveningFlow />} />
+          <Route path="/morning" component={MorningFlow} />
+          <Route path="/evening" component={EveningFlow} />
           <Route path="/progress" component={withLazyLoading(LazyProgress, "Progress")} />
           <Route path="/community" component={withLazyLoading(LazyCommunity, "Community")} />
           <Route path="/dreams" component={withLazyLoading(LazyDreams, "Dreams")} />
