@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useHasMounted } from './useHasMounted';
 
 interface UserProfile {
   intent?: string;
@@ -7,15 +8,34 @@ interface UserProfile {
 }
 
 export const useUserProfile = () => {
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    const stored = localStorage.getItem('soulscroll-profile');
-    return stored ? JSON.parse(stored) : {};
-  });
+  const hasMounted = useHasMounted();
+  const [profile, setProfile] = useState<UserProfile>({});
+
+  useEffect(() => {
+    if (!hasMounted) return;
+    
+    try {
+      const stored = localStorage.getItem('soulscroll-profile');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setProfile(parsed);
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+      setProfile({});
+    }
+  }, [hasMounted]);
 
   const savePreferences = (prefs: Partial<UserProfile>) => {
-    const updated = { ...profile, ...prefs };
-    localStorage.setItem('soulscroll-profile', JSON.stringify(updated));
-    setProfile(updated);
+    if (!hasMounted) return;
+    
+    try {
+      const updated = { ...profile, ...prefs };
+      localStorage.setItem('soulscroll-profile', JSON.stringify(updated));
+      setProfile(updated);
+    } catch (error) {
+      console.error('Failed to save user preferences:', error);
+    }
   };
 
   return { profile, savePreferences };

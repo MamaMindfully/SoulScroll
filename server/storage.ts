@@ -492,8 +492,18 @@ export class DatabaseStorage implements IStorage {
     longestStreak: number;
     averageMood: number;
   }> {
-    const user = await this.getUser(userId);
-    if (!user) throw new Error("User not found");
+    // Create user if they don't exist (for development auth flow)
+    let user = await this.getUser(userId);
+    if (!user) {
+      // Auto-create user for development mode
+      user = await this.upsertUser({
+        id: userId,
+        email: `user-${userId}@example.com`,
+        firstName: 'Anonymous',
+        lastName: 'User',
+        isPremium: false
+      });
+    }
 
     const [totalEntriesResult] = await db
       .select({ count: sql<number>`count(*)` })

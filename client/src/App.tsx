@@ -62,8 +62,11 @@ function Router() {
     };
   }, []);
 
+  // Get user profile with safe access
+  const { profile } = useUserProfile();
+  
   // Check if user has completed onboarding
-  const hasCompletedOnboarding = profile.intent && profile.ritualTime;
+  const hasCompletedOnboarding = profile?.intent && profile?.ritualTime;
 
   if (!hasMounted) {
     return <div>Loading...</div>;
