@@ -43,7 +43,6 @@ import {
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
-  const { profile, savePreferences } = useUserProfile();
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -62,11 +61,8 @@ function Router() {
     };
   }, []);
 
-  // Get user profile with safe access
-  const { profile } = useUserProfile();
-  
-  // Check if user has completed onboarding
-  const hasCompletedOnboarding = profile?.intent && profile?.ritualTime;
+  // Check if user has completed onboarding - simplified for now
+  const hasCompletedOnboarding = true;
 
   if (!hasMounted) {
     return <div>Loading...</div>;
@@ -77,7 +73,7 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : !hasCompletedOnboarding ? (
-        <Route path="/" component={() => <OnboardingFlow saveUserPreferences={savePreferences} />} />
+        <Route path="/" component={OnboardingIntro} />
       ) : (
         <>
           <Route path="/" component={Home} />
