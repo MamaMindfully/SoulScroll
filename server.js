@@ -16,6 +16,9 @@ app.use(compression());
 // Set strong ETags for better caching
 app.set('etag', 'strong');
 
+// Debug: Log static file serving path
+console.log('Serving static files from:', path.join(__dirname, 'dist'));
+
 // Serve static files from Vite's dist folder
 app.use(express.static(path.join(__dirname, 'dist'), {
   setHeaders: (res, filePath) => {
@@ -55,6 +58,12 @@ app.use((req, res, next) => {
 // SPA fallback: always send index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ SoulScroll AI running on 0.0.0.0:${PORT}`);
+  console.log(`📂 Static files served from: ${path.join(__dirname, 'dist')}`);
+  console.log(`🌐 Access at: http://localhost:${PORT}`);
 });
 
 // Start the server
