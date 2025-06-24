@@ -16,46 +16,16 @@ app.use(compression());
 // Set strong ETags for better caching
 app.set('etag', 'strong');
 
-// Debug: Log static file serving path
-console.log('Serving static files from:', path.join(__dirname, 'dist'));
-
-// Serve static files from Vite's dist folder
+// 1. CRITICAL: Serve static assets FIRST!
 app.use(express.static(path.join(__dirname, 'dist'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
     if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+    if (filePath.endsWith('.json')) res.setHeader('Content-Type', 'application/json');
   }
 }));
 
-// Service worker serving
-app.get('/service-worker.js', (req, res) => {
-  res.setHeader('Content-Type', 'application/javascript');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'), err => {
-    if (err) {
-      console.log('Service worker not found, serving fallback');
-      res.send(`self.addEventListener('install',()=>{self.skipWaiting();});`);
-    }
-  });
-});
-
-// Manifest icons (optional, if present)
-['icon-192.png', 'icon-512.png', 'icon-144x144.png'].forEach(icon => {
-  app.get(`/${icon}`, (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', icon));
-  });
-});
-
-// Enhanced 404 handling for missing assets
-app.use((req, res, next) => {
-  if (req.method === 'GET' && req.accepts('html') && !req.path.startsWith('/api/')) {
-    res.status(404).sendFile(path.join(__dirname, 'dist', 'index.html'));
-  } else {
-    next();
-  }
-});
-
-// SPA fallback: always send index.html
+// 2. ONLY THEN: SPA catch-all route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
@@ -64,9 +34,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ SoulScroll AI running on 0.0.0.0:${PORT}`);
   console.log(`📂 Static files served from: ${path.join(__dirname, 'dist')}`);
   console.log(`🌐 Access at: http://localhost:${PORT}`);
-});
-
-// Start the server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ SoulScrollAI running on port ${PORT}`);
 });
