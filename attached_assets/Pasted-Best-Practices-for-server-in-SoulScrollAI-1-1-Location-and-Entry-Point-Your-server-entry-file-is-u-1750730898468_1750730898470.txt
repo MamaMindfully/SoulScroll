@@ -1,0 +1,119 @@
+Best Practices for /server in SoulScrollAI-1
+1. Location and Entry Point
+Your server entry file is usually /server.js or /server/index.js (sometimes /server/index.ts for TypeScript).
+
+If you have a /server folder, all backend logic, routes, middleware, and API code should live there.
+
+2. Folder Structure Example
+pgsql
+Copy
+Edit
+/server
+  index.js           # Main server entry (could be server.js in root)
+  routes/
+    api.js
+  controllers/
+    userController.js
+  middlewares/
+    auth.js
+  utils/
+    logger.js
+This keeps your code modular and easy to maintain.
+
+3. Example Minimal Express API in /server/index.js
+js
+Copy
+Edit
+import express from 'express';
+import cors from 'cors';
+import compression from 'compression';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(compression());
+
+// Example API route
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date() });
+});
+
+// (Mount more routers here as your app grows)
+
+// Export for main server.js or start directly
+export default app;
+
+// If you want to start the server here:
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`API server running on http://localhost:${PORT}`);
+  });
+}
+4. Importing Server Logic in Main server.js
+If you keep all logic in /server/index.js:
+
+js
+Copy
+Edit
+import app from './server/index.js';
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log('Server running!'));
+Or put the entire app in server.js for smaller projects.
+
+5. Security & Performance Best Practices
+Use compression() for gzip.
+
+Use cors() to restrict API if you want.
+
+Always use express.json() for JSON parsing.
+
+For production: never expose sensitive routes, never log secrets, and always validate all incoming data (use zod, joi, or express-validator).
+
+6. Environment Config
+Never hardcode credentials! Always use process.env for secrets, DB URLs, API keys.
+
+Use .env (and .env.example in git for templates).
+
+7. Mounting /dist for Static Serving
+If you use your API and serve the frontend from the same server:
+
+js
+Copy
+Edit
+import path from 'path';
+
+app.use(express.static(path.join(__dirname, '../dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
+Put this after your API routes.
+
+8. Advanced: Logging and Error Handling
+Use a real logger for prod (pino, winston, or simple console.log with timestamps).
+
+Always handle errors with a middleware:
+
+js
+Copy
+Edit
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Server error' });
+});
+9. Secure Your API
+Implement rate limiting for public APIs (express-rate-limit).
+
+Use HTTPS (Replit’s proxy provides this for you).
+
+10. Testing
+Export your app for easy integration with test runners (Jest, Supertest).
+
