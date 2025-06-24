@@ -1,0 +1,92 @@
+Best Practice tsconfig.json for Fullstack Vite + React + Node + Shared Types
+Recommended Example
+json
+Copy
+Edit
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/*"],
+      "@assets/*": ["attached_assets/*"],    // For image imports
+      "@/*": ["client/src/*"]
+    }
+  },
+  "include": [
+    "client/src",
+    "server",
+    "shared",
+    "cypress",
+    "vite.config.ts",
+    "tailwind.config.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}
+What’s Important
+target/lib: Modern JS and browser features.
+
+module: ESNext for best compatibility with Vite + modern Node.
+
+jsx: react-jsx for new JSX transform (no need to import React in every file).
+
+strict + forceConsistentCasingInFileNames + skipLibCheck: Type safety and fast builds.
+
+baseUrl + paths:
+
+@shared/* — shared code/types
+
+@assets/* — images and static assets
+
+@/* — frontend code
+
+types: Vite, Node, Cypress, etc.
+
+include/exclude:
+
+Includes all source folders and config files.
+
+Excludes build and dependencies.
+
+Special Notes
+Monorepo/alias: If your IDE isn’t picking up shared aliases, restart and ensure VS Code uses this as the main config.
+
+For test runners (Cypress, Jest):
+
+Add types: ["cypress", "vite/client", "node"] or similar for best DX.
+
+No emit: Keeps build purely type-checking (no output).
+
+Additions for Node Only
+If you want a separate config for backend:
+
+json
+Copy
+Edit
+{
+  "extends": "./tsconfig.json",
+  "include": ["server", "shared"],
+  "exclude": ["dist", "node_modules", "client"]
+}
+Tips
+If you get import path errors in code, check your paths matches your actual folder structure!
+
+Update paths/include if you move folders.
+
+Run npx tsc --noEmit to type-check whole project.
