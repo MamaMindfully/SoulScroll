@@ -56,4 +56,3 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ SoulScrollAI running on http://0.0.0.0:${PORT}`);
   console.log(`📂 Static files served from: ${path.join(__dirname, 'dist')}`);
 });
-
