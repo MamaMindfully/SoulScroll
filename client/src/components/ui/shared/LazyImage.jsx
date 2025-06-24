@@ -154,7 +154,7 @@ export function LazyBackgroundImage({
     }
 
     return () => observer.disconnect();
-  }, []);
+  });
 
   useEffect(() => {
     if (isInView && src) {

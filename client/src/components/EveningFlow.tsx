@@ -28,7 +28,7 @@ const EveningFlow = ({ onComplete }: EveningFlowProps) => {
 
   useEffect(() => {
     setIsLoaded(true);
-  }, []);
+  });
 
   const handleNext = () => {
     if (step === 3) {

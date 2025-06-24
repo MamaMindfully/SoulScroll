@@ -11,7 +11,7 @@ export default function AdminTokenGuard({ children }: AdminTokenGuardProps) {
 
   useEffect(() => {
     checkAdminAccess();
-  }, []);
+  });
 
   const checkAdminAccess = () => {
     const token = localStorage.getItem('soul_admin_token');

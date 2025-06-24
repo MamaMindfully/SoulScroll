@@ -28,7 +28,7 @@ const MorningFlow = ({ onComplete }: MorningFlowProps) => {
 
   useEffect(() => {
     setIsLoaded(true);
-  }, []);
+  });
 
   const handleNext = () => {
     if (step === 3) {
