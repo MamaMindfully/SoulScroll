@@ -1,0 +1,110 @@
+Vite Config Review
+/vite.config.ts
+Key points:
+
+ts
+Copy
+Edit
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+export default defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
+  },
+});
+Observations:
+
+root is set to client directory, not the project root.
+
+build.outDir is set to dist/public (NOT just dist).
+This means built files land in /dist/public/, but your Express server is serving from /dist—it will NOT find the built frontend!
+
+NO base: './' is set, which is critical for Replit and many static hosts.
+
+/vite.config.replit.js
+Key points:
+
+js
+Copy
+Edit
+export default {
+  base: './',
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
+  }
+};
+This is correct! If you use this config, your static files go into /dist/ and will work with your server config.
+
+Also sets base: './' for relative asset loading (prevents blank screens and asset 404s).
+
+Critical Issues and Recommendations
+1. BUILD OUTPUT FOLDER MISMATCH
+Your main Vite config outputs to /dist/public/, but your server expects /dist/.
+
+Result: No static files found, all 404s, app doesn’t work!
+
+2. MISSING base: './' IN MAIN VITE CONFIG
+Without this, asset URLs break on Replit and most static hosts.
+
+What To Do
+Easiest Path (Recommended for Replit/most hosts):
+Delete or ignore your current vite.config.ts
+
+Rename vite.config.replit.js → vite.config.js
+
+This config is perfect! (outputs to /dist/, uses base: './')
+
+Rebuild frontend:
+
+From project root:
+
+arduino
+Copy
+Edit
+npm install
+npm run build
+Confirm: /dist/ now contains your built index.html, assets, etc.
+
+Start your backend (Express):
+
+node server.js
+
+Should serve static files from /dist/, /service-worker.js, /icon-*.png, and fallback on /index.html.
+
+Other Details to Check
+package.json: Ensure "type": "module" is set for ES modules
+
+Service worker, icons: Must be present in /dist/ after build (or you will get 404s)
+
+Frontend entry point: Must be /dist/index.html
