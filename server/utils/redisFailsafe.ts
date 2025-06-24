@@ -54,7 +54,8 @@ export function getRedisConfig() {
   const hasRedisUrl = !!process.env.REDIS_URL;
   
   if (!hasRedisUrl) {
-    logger.info('No REDIS_URL configured - running in memory-only mode');
+    logger.info('REDIS_URL not configured - initializing deployment safety measures');
+    logger.info('Preventing Redis localhost connections - using memory-only fallbacks');
     return null;
   }
   

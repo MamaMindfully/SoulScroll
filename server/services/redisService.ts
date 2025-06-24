@@ -15,7 +15,7 @@ async function initializeRedis() {
     const redisConfig = getRedisConfig();
     
     if (!redisConfig) {
-      console.log('REDIS_URL not configured. Using fallback in-memory cache for deployment.');
+      logger.info('Redis service running in fallback mode with in-memory cache.');
       return null;
     }
     
@@ -35,11 +35,11 @@ async function initializeRedis() {
     await Promise.race([connectPromise, timeoutPromise]);
     
     redisClient.on('connect', () => {
-      console.log('Redis connection established successfully.');
+      logger.info('Redis connection established successfully.');
     });
     
     redisClient.on('error', (err) => {
-      console.error('Redis connection error:', err.message);
+      logger.warn('Redis connection error, using fallback cache:', err.message);
       // Don't throw here, let operations handle individual failures
     });
 
