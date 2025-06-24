@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -8,6 +9,12 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Enable compression for all responses
+app.use(compression());
+
+// Set strong ETags for better caching
+app.set('etag', 'strong');
 
 // Serve static files from Vite's dist folder
 app.use(express.static(path.join(__dirname, 'dist'), {

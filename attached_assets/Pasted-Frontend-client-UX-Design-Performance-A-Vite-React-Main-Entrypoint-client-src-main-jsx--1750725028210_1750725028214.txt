@@ -1,0 +1,112 @@
+Frontend (/client/): UX, Design, Performance
+A. Vite & React Main Entrypoint (/client/src/main.jsx)
+Optimization: use React’s Concurrent features, lazy load pages, and hydrate quickly.
+
+jsx
+Copy
+Edit
+import React, { Suspense, lazy } from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+
+const App = lazy(() => import('./App.jsx'));
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">Loading...</div>}>
+      <App />
+    </Suspense>
+  </React.StrictMode>
+);
+Benefits: Lazy loads App, instant feedback to user, better Web Vitals.
+
+B. index.html for Mobile/SEO/Performance
+html
+Copy
+Edit
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="SoulScrollAI: Fast, magical, offline-first AI experience." />
+    <title>SoulScrollAI</title>
+    <link rel="manifest" href="/manifest.json">
+  </head>
+  <body class="bg-background text-foreground min-h-screen flex flex-col">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+Benefits: Mobile scaling, PWA manifest, dark background, SEO description, fast rendering.
+
+C. tailwind.config.ts: Add Mobile & System Font Stack
+Add this under theme.extend:
+
+js
+Copy
+Edit
+fontFamily: {
+  sans: [
+    'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif',
+    'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol'
+  ],
+},
+Use font-sans for all main text.
+
+Add Inter to your /client/index.html for best effect:
+
+html
+Copy
+Edit
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+D. index.css/Tailwind: Accessibility & Fluid Layout
+Make sure your index.css resets and optimizes for accessibility:
+
+css
+Copy
+Edit
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  @apply font-sans bg-background text-foreground antialiased min-h-screen;
+  scroll-behavior: smooth;
+}
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+Fluid layouts: use flex or grid for parent containers, and use Tailwind’s responsive utilities (sm:, md:, etc.)
+
+E. Progressive Web App (PWA) Manifest
+Add /dist/manifest.json:
+
+json
+Copy
+Edit
+{
+  "name": "SoulScrollAI",
+  "short_name": "SoulScroll",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "Fast, magical, offline-first AI experience.",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+Ensures installability and good mobile experience.
+
+F. Optimize Image Assets
+Use SVG for icons where possible.
+
+Optimize PNG/JPGs: use Squoosh for compression.
+
+In React, use <img loading="lazy" ... /> for all images.
+

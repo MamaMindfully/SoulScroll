@@ -7,6 +7,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  @apply font-sans bg-background text-foreground antialiased min-h-screen;
+  scroll-behavior: smooth;
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
 /* Echo fade-in animation */
 .fade-in-slow {
   opacity: 0;

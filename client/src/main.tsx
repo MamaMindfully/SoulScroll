@@ -1,7 +1,8 @@
-import { StrictMode } from "react";
+import React, { Suspense, lazy } from 'react';
 import { createRoot } from "react-dom/client";
-import App from "./App";
 import "./index.css";
+
+const App = lazy(() => import('./App'));
 import { initSentry } from "./utils/sentry";
 import { performanceMonitor } from "./utils/performance";
 import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
@@ -231,9 +232,11 @@ const container = document.getElementById("root");
 if (container) {
   const root = createRoot(container);
   root.render(
-    <StrictMode>
-      <App />
-    </StrictMode>
+    <React.StrictMode>
+      <Suspense fallback={<div className="w-full h-screen flex items-center justify-center bg-slate-900 text-white">✨ Loading...</div>}>
+        <App />
+      </Suspense>
+    </React.StrictMode>
   );
   
   performanceMonitor.endMark('app-initialization');
