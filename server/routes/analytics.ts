@@ -294,6 +294,176 @@ router.get('/patterns', isAuthenticated, checkPremium, async (req: Request, res:
   }
 });
 
+// Mood outliers detection for premium users
+router.get('/mood-outliers', isAuthenticated, requirePremium, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const days = parseInt(req.query.days as string) || 30;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
+
+    // Get journal entries for the specified period
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const entries = await db
+      .select({
+        id: journalEntries.id,
+        emotionScore: journalEntries.emotionScore,
+        createdAt: journalEntries.createdAt,
+        wordCount: journalEntries.wordCount,
+        content: journalEntries.content
+      })
+      .from(journalEntries)
+      .where(and(
+        eq(journalEntries.userId, userId),
+        gte(journalEntries.createdAt, cutoffDate)
+      ))
+      .orderBy(journalEntries.createdAt);
+
+    if (entries.length < 3) {
+      return res.json({
+        entries: entries.map(e => ({ ...e, isOutlier: false })),
+        outlierCount: 0,
+        insights: {
+          message: 'Need more entries for outlier detection',
+          minimumEntries: 3
+        }
+      });
+    }
+
+    // Detect outliers using Z-score analysis
+    const scores = entries.map(e => e.emotionScore || 5);
+    const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Flag entries as outliers (2+ standard deviations from mean)
+    const entriesWithOutliers = entries.map(entry => {
+      const score = entry.emotionScore || 5;
+      const zScore = stdDev > 0 ? Math.abs((score - mean) / stdDev) : 0;
+      const isOutlier = zScore > 2;
+      
+      return {
+        id: entry.id,
+        date: entry.createdAt.toISOString().split('T')[0],
+        emotion_score: score,
+        wordCount: entry.wordCount,
+        isOutlier,
+        zScore: Number(zScore.toFixed(2)),
+        outlierType: isOutlier ? (score > mean ? 'positive' : 'negative') : null,
+        // Don't include full content for privacy, just preview
+        contentPreview: entry.content ? entry.content.substring(0, 100) + '...' : ''
+      };
+    });
+
+    const outlierEntries = entriesWithOutliers.filter(e => e.isOutlier);
+    
+    // Generate insights about outlier patterns
+    const positiveOutliers = outlierEntries.filter(e => e.outlierType === 'positive').length;
+    const negativeOutliers = outlierEntries.filter(e => e.outlierType === 'negative').length;
+    
+    // Analyze day-of-week patterns for outliers
+    const outlierDays = outlierEntries.map(e => new Date(e.date).getDay());
+    const dayFrequency = outlierDays.reduce((acc, day) => {
+      acc[day] = (acc[day] || 0) + 1;
+      return acc;
+    }, {} as { [key: number]: number });
+    
+    const mostCommonOutlierDay = Object.entries(dayFrequency)
+      .sort(([,a], [,b]) => b - a)[0];
+    
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    // Log outlier analysis access
+    auditService.logAuditEvent({
+      userId,
+      action: 'OUTLIER_ANALYSIS_ACCESS',
+      metadata: {
+        daysPeriod: days,
+        totalEntries: entries.length,
+        outliersDetected: outlierEntries.length,
+        positiveOutliers,
+        negativeOutliers,
+        meanEmotionScore: Number(mean.toFixed(2)),
+        stdDev: Number(stdDev.toFixed(2))
+      },
+      severity: 'info'
+    });
+
+    const response = {
+      entries: entriesWithOutliers,
+      outlierCount: outlierEntries.length,
+      insights: {
+        totalAnalyzed: entries.length,
+        outlierPercentage: Number(((outlierEntries.length / entries.length) * 100).toFixed(1)),
+        positiveOutliers,
+        negativeOutliers,
+        meanEmotionScore: Number(mean.toFixed(2)),
+        emotionalRange: {
+          min: Math.min(...scores),
+          max: Math.max(...scores),
+          stdDev: Number(stdDev.toFixed(2))
+        },
+        patterns: {
+          mostCommonOutlierDay: mostCommonOutlierDay ? 
+            dayNames[parseInt(mostCommonOutlierDay[0])] : 'No pattern detected',
+          outlierFrequency: dayFrequency
+        },
+        recommendations: generateOutlierRecommendations(outlierEntries, mean)
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Error detecting mood outliers', {
+      userId: req.user?.id,
+      error: error.message
+    });
+    
+    res.status(500).json({
+      error: 'Failed to detect mood outliers',
+      entries: [],
+      outlierCount: 0
+    });
+  }
+});
+
+// Generate personalized recommendations based on outlier patterns
+function generateOutlierRecommendations(outliers: any[], meanScore: number): string[] {
+  const recommendations: string[] = [];
+  
+  if (outliers.length === 0) {
+    recommendations.push('Your emotional patterns are quite stable. This consistency is a sign of emotional balance.');
+    return recommendations;
+  }
+  
+  const positiveOutliers = outliers.filter(e => e.outlierType === 'positive');
+  const negativeOutliers = outliers.filter(e => e.outlierType === 'negative');
+  
+  if (positiveOutliers.length > 0) {
+    recommendations.push(`You had ${positiveOutliers.length} exceptionally positive day(s). Consider what made these days special and how you might recreate those conditions.`);
+  }
+  
+  if (negativeOutliers.length > 0) {
+    recommendations.push(`You experienced ${negativeOutliers.length} challenging day(s). Reflecting on these patterns can help you develop coping strategies.`);
+  }
+  
+  if (outliers.length > 3) {
+    recommendations.push('You have several emotionally intense days. Consider whether external factors or internal patterns might be contributing to this variability.');
+  }
+  
+  if (meanScore > 7) {
+    recommendations.push('Your overall emotional baseline is quite positive. The outliers show the natural ebb and flow of emotional experience.');
+  } else if (meanScore < 4) {
+    recommendations.push('Your emotional patterns suggest you might benefit from additional support or stress management techniques.');
+  }
+  
+  return recommendations;
+}
+
 // Privacy-safe aggregated insights for premium users
 router.post('/submit-insights', isAuthenticated, async (req: Request, res: Response) => {
   try {

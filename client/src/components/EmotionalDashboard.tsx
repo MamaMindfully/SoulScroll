@@ -40,6 +40,19 @@ const EmotionalDashboard: React.FC<EmotionalDashboardProps> = ({
     enabled: !privacyMode && isPremium
   });
 
+  // Fetch outlier analysis for premium users
+  const { data: outlierData, isLoading: outlierLoading } = useQuery({
+    queryKey: ['mood-outliers', timeframe, privacyMode],
+    queryFn: async () => {
+      if (privacyMode || !isPremium) return null;
+      
+      const days = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
+      const response = await apiRequest('GET', `/api/analytics/mood-outliers?days=${days}`);
+      return response.ok ? await response.json() : null;
+    },
+    enabled: !privacyMode && isPremium
+  });
+
   // Submit privacy-safe aggregated data when privacy mode is off
   useEffect(() => {
     if (!privacyMode && privacyAnalytics && isPremium) {
@@ -144,7 +157,7 @@ const EmotionalDashboard: React.FC<EmotionalDashboardProps> = ({
       </Card>
 
       {/* Summary Cards */}
-      {privacyMode && privacyAnalytics && (
+      {privacyMode && privacyAnalytics ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -183,7 +196,43 @@ const EmotionalDashboard: React.FC<EmotionalDashboardProps> = ({
             </CardContent>
           </Card>
         </div>
-      )}
+      ) : outlierData && !privacyMode ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
+                {outlierData.insights.meanEmotionScore}
+              </div>
+              <p className="text-xs text-muted-foreground">Average Mood</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold flex items-center gap-2">
+                {outlierData.outlierCount}
+                <Badge variant="secondary">outliers</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Emotional Peaks</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-green-600">
+                {outlierData.insights.positiveOutliers}
+              </div>
+              <p className="text-xs text-muted-foreground">Great Days</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-red-600">
+                {outlierData.insights.negativeOutliers}
+              </div>
+              <p className="text-xs text-muted-foreground">Challenging Days</p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
 
       <Tabs defaultValue="trends" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
@@ -231,35 +280,53 @@ const EmotionalDashboard: React.FC<EmotionalDashboardProps> = ({
                     })}
                   </LineChart>
                 </ResponsiveContainer>
-              ) : serverAnalytics && !privacyMode ? (
+              ) : outlierData && !privacyMode ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={serverAnalytics.moodTrend}>
+                  <LineChart data={outlierData.entries}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis domain={[1, 10]} />
-                    <Tooltip />
+                    <Tooltip 
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow-lg">
+                              <p className="font-medium">{label}</p>
+                              <p className="text-blue-600">Score: {data.emotion_score}</p>
+                              {data.isOutlier && (
+                                <p className="text-red-600 font-medium">
+                                  Outlier ({data.outlierType})
+                                </p>
+                              )}
+                              <p className="text-sm text-gray-600">Z-score: {data.zScore}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
                     <Line 
                       type="monotone" 
-                      dataKey="rollingAverage" 
-                      stroke="#8884d8" 
+                      dataKey="emotion_score" 
+                      stroke="#3b82f6" 
                       strokeWidth={2}
+                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#82ca9d" 
-                      strokeWidth={1}
-                      strokeDasharray="5 5"
-                    />
-                    {formatOutliers(serverAnalytics.outliers).map((outlier: any, idx: number) => (
-                      <ReferenceDot 
-                        key={idx} 
-                        x={outlier.date} 
-                        y={outlier.score} 
-                        r={6} 
-                        fill={outlier.severity === 'high' ? 'red' : 'orange'} 
-                      />
-                    ))}
+                    {outlierData.entries
+                      .filter((entry: any) => entry.isOutlier)
+                      .map((outlier: any, idx: number) => (
+                        <ReferenceDot 
+                          key={idx} 
+                          x={outlier.date} 
+                          y={outlier.emotion_score} 
+                          r={8} 
+                          fill={outlier.outlierType === 'positive' ? '#10b981' : '#ef4444'}
+                          stroke="white"
+                          strokeWidth={2}
+                        />
+                      ))
+                    }
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -348,9 +415,58 @@ const EmotionalDashboard: React.FC<EmotionalDashboardProps> = ({
                     </div>
                   )}
                 </div>
+              ) : outlierData && !privacyMode ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <h4 className="font-medium mb-2">Outlier Analysis</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Total Outliers:</span>
+                        <span className="ml-2 font-medium">{outlierData.outlierCount}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Outlier Rate:</span>
+                        <span className="ml-2 font-medium">{outlierData.insights.outlierPercentage}%</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Positive:</span>
+                        <span className="ml-2 font-medium text-green-600">{outlierData.insights.positiveOutliers}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Challenging:</span>
+                        <span className="ml-2 font-medium text-red-600">{outlierData.insights.negativeOutliers}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {outlierData.insights.patterns.mostCommonOutlierDay !== 'No pattern detected' && (
+                    <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                      <h4 className="font-medium mb-2">Pattern Detection</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Most emotional outliers occur on{' '}
+                        <span className="font-medium">{outlierData.insights.patterns.mostCommonOutlierDay}</span>.
+                        Notice any patterns on these days?
+                      </p>
+                    </div>
+                  )}
+
+                  {outlierData.insights.recommendations.length > 0 && (
+                    <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <h4 className="font-medium mb-2">Personalized Insights</h4>
+                      <ul className="space-y-2">
+                        {outlierData.insights.recommendations.map((rec: string, idx: number) => (
+                          <li key={idx} className="text-sm text-muted-foreground flex items-start">
+                            <span className="text-green-600 mr-2">•</span>
+                            {rec}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  Insights available in privacy mode or with enhanced analytics
+                  {outlierLoading ? 'Analyzing emotional patterns...' : 'Insights available in privacy mode or with enhanced analytics'}
                 </div>
               )}
             </CardContent>
