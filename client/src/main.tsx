@@ -9,6 +9,7 @@ import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
 import { performanceMetrics } from "./utils/performanceMetrics";
 import { deploymentValidator } from "./utils/deploymentValidator";
 import { imageOptimizer } from "./utils/imageOptimization";
+import { keyboardHandler } from "./utils/keyboardHandler";
 import "./utils/polyfills";
 
 // PWA service worker registration via Vite PWA plugin
