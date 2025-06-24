@@ -24,10 +24,7 @@ app.get('/service-worker.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'), err => {
     if (err) {
       console.log('Service worker not found, serving fallback');
-    if (err) {
-      console.log('Service worker not found, serving fallback');
-      res.send(`
-self.addEventListener('install',()=>{self.skipWaiting();});`);
+      res.send(`self.addEventListener('install',()=>{self.skipWaiting();});`);
     }
   });
 });
