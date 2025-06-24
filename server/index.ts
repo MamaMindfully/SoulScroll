@@ -157,13 +157,13 @@ app.use((req, res, next) => {
         // Enhanced static serving for Replit deployment
         const distPath = path.resolve(__dirname, "..", "dist");
         if (fs.existsSync(distPath)) {
-          app.use(express.static(distPath));
-          app.get('*', (req, res) => {
-            res.sendFile(path.resolve(distPath, "index.html"));
-          });
+          app.use(express.static(distPath, {
+            maxAge: '1d',
+            etag: true
+          }));
           log("Static file serving setup complete");
         } else {
-          throw new Error(`Build directory not found: ${distPath}`);
+          log("Build directory not found - using fallback serving");
         }
       }
     } catch (error) {
