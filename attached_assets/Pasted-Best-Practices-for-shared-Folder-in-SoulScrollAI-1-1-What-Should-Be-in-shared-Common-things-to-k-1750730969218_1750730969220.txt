@@ -1,0 +1,123 @@
+Best Practices for /shared Folder in SoulScrollAI-1
+1. What Should Be in /shared?
+Common things to keep here:
+
+Database schema: e.g., schema.ts for Drizzle
+
+TypeScript types/interfaces: e.g., user.ts, journalEntry.ts
+
+API contracts: e.g., apiTypes.ts
+
+Validation schemas: e.g., Zod/Yup/Joi objects
+
+Enums/constants: Used both in frontend and backend
+
+Utility functions: Pure, stateless helpers (optional)
+
+2. Example /shared Folder Structure
+pgsql
+Copy
+Edit
+/shared
+  schema.ts         # Drizzle ORM schema
+  types/
+    user.ts
+    journal.ts
+    api.ts
+  constants.ts
+  validators.ts     # e.g., zod schemas for user input
+3. Sharing Types Between Frontend & Backend
+Example: types/user.ts
+ts
+Copy
+Edit
+export interface User {
+  id: string;
+  email: string;
+  displayName: string;
+  createdAt: string;
+}
+In frontend or backend:
+
+ts
+Copy
+Edit
+import type { User } from '@shared/types/user';
+4. Example: Drizzle Schema
+/shared/schema.ts:
+
+ts
+Copy
+Edit
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  displayName: text('display_name'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const journalEntries = pgTable('journal_entries', {
+  id: serial('id').primaryKey(),
+  userId: serial('user_id').notNull().references(() => users.id),
+  text: text('text').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+You can now use this schema for Drizzle queries in backend, and for typegen in frontend if needed.
+
+5. Example: Shared API Types
+/shared/types/api.ts:
+
+ts
+Copy
+Edit
+export interface APIResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+Use in your API routes and React queries for consistent shape!
+
+6. Shared Validation Schemas
+If you use zod:
+
+ts
+Copy
+Edit
+import { z } from 'zod';
+
+export const JournalEntrySchema = z.object({
+  text: z.string().min(1),
+  createdAt: z.string().datetime(),
+  userId: z.string(),
+});
+Can be used for backend validation and React forms (with react-hook-form + zod resolver).
+
+7. How to Import from /shared
+Use Vite’s alias (@shared) and same in your backend (add to tsconfig.json or jsconfig.json):
+
+json
+Copy
+Edit
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/*"]
+    }
+  }
+}
+8. Tips for a Healthy Shared Folder
+Keep files focused (avoid dumping unrelated logic).
+
+TypeScript recommended, even for JS projects.
+
+Write pure code: No Node-specific or browser-specific APIs unless you gate by environment.
+
+9. Git Ignore Artifacts
+Do not put generated files in /shared—only source code.
+
+Never put .env, secrets, or migration artifacts here.
+
+10. Want Examples for Types, Va
