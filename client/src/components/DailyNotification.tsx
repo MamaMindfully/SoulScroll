@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bell, BellOff, Clock, Smartphone } from 'lucide-react';
+import { Bell, BellOff, Clock, Smartphone, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { traceManager } from '@/utils/traceId';
 
 interface NotificationSettings {
   enabled: boolean;
@@ -43,18 +44,47 @@ const DailyNotification: React.FC = () => {
   });
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [isSupported, setIsSupported] = useState(false);
+  const [pushConfigured, setPushConfigured] = useState(false);
+  const [vapidPublicKey, setVapidPublicKey] = useState<string | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if notifications are supported
-    const supported = 'Notification' in window && 'serviceWorker' in navigator;
+    const supported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
     setIsSupported(supported);
     
     if (supported) {
       setNotificationPermission(Notification.permission);
       loadSettings();
+      checkPushConfiguration();
+      checkExistingSubscription();
     }
   }, []);
+
+  const checkPushConfiguration = async () => {
+    try {
+      const response = await traceManager.tracedFetch('/api/push/status');
+      const data = await response.json();
+      
+      setPushConfigured(data.configured);
+      setVapidPublicKey(data.vapidPublicKey);
+    } catch (error) {
+      console.error('Failed to check push configuration:', error);
+    }
+  };
+
+  const checkExistingSubscription = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      setIsSubscribed(!!subscription);
+    } catch (error) {
+      console.error('Failed to check existing subscription:', error);
+    }
+  };
 
   const loadSettings = () => {
     const savedSettings = localStorage.getItem('notificationSettings');
@@ -73,7 +103,16 @@ const DailyNotification: React.FC = () => {
     if (!isSupported) {
       toast({
         title: "Not Supported",
-        description: "Notifications are not supported in this browser",
+        description: "Push notifications are not supported in this browser",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!pushConfigured) {
+      toast({
+        title: "Service Unavailable",
+        description: "Push notification service is not configured",
         variant: "destructive"
       });
       return;
@@ -84,9 +123,11 @@ const DailyNotification: React.FC = () => {
       setNotificationPermission(permission);
       
       if (permission === 'granted') {
+        await subscribeToPush();
+        
         toast({
           title: "Notifications Enabled",
-          description: "You'll receive daily journaling reminders"
+          description: "You'll receive daily journaling reminders even when the app is closed"
         });
         
         // Enable notifications by default when permission is granted
@@ -103,9 +144,69 @@ const DailyNotification: React.FC = () => {
       console.error('Error requesting notification permission:', error);
       toast({
         title: "Error",
-        description: "Failed to request notification permission",
+        description: "Failed to setup push notifications",
         variant: "destructive"
       });
+    }
+  };
+
+  const subscribeToPush = async () => {
+    if (!pushConfigured || !vapidPublicKey) {
+      throw new Error('Push service not configured');
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Check if already subscribed
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (!subscription) {
+        // Convert VAPID key from base64 to Uint8Array
+        const urlBase64ToUint8Array = (base64String: string) => {
+          const padding = '='.repeat((4 - base64String.length % 4) % 4);
+          const base64 = (base64String + padding)
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+          
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+          
+          for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+          }
+          return outputArray;
+        };
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+        });
+      }
+
+      // Send subscription to backend
+      const response = await traceManager.tracedFetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          subscription,
+          preferences: {
+            time: settings.time,
+            frequency: settings.frequency
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save subscription');
+      }
+
+      setIsSubscribed(true);
+    } catch (error) {
+      console.error('Failed to subscribe to push:', error);
+      throw error;
     }
   };
 
@@ -212,12 +313,45 @@ const DailyNotification: React.FC = () => {
     }
   };
 
-  const testNotification = () => {
-    sendNotification(settings.reminderType);
-    toast({
-      title: "Test Sent",
-      description: "Check your notifications!"
-    });
+  const testNotification = async () => {
+    if (isSubscribed && pushConfigured) {
+      // Test server-side push notification
+      try {
+        const response = await traceManager.tracedFetch('/api/push/test', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Test notification with ${settings.reminderType} style`
+          })
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Push Test Sent",
+            description: "Check your notifications! This works even when the app is closed."
+          });
+        } else {
+          throw new Error('Failed to send test push');
+        }
+      } catch (error) {
+        console.error('Push test failed:', error);
+        // Fallback to local notification
+        sendNotification(settings.reminderType);
+        toast({
+          title: "Local Test Sent",
+          description: "Check your notifications! (Fallback to local notification)"
+        });
+      }
+    } else {
+      // Send local notification
+      sendNotification(settings.reminderType);
+      toast({
+        title: "Local Test Sent",
+        description: "Check your notifications! Enable push for server-side reminders."
+      });
+    }
   };
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -255,14 +389,28 @@ const DailyNotification: React.FC = () => {
             <div className="flex items-center gap-3">
               <Smartphone className="w-5 h-5 text-blue-600" />
               <div>
-                <p className="font-medium">Enable Notifications</p>
+                <p className="font-medium">Enable Push Notifications</p>
                 <p className="text-sm text-muted-foreground">
-                  Allow notifications to receive daily journaling reminders
+                  Get reliable reminders even when the app is closed
                 </p>
               </div>
-              <Button onClick={requestPermission} size="sm">
-                Enable
+              <Button onClick={requestPermission} size="sm" disabled={!pushConfigured}>
+                {pushConfigured ? 'Enable' : 'Unavailable'}
               </Button>
+            </div>
+          </div>
+        )}
+
+        {isSubscribed && pushConfigured && (
+          <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="font-medium">Push Notifications Active</p>
+                <p className="text-sm text-muted-foreground">
+                  You'll receive reliable reminders from our servers
+                </p>
+              </div>
             </div>
           </div>
         )}
