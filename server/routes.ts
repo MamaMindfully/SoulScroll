@@ -46,6 +46,7 @@ import feedback from "./routes/feedback";
 import adminAnalytics from "./routes/adminAnalytics";
 import userStreak from "./routes/userStreak";
 import stripeWebhook from "./stripeWebhook";
+import premiumStatus from "./routes/premiumStatus";
 import { setupRealtimeServer } from "./realtime/socketServer";
 import { logger } from "./utils/logger.js";
 import { generalRateLimit, journalRateLimit, aiAnalysisRateLimit, stripeRateLimit } from "./middleware/rateLimiter";

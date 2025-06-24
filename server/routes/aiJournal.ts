@@ -9,6 +9,7 @@ import { tokenMonitor } from "../services/tokenMonitor";
 import { retryOpenAICall } from "../utils/retryUtils";
 import { captureError } from "../utils/errorHandler";
 import { aiAnalysisRateLimit } from "../middleware/rateLimiter";
+import { requirePremium, checkPremium } from "../middleware/isPremium";
 import { journalQueue } from "../queue/journalQueue";
 
 const router = Router();
@@ -22,8 +23,8 @@ const journalAnalysisSchema = z.object({
   entryId: z.number().optional()
 });
 
-// AI Journal Analysis Route with BullMQ Queue
-router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) => {
+// AI Journal Analysis Route with premium verification
+router.post('/ai/journal', isAuthenticated, checkPremium, aiAnalysisRateLimit, async (req: Request, res: Response) => {
   try {
     const { entryText } = journalAnalysisSchema.parse(req.body);
     const user = req.user;
@@ -231,8 +232,8 @@ function calculateInsightDepth(text: string): number {
   return Math.min(Math.round(depth), 10);
 }
 
-// Batch analysis route for multiple entries
-router.post('/ai/journal/batch', isAuthenticated, async (req: Request, res: Response) => {
+// Batch analysis route for multiple entries - premium only
+router.post('/ai/journal/batch', isAuthenticated, requirePremium, aiAnalysisRateLimit, async (req: Request, res: Response) => {
   try {
     const { entries } = req.body;
     const user = req.user;
