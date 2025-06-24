@@ -1,0 +1,106 @@
+1. Soft Deletes & Auditing
+What:
+
+Instead of actually removing (deleting) a row from the database, you mark it as deleted by setting a field like deleted_at (a timestamp of when the delete happened) or is_deleted (boolean).
+
+Why:
+
+Data recovery: If a user accidentally deletes something (e.g., a journal entry), you can "undelete" it.
+
+Audit trails: For compliance, it’s often necessary to prove what happened to data over time.
+
+Safer development: Avoids accidental hard data loss from bugs.
+
+How:
+
+Add to schema:
+
+sql
+Copy
+Edit
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+ALTER TABLE journal_entries ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+Update queries to use:
+
+sql
+Copy
+Edit
+SELECT * FROM journal_entries WHERE deleted_at IS NULL;
+For auditing, also track who/when edited:
+
+sql
+Copy
+Edit
+ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_by VARCHAR;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
+2. Multi-Tenancy or Shared Accounts
+What:
+
+This means letting a single user account be linked to a parent/group/team (e.g., a therapist can have multiple clients, or a family account manages kids).
+
+Why:
+
+Scalability: You can expand your product for groups, families, clinics, schools, etc.
+
+Growth: Enables features like shared journals, parental oversight, or team analytics.
+
+How:
+
+Add a parent_user_id, team_id, or group_id to your users table:
+
+sql
+Copy
+Edit
+ALTER TABLE users ADD COLUMN IF NOT EXISTS parent_user_id VARCHAR;
+For journal entries, you could relate them to a team_id or allow queries like:
+
+sql
+Copy
+Edit
+SELECT * FROM journal_entries WHERE user_id IN (SELECT id FROM users WHERE parent_user_id = $1);
+Access logic: parent can see all children’s data, or group admin manages sub-accounts.
+
+3. Row-Level Security (RLS) & Field-Level Encryption
+What:
+
+Row-Level Security: A database feature where the DBMS enforces who can see/edit each row, not just each table.
+
+Field-Level Encryption: Sensitive fields (e.g., journal text, emails) are encrypted before storing in DB and decrypted only for authorized users.
+
+Why:
+
+Ultimate privacy: Even if your database is leaked or someone misconfigures API access, users' private journal data stays protected.
+
+Compliance: Meets HIPAA, GDPR, and enterprise privacy standards.
+
+Prevents mistakes: No accidental cross-user data leakage.
+
+How:
+
+Enable RLS (for PostgreSQL):
+
+sql
+Copy
+Edit
+ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
+CREATE POLICY user_access ON journal_entries
+  USING (user_id = current_setting('jwt.claims.user_id')::uuid);
+Field-level encryption:
+
+In your app, encrypt with a library before insert, decrypt after select.
+
+Example (Node.js, crypto-js):
+
+js
+Copy
+Edit
+import CryptoJS from "crypto-js";
+const encrypted = CryptoJS.AES.encrypt("my secret", process.env.FIELD_KEY).toString();
+// Save encrypted to DB
+// Decrypt when loading
+Or use Postgres’ pgcrypto extension:
+
+sql
+Copy
+Edit
+UPDATE users SET email = pgp_sym_encrypt(email, 'mySecretKey');
