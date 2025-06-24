@@ -13,6 +13,7 @@ import {
 import { eq, and, gte } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 import auditService from './auditService';
+import { fieldEncryption } from '../utils/encryption';
 
 export interface UserExportData {
   user: {
@@ -174,7 +175,9 @@ export async function getUserAllData(userId: string, includeAuditLogs: boolean =
       },
       journalEntries: userJournalEntries.map(entry => ({
         id: entry.id,
-        content: entry.content || '',
+        content: fieldEncryption.isEncryptionEnabled() 
+          ? fieldEncryption.decryptField(entry.content || '')
+          : entry.content || '',
         wordCount: entry.wordCount || 0,
         emotionScore: entry.emotionScore || 5,
         createdAt: entry.createdAt.toISOString(),
