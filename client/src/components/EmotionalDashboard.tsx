@@ -1,168 +1,364 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Link, BarChart3 } from "lucide-react";
+import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot, BarChart, Bar } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { PrivacyAnalyticsEngine, type JournalEntry, type PrivacyAnalytics } from '@/utils/privacyAnalytics';
+import { apiRequest } from '@/lib/queryClient';
+import { TrendingUp, TrendingDown, Minus, Shield, Eye, EyeOff } from 'lucide-react';
 
-interface EmotionalInsight {
-  id: number;
-  period: string;
-  moodData: Array<{
-    date: string;
-    rating: number;
-    keywords: string[];
-  }>;
-  topKeywords: string[];
-  insights: string;
-  generatedAt: string;
+interface EmotionalDashboardProps {
+  journalEntries: JournalEntry[];
+  isPremium?: boolean;
 }
 
-interface UserStats {
-  averageMood: number;
-}
+const EmotionalDashboard: React.FC<EmotionalDashboardProps> = ({ 
+  journalEntries = [], 
+  isPremium = false 
+}) => {
+  const [privacyMode, setPrivacyMode] = useState(true);
+  const [timeframe, setTimeframe] = useState<'7d' | '30d' | '90d'>('30d');
 
-export default function EmotionalDashboard() {
-  const { data: insights, isLoading: insightsLoading } = useQuery<EmotionalInsight[]>({
-    queryKey: ["/api/insights/emotional"],
-    select: (data) => data?.filter(insight => insight.period === 'weekly').slice(0, 1),
+  // Generate privacy-first analytics on device
+  const privacyAnalytics = useMemo(() => {
+    if (journalEntries.length === 0) return null;
+    return PrivacyAnalyticsEngine.generatePrivacyAnalytics(journalEntries);
+  }, [journalEntries]);
+
+  // Fetch server-side analytics for premium users (when not in privacy mode)
+  const { data: serverAnalytics, isLoading } = useQuery({
+    queryKey: ['mood-trend', timeframe, privacyMode],
+    queryFn: async () => {
+      if (privacyMode || !isPremium) return null;
+      
+      const days = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
+      const response = await apiRequest('GET', `/api/analytics/mood-trend?days=${days}`);
+      return response.ok ? await response.json() : null;
+    },
+    enabled: !privacyMode && isPremium
   });
 
-  const { data: stats } = useQuery<UserStats>({
-    queryKey: ["/api/user/stats"],
-  });
+  // Submit privacy-safe aggregated data when privacy mode is off
+  useEffect(() => {
+    if (!privacyMode && privacyAnalytics && isPremium) {
+      const submitAggregatedData = async () => {
+        try {
+          const aggregatedData = {
+            weeklyAverage: privacyAnalytics.summary.avgMoodScore,
+            monthlyTrend: privacyAnalytics.summary.growthTrend,
+            streakCount: privacyAnalytics.streakData.current,
+            entryFrequency: privacyAnalytics.summary.totalEntries / 30, // entries per day
+            volatilityScore: privacyAnalytics.summary.moodStability
+          };
 
-  const weeklyInsight = insights?.[0];
+          await apiRequest('POST', '/api/analytics/submit-insights', {
+            body: JSON.stringify({ aggregatedData }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (error) {
+          console.warn('Failed to submit aggregated insights:', error);
+        }
+      };
 
-  if (insightsLoading) {
-    return (
-      <section className="p-6">
-        <Card className="animate-pulse">
-          <CardContent className="p-5">
-            <div className="h-4 bg-gentle rounded mb-4"></div>
-            <div className="h-20 bg-gentle rounded mb-6"></div>
-            <div className="h-4 bg-gentle rounded mb-3"></div>
-            <div className="flex space-x-2">
-              <div className="h-6 bg-gentle rounded w-16"></div>
-              <div className="h-6 bg-gentle rounded w-20"></div>
-              <div className="h-6 bg-gentle rounded w-18"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-    );
-  }
+      submitAggregatedData();
+    }
+  }, [privacyMode, privacyAnalytics, isPremium]);
 
-  // Generate mock mood data for visualization if no insights available
-  const mockMoodData = [
-    { rating: 3.2 }, { rating: 2.8 }, { rating: 3.5 }, 
-    { rating: 4.1 }, { rating: 3.8 }, { rating: 4.2 }, { rating: 3.9 }
-  ];
+  const displayAnalytics = privacyMode ? privacyAnalytics : serverAnalytics;
 
-  const moodData = weeklyInsight?.moodData || mockMoodData.map((mood, index) => ({
-    date: new Date(Date.now() - (6 - index) * 24 * 60 * 60 * 1000).toISOString(),
-    rating: mood.rating,
-    keywords: []
-  }));
-
-  const topKeywords = weeklyInsight?.topKeywords || [];
-  const averageMood = stats?.averageMood || 0;
-
-  const getTrendStatus = () => {
-    if (moodData.length < 2) return { text: "Building data", color: "text-wisdom/60" };
-    
-    const recent = moodData.slice(-3).reduce((sum, data) => sum + data.rating, 0) / 3;
-    const earlier = moodData.slice(0, 3).reduce((sum, data) => sum + data.rating, 0) / 3;
-    
-    if (recent > earlier + 0.2) return { text: "Upward trend", color: "text-green-600" };
-    if (recent < earlier - 0.2) return { text: "Reflective period", color: "text-blue-600" };
-    return { text: "Steady pattern", color: "text-wisdom/70" };
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'improving': return <TrendingUp className="w-4 h-4 text-green-500" />;
+      case 'declining': return <TrendingDown className="w-4 h-4 text-red-500" />;
+      default: return <Minus className="w-4 h-4 text-gray-500" />;
+    }
   };
 
-  const trendStatus = getTrendStatus();
+  const formatOutliers = (outliers: string[] | any[]) => {
+    if (Array.isArray(outliers) && outliers.length > 0) {
+      if (typeof outliers[0] === 'string') {
+        return outliers.map((date, idx) => ({ date, id: idx }));
+      }
+      return outliers;
+    }
+    return [];
+  };
 
-  return (
-    <section className="p-6">
-      <Card className="bg-white rounded-2xl shadow-lg animate-fade-in">
-        <CardContent className="p-5">
-          <h3 className="font-semibold text-wisdom mb-4 flex items-center">
-            <BarChart3 className="w-4 h-4 text-primary mr-2" />
-            Your Emotional Journey
-          </h3>
-          
-          {/* Mood Trend Visualization */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-wisdom/70">This Week's Pattern</span>
-              <span className={`text-xs px-2 py-1 bg-green-100 rounded-full font-medium ${trendStatus.color}`}>
-                {trendStatus.text}
-              </span>
-            </div>
-            
-            {/* Mood Chart */}
-            <div className="h-20 bg-gentle rounded-lg flex items-end justify-between px-2 py-2 mb-2">
-              {moodData.map((data, index) => {
-                const height = Math.max(10, (data.rating / 5) * 100);
-                const colors = ['bg-primary', 'bg-secondary', 'bg-accent'];
-                const colorClass = colors[index % colors.length];
-                
-                return (
-                  <div
-                    key={index}
-                    className={`w-6 ${colorClass} rounded-t transition-all duration-300 hover:opacity-80`}
-                    style={{ height: `${height}%` }}
-                    title={`Day ${index + 1}: ${data.rating.toFixed(1)}/5`}
-                  ></div>
-                );
-              })}
-            </div>
-            
-            {/* Day Labels */}
-            <div className="flex justify-between text-xs text-wisdom/50">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                <span key={day}>{day}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* Emotional Keywords */}
-          {topKeywords.length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-wisdom mb-3">Frequent Themes</h4>
-              <div className="flex flex-wrap gap-2">
-                {topKeywords.slice(0, 4).map((keyword, index) => {
-                  const colors = [
-                    'bg-primary/10 text-primary',
-                    'bg-accent/10 text-accent',
-                    'bg-secondary/10 text-secondary',
-                    'bg-green-100 text-green-700'
-                  ];
-                  return (
-                    <span 
-                      key={index}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${colors[index % colors.length]}`}
-                    >
-                      {keyword}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Memory Connection */}
-          <div className="bg-gentle/50 rounded-lg p-4">
-            <div className="flex items-center mb-2">
-              <Link className="w-4 h-4 text-wisdom/60 mr-2" />
-              <span className="text-sm font-medium text-wisdom">Insight</span>
-            </div>
-            <p className="text-xs text-wisdom/70 leading-relaxed">
-              {weeklyInsight?.insights || 
-               averageMood > 0 
-                 ? `Your emotional journey this week shows a thoughtful exploration of your inner world. With an average mood of ${averageMood.toFixed(1)}/5, you're building meaningful self-awareness through consistent reflection.`
-                 : "Start journaling to discover patterns in your emotional landscape. Each entry helps Luma understand your unique journey better."
-              }
-            </p>
+  if (!displayAnalytics && journalEntries.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Emotional Dashboard</CardTitle>
+          <CardDescription>
+            Start journaling to see your emotional patterns and insights
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            No journal entries yet. Write your first entry to begin tracking your emotional journey.
           </div>
         </CardContent>
       </Card>
-    </section>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Privacy and Settings Controls */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-500" />
+              Emotional Analytics
+            </CardTitle>
+            <CardDescription>
+              {privacyMode ? 'Processing data locally for privacy' : 'Enhanced analytics with server insights'}
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={privacyMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPrivacyMode(!privacyMode)}
+              className="flex items-center gap-2"
+            >
+              {privacyMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {privacyMode ? 'Local Only' : 'Enhanced'}
+            </Button>
+            {!privacyMode && (
+              <select
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value as any)}
+                className="px-3 py-1 border rounded-md bg-background"
+              >
+                <option value="7d">7 days</option>
+                <option value="30d">30 days</option>
+                <option value="90d">90 days</option>
+              </select>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Summary Cards */}
+      {privacyMode && privacyAnalytics && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
+                {privacyAnalytics.summary.avgMoodScore}
+              </div>
+              <p className="text-xs text-muted-foreground">Average Mood</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold flex items-center gap-2">
+                {privacyAnalytics.streakData.current}
+                <Badge variant={privacyAnalytics.streakData.type === 'positive' ? 'default' : 'secondary'}>
+                  {privacyAnalytics.streakData.type}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Current Streak</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold flex items-center gap-2">
+                {privacyAnalytics.summary.totalEntries}
+                {getTrendIcon(privacyAnalytics.summary.growthTrend)}
+              </div>
+              <p className="text-xs text-muted-foreground">Total Entries</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
+                {(privacyAnalytics.summary.moodStability * 100).toFixed(0)}%
+              </div>
+              <p className="text-xs text-muted-foreground">Mood Stability</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Tabs defaultValue="trends" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="trends">Mood Trends</TabsTrigger>
+          <TabsTrigger value="patterns">Patterns</TabsTrigger>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="trends" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mood Trend Analysis</CardTitle>
+              <CardDescription>
+                {privacyMode ? 'Local 7-day rolling average' : 'Server-enhanced trend analysis'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {privacyMode && privacyAnalytics ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={privacyAnalytics.rollingAverages}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis domain={[1, 10]} />
+                    <Tooltip />
+                    <Line 
+                      type="monotone" 
+                      dataKey="avg" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                      dot={{ fill: '#8884d8', strokeWidth: 2, r: 4 }}
+                    />
+                    {privacyAnalytics.outlierDates.map((date, idx) => {
+                      const point = privacyAnalytics.rollingAverages.find(p => p.date === date);
+                      return point ? (
+                        <ReferenceDot 
+                          key={idx} 
+                          x={point.date} 
+                          y={point.avg} 
+                          r={6} 
+                          fill="red" 
+                          stroke="white"
+                          strokeWidth={2}
+                        />
+                      ) : null;
+                    })}
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : serverAnalytics && !privacyMode ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={serverAnalytics.moodTrend}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis domain={[1, 10]} />
+                    <Tooltip />
+                    <Line 
+                      type="monotone" 
+                      dataKey="rollingAverage" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="#82ca9d" 
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                    />
+                    {formatOutliers(serverAnalytics.outliers).map((outlier: any, idx: number) => (
+                      <ReferenceDot 
+                        key={idx} 
+                        x={outlier.date} 
+                        y={outlier.score} 
+                        r={6} 
+                        fill={outlier.severity === 'high' ? 'red' : 'orange'} 
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-muted-foreground">
+                  {isLoading ? 'Loading analytics...' : 'No data available'}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="patterns" className="space-y-4">
+          {privacyMode && privacyAnalytics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Weekly Patterns</CardTitle>
+                  <CardDescription>Your journaling habits by day</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Best Day:</span>
+                      <span className="text-sm">{privacyAnalytics.patterns.bestDayOfWeek}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Challenging Day:</span>
+                      <span className="text-sm">{privacyAnalytics.patterns.worstDayOfWeek}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Best Time:</span>
+                      <span className="text-sm">{privacyAnalytics.patterns.bestTimeOfDay}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Writing Insights</CardTitle>
+                  <CardDescription>Your journaling productivity</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Productive Length:</span>
+                      <span className="text-sm">{privacyAnalytics.patterns.mostProductiveWordCount} words</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">Longest Streak:</span>
+                      <span className="text-sm">{privacyAnalytics.streakData.longest} days</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Insights</CardTitle>
+              <CardDescription>
+                AI-generated insights based on your journaling patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {privacyMode && privacyAnalytics ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <h4 className="font-medium mb-2">Growth Trend</h4>
+                    <div className="flex items-center gap-2">
+                      {getTrendIcon(privacyAnalytics.summary.growthTrend)}
+                      <span className="capitalize">{privacyAnalytics.summary.growthTrend}</span>
+                    </div>
+                  </div>
+                  
+                  {privacyAnalytics.outlierDates.length > 0 && (
+                    <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                      <h4 className="font-medium mb-2">Emotional Highlights</h4>
+                      <p className="text-sm text-muted-foreground">
+                        You had {privacyAnalytics.outlierDates.length} emotionally significant days recently. 
+                        These moments of intensity often lead to personal growth.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Insights available in privacy mode or with enhanced analytics
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
-}
+};
+
+export default EmotionalDashboard;
