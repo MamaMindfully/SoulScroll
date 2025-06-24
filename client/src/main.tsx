@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
-const App = lazy(() => import('./App'));
+const App = lazy(() => import('./App.tsx'));
 import { initSentry } from "./utils/sentry";
 import { performanceMonitor } from "./utils/performance";
 import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
