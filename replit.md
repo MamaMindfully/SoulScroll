@@ -1,10 +1,225 @@
-# Luma - AI-Powered Emotional Journaling App
+# SoulScroll AI – Replit Project Guide
+
+Welcome to the **SoulScroll AI** Replit monorepo!  
+This guide explains how to run, develop, test, and deploy this AI-powered emotional journaling application on Replit.
 
 ## Overview
 
-Luma is a full-stack emotional journaling application that combines React frontend with Express backend, featuring AI-powered responses, emotional tone analysis, and streak tracking. The app provides a compassionate companion for users to document their thoughts and receive personalized insights.
+SoulScroll AI is a full-stack emotional journaling application that combines React frontend with Express backend, featuring AI-powered responses, emotional tone analysis, and streak tracking. The app provides a compassionate companion for users to document their thoughts and receive personalized insights.
 
 **Current Status**: Production deployment ready with complete ES Module compatibility, perfected static file serving, performance optimizations, and mobile-first PWA architecture.
+
+---
+
+## 1. Project Structure
+
+```
+SoulScrollAI/
+├── client/               # React frontend (Vite, Tailwind CSS)
+│   ├── src/
+│   │   ├── components/   # React components (177 total)
+│   │   ├── pages/        # Route components
+│   │   ├── hooks/        # Custom React hooks
+│   │   └── lib/          # Utilities and configurations
+├── server/               # Express API and backend logic
+│   ├── routes/           # API endpoint handlers (35+ routes)
+│   ├── services/         # Business logic and external integrations
+│   ├── middleware/       # Request processing and security
+│   └── utils/            # Helper functions and utilities
+├── shared/               # Types, schemas, and API contracts
+│   ├── schema.ts         # Drizzle ORM database schema (38 tables)
+│   ├── types/            # TypeScript type definitions
+│   └── validators.ts     # Zod validation schemas
+├── cypress/              # End-to-end and component tests
+├── dist/                 # Built frontend for production
+├── .replit               # Replit's run/build config
+└── .env                  # Your secrets – never commit!
+```
+
+---
+
+## 2. Getting Started
+
+### Prerequisites
+- This project runs on Replit with Node.js environment
+- PostgreSQL database (automatically provisioned on Replit)
+- Optional: Redis for enhanced caching (falls back to memory)
+
+### Quick Start
+1. **Open on Replit** - Project is pre-configured to run
+2. **Environment Variables** - DATABASE_URL is automatically set
+3. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+4. **Run development server**:
+   ```bash
+   npm run dev
+   ```
+   The app will be available at your Replit URL on port 5000
+
+### Development Workflow
+- Frontend hot-reloads automatically via Vite
+- Backend restarts on file changes via tsx
+- Database connection pooling handles concurrent requests
+- All environment variables are managed through Replit Secrets
+
+---
+
+## 3. Building for Production
+
+### Build the Application
+```bash
+npm run build
+```
+This generates:
+- `/dist/` - Frontend static files from Vite
+- `/dist/index.js` - Backend bundle from esbuild
+
+### Start Production Server
+```bash
+npm run start
+```
+Serves the built application on port 5000
+
+### Build Verification
+- Check `/dist/index.html` exists with proper asset links
+- Verify `/dist/manifest.json` for PWA functionality
+- Confirm all static assets are properly served
+
+---
+
+## 4. Testing
+
+### End-to-End Testing (Cypress)
+```bash
+# Interactive mode
+npx cypress open
+
+# Headless/CI mode  
+npx cypress run
+
+# Component testing
+npx cypress run --component
+```
+
+### Test Coverage
+- **E2E Tests**: Authentication, journaling workflow, premium features, PWA
+- **Component Tests**: UI components and form validation
+- **Custom Commands**: Reusable test utilities for SoulScroll AI features
+
+### Test Configuration
+- Base URL: `http://localhost:5000` (matches Express server)
+- Viewport: 1280x800 for consistent testing
+- Mocked external APIs: OpenAI, Stripe for reliable testing
+
+---
+
+## 5. Database & Migrations
+
+### Database Schema (Drizzle ORM)
+- **38 tables** with comprehensive relationships
+- **PostgreSQL** with connection pooling
+- **Automatic migrations** via Drizzle Kit
+
+### Migration Commands
+```bash
+# Generate migrations from schema changes
+npm run db:generate
+
+# Apply migrations to database
+npm run db:push
+
+# View database in browser
+npm run db:studio
+```
+
+### Schema Location
+- Main schema: `/shared/schema.ts`
+- Configuration: `/drizzle.config.ts`
+- Migrations: `/migrations/` (auto-generated)
+
+---
+
+## 6. Assets & Static Files
+
+### Asset Management
+- **Images**: Place in `/attached_assets/`
+- **Import alias**: Use `@assets/filename.png` in components
+- **Optimization**: Images are processed and optimized during build
+- **Icons**: SVGs preferred for scalability
+
+### Static File Serving
+- Development: Vite dev server handles assets
+- Production: Express serves from `/dist/` with proper MIME types
+- Caching: ETags and compression enabled for performance
+
+---
+
+## 7. API Documentation
+
+### Authentication
+- **Replit Auth**: OpenID Connect integration
+- **Session Management**: PostgreSQL-backed sessions
+- **Protected Routes**: Middleware validation on sensitive endpoints
+
+### Key Endpoints
+- `GET /api/health` - Service health check
+- `POST /api/journal/entries` - Create journal entry
+- `GET /api/insights/latest` - Get AI insights
+- `POST /api/emotion-score` - Emotion analysis
+- `GET /api/user/status` - User statistics and streak
+
+### AI Integration
+- **OpenAI GPT-4o**: Emotional analysis and insights
+- **Rate Limiting**: 50 AI analyses per hour
+- **Background Processing**: Queue system for heavy operations
+- **Caching**: Intelligent response caching for performance
+
+---
+
+## 8. Common Issues & Troubleshooting
+
+### Frontend Issues
+- **Hot reload not working**: Restart dev server with `npm run dev`
+- **Build failures**: Check console for TypeScript/Vite errors
+- **Asset 404s**: Verify asset paths use absolute references (`/` not `./`)
+
+### Backend Issues
+- **Database connection**: Check DATABASE_URL in environment
+- **API timeouts**: OpenAI calls may take 1-2 seconds
+- **Memory issues**: Redis fallback handles queue processing
+
+### Testing Issues
+- **Cypress not finding server**: Verify baseUrl matches port 5000
+- **Test failures**: Check mocked API responses in fixtures
+- **Timeout errors**: AI endpoints need longer timeouts (10s+)
+
+---
+
+## 9. Deployment
+
+### Replit Deployment
+1. **Run Command**: Application starts automatically
+2. **Port Configuration**: Binds to 0.0.0.0:5000 for Replit compatibility
+3. **Health Checks**: `/api/health` endpoint for monitoring
+4. **Auto-restart**: Server gracefully handles restarts
+
+### Production Checklist
+- [ ] Build completes without errors (`npm run build`)
+- [ ] All environment variables set
+- [ ] Database migrations applied
+- [ ] Static files serve correctly
+- [ ] PWA manifest accessible
+- [ ] API endpoints respond properly
+
+### Performance Monitoring
+- **Bundle size**: ~412KB gzipped (within budget)
+- **API response times**: <200ms for CRUD operations
+- **Database queries**: <50ms with connection pooling
+- **Health monitoring**: Automated checks every request
+
+---
 
 ## System Architecture
 
@@ -279,9 +494,31 @@ Luma is a full-stack emotional journaling application that combines React fronte
 - **CSS Build Optimization**: Added postcss-import, postcss-nesting, and cssnano for production builds
 - **Cross-browser Compatibility**: Maintained autoprefixer for vendor prefix support
 
-## Changelog
-```
-Changelog:
+---
+
+## 10. Contributors & Support
+
+### Development Team
+- **Lead Developer**: Lennon Pace
+- **AI Assistant**: Claude (Anthropic)
+- **Testing**: Comprehensive Cypress test suite
+- **Architecture**: Modern full-stack best practices
+
+### Getting Help
+- **Documentation**: This replit.md file
+- **Code Issues**: Check console and build logs
+- **Database Issues**: Use `/api/health` for diagnostics
+- **Performance**: Run performance audit script
+
+### Contributing
+- Follow TypeScript strict mode
+- Use Prettier for code formatting (`npm run format`)
+- Write tests for new features
+- Update documentation for architectural changes
+
+---
+
+## Recent Changes & Changelog
 - June 16, 2025: Initial setup with full-stack journaling app
 - June 16, 2025: Comprehensive mobile optimization and PWA implementation
 - June 16, 2025: Push notifications, offline mode, and engagement features
