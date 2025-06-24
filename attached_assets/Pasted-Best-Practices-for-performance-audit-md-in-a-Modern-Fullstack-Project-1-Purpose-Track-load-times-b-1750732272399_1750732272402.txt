@@ -1,0 +1,116 @@
+Best Practices for performance-audit.md in a Modern Fullstack Project
+1. Purpose
+Track load times, bundle size, server response times, Lighthouse/Core Web Vitals, API performance, DB query speed, and app bottlenecks.
+
+List actionable recommendations, fixes, and test results over time.
+
+2. Modern Template: performance-audit.md
+markdown
+Copy
+Edit
+# SoulScrollAI Performance Audit
+
+_Last audit: 2025-06-23_
+
+---
+
+## Frontend Performance
+
+- **First Contentful Paint (FCP):** 0.9s (Lighthouse)
+- **Largest Contentful Paint (LCP):** 1.7s (Lighthouse)
+- **Total Bundle Size:** 172KB (gzipped, Vite build)
+- **Time to Interactive:** 1.6s
+- **Cumulative Layout Shift:** 0.01
+
+### Opportunities:
+- [ ] Enable HTTP/2 push (via proxy or Netlify)
+- [x] Use `Suspense` for code splitting and lazy loading
+- [x] Optimize images (Squoosh, SVGs for icons)
+- [ ] Review 3rd party script impact (e.g., Stripe, analytics)
+- [x] Preconnect to all 3rd-party API endpoints
+
+---
+
+## Backend/API Performance
+
+- **API `/api/health` response:** 51ms median (local)
+- **Static file serving:** <20ms (gzip + cache)
+- **Cold start time:** 2.4s (Replit free tier)
+
+### Recommendations:
+- [x] Use compression middleware (gzip)
+- [x] Enable ETag and static file caching
+- [ ] Add Redis for hot path API cache (optional)
+- [ ] Profile DB queries for slow endpoints
+
+---
+
+## Database
+
+- **Avg. SELECT (journals):** 27ms (pg)
+- **Avg. INSERT (journals):** 18ms (pg)
+- **Connection pooling:** Enabled (pg.Pool)
+- **Schema/migrations:** Drizzle, up to date
+
+### Recommendations:
+- [ ] Monitor for slow queries in production
+- [x] Use connection pooling (always enabled)
+
+---
+
+## Cypress/End-to-End
+
+- **End-to-end test suite:** 18s for 20 tests
+- **Typical page load in test:** 1.3s
+
+---
+
+## PWA & Mobile
+
+- **Service worker:** Registered and working
+- **Offline support:** Index page and cached routes
+- **PWA install:** Passes Lighthouse installability
+- **Touch/scroll performance:** Smooth (90+ Lighthouse)
+
+---
+
+## Current Issues
+
+- [ ] Some CSS/JS chunking causes flash on slow connections (optimize code splitting)
+- [ ] Manifest.json not always detected on iOS Safari (investigate path)
+- [ ] Large images still slip through (audit upload and optimize pipeline)
+
+---
+
+## Action Plan
+
+1. Add bundle visualizer and optimize unused dependencies
+2. Implement full image lazy-loading
+3. Periodically run Lighthouse and document metrics
+4. Auto-generate new audits on each deploy (optional)
+
+---
+
+## Tooling
+
+- [Lighthouse](https://web.dev/measure/)
+- [web-vitals](https://github.com/GoogleChrome/web-vitals)
+- [Source Map Explorer](https://www.npmjs.com/package/source-map-explorer)
+- [Cypress](https://www.cypress.io/)
+- [Drizzle ORM Metrics](https://orm.drizzle.team/)
+
+---
+
+_Reviewer: Lennon Pace, Grimoire AI_
+3. How to Use/Automate
+Copy template above to your performance-audit.md.
+
+After each deploy or major feature, update the numbers.
+
+For continuous auditing, use tools like Lighthouse CI, web-vitals-reporter, or a GitHub Action that runs Cypress and appends results.
+
+Use checkboxes to track which recommendations have been implemented.
+
+4. Keep a History
+Archive old audit snapshots (e.g., performance-audit-2025-06-23.md) to compare progress!
+
