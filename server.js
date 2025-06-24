@@ -43,6 +43,15 @@ app.get('/service-worker.js', (req, res) => {
   });
 });
 
+// Enhanced 404 handling for missing assets
+app.use((req, res, next) => {
+  if (req.method === 'GET' && req.accepts('html') && !req.path.startsWith('/api/')) {
+    res.status(404).sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    next();
+  }
+});
+
 // SPA fallback: always send index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
