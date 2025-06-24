@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { Home, PenTool, Lightbulb, User, Archive } from 'lucide-react';
 import { useKeyboardHandler } from '../utils/keyboardHandler';
+import { useHideNavOnKeyboard } from '../hooks/useHideNavOnKeyboard';
 import { cn } from '../lib/utils';
 
 interface NavItem {
@@ -53,6 +54,9 @@ const navItems: NavItem[] = [
 export const MobileBottomNav: React.FC = () => {
   const [location] = useLocation();
   const { isKeyboardVisible } = useKeyboardHandler();
+  
+  // Initialize keyboard-aware navigation hiding
+  useHideNavOnKeyboard();
 
   // Don't render if keyboard is visible
   if (isKeyboardVisible) {
@@ -88,7 +92,8 @@ export const MobileBottomNav: React.FC = () => {
               "min-w-[48px] min-h-[48px] p-2 rounded-lg",
               "transition-all duration-200 ease-in-out",
               "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-              "active:scale-95",
+              "active:scale-95 touch-manipulation",
+              "text-base", // 1rem font size for accessibility
               isActive 
                 ? "text-primary bg-primary/10" 
                 : "text-muted-foreground hover:text-foreground hover:bg-accent/50"

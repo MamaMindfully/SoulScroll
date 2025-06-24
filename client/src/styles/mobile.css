@@ -46,13 +46,36 @@ textarea {
   border-radius: 8px;
 }
 
-/* Better touch targets */
+/* Better touch targets - WCAG 48x48px minimum */
 button,
 .button,
-.clickable {
-  min-height: 44px;
-  min-width: 44px;
+.clickable,
+.bottom-nav a,
+.bottom-nav button {
+  min-height: 48px;
+  min-width: 48px;
   touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bottom navigation with safe area handling */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--background, #fff);
+  border-top: 1px solid var(--border, #e5e5e5);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transition: transform 0.3s ease;
+}
+
+/* Hide navigation when keyboard is active */
+.keyboard-active .bottom-nav {
+  transform: translateY(100%);
 }
 
 /* Smooth scrolling for mobile */
