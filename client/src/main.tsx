@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import MinimalApp from "./components/MinimalApp";
-import "./minimal.css";
+import App from "./App";
+import "./index.css";
 import { initSentry } from "./utils/sentry";
 import { performanceMonitor } from "./utils/performance";
 import { initializeGlobalAuthHandler } from "./utils/globalAuthHandler";
@@ -232,7 +232,7 @@ if (container) {
   const root = createRoot(container);
   root.render(
     <StrictMode>
-      <MinimalApp />
+      <App />
     </StrictMode>
   );
   
