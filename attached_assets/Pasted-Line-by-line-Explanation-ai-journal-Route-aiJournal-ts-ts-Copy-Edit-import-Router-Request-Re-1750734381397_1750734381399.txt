@@ -1,0 +1,124 @@
+Line-by-line Explanation: /ai/journal Route (aiJournal.ts)
+ts
+Copy
+Edit
+import { Router, Request, Response } from "express";
+import { OpenAI } from "openai";
+import { isAuthenticated } from "../replitAuth";
+import { storage } from "../storage";
+import { logger } from "../utils/logger";
+import { z } from "zod";
+import { cacheService } from "../services/cacheService";
+import { tokenMonitor } from "../services/tokenMonitor";
+import { retryOpenAICall } from "../utils/retryUtils";
+import { captureError } from "../utils/errorHandler";
+import { aiAnalysisRateLimit } from "../middleware/rateLimiter";
+import { journalQueue } from "../queue/journalQueue";
+Imports:
+
+Express router/types
+
+OpenAI API SDK
+
+Custom middlewares/services/utilities for: auth, storage, logging, validation (zod), cache, token/rate limit, error, queue
+
+ts
+Copy
+Edit
+const router = Router();
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY 
+});
+Creates a new Express router for modular route definitions
+
+Instantiates OpenAI client, using API key from environment
+
+ts
+Copy
+Edit
+// Validation schema
+const journalAnalysisSchema = z.object({
+  entryText: z.string().min(1, "Journal entry text is required"),
+  entryId: z.number().optional()
+});
+Defines a strict schema for incoming POST data
+
+entryText (required string, not empty)
+
+entryId (optional, number)
+
+ts
+Copy
+Edit
+// AI Journal Analysis Route with BullMQ Queue
+router.post('/ai/journal', isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const { entryText } = journalAnalysisSchema.parse(req.body);
+    const user = req.user;
+POST endpoint /ai/journal
+
+Requires auth (isAuthenticated middleware)
+
+Validates incoming request body with zod, extracts entryText
+
+Gets user from request (populated by auth middleware)
+
+ts
+Copy
+Edit
+    logger.info('Processing AI journal analysis', { 
+      userId: user.id, 
+      textLength: entryText.length 
+    });
+Logs start of analysis (never logs raw text, just user and length for privacy)
+
+ts
+Copy
+Edit
+    // Check cache first
+    const cachedResponse = await cacheService.getAIResponse(entryText);
+    if (cachedResponse) {
+      logger.info('Using cached AI response', { userId: user.id });
+      return res.json(cachedResponse);
+    }
+Checks cache:
+
+Uses cacheService (hashed keys)
+
+If present, returns cached AI response immediately (very fast, saves money)
+
+ts
+Copy
+Edit
+    // Check token limits
+    const canMakeRequest = await tokenMonitor.canMakeRequest(user.id, tokenMonitor.estimateTokens(entryText));
+    if (!canMakeRequest) {
+      return res.status(429).json({ 
+        error: 'Monthly token limit exceeded. Please upgrade to Premium for higher limits.' 
+      });
+    }
+Enforces rate limits:
+
+Uses token monitor to estimate request size, checks monthly/user token budget
+
+If over limit: 429 error, friendly message
+
+ts
+Copy
+Edit
+    // Generate AI insight using GPT-4 with retry logic
+    const response = await retryOpenAICall(
+      () => openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { 
+            role: 'system', 
+            content: `You are...
+If not cached/limited:
+
+Calls OpenAI API (GPT-4o) to generate AI insight
+
+Uses retryOpenAICall to auto-retry failures (robust to network issues)
+
+(Note: Truncated, but typically next steps are: parse AI response, save to cache, maybe queue background jobs, return result to user)
+
