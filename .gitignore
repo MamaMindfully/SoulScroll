@@ -1,6 +1,44 @@
-node_modules
-dist
+# Node modules (never commit dependencies)
+node_modules/
+
+# Vite/React build output
+dist/
+*.log
+
+# MacOS junk
 .DS_Store
-server/public
-vite.config.ts.*
+
+# PostCSS and Vite build cache
+.vite/
+.cache/
+.temp/
+
+# Static assets or generated icons (if any)
+generated-icon.png
+
+# Server/public build (if you ever use it)
+server/public/
+
+# All local environment secrets and DBs
+.env
+.env.local
+.env.*.local
+*.sqlite
+
+# Drizzle, Prisma, or other ORM migrations (optional: keep migrations in git if team-managed)
+migrations/
+
+# Cypress test output
+cypress/videos/
+cypress/screenshots/
+
+# Tarballs/archives
 *.tar.gz
+*.zip
+
+# IDE/project files
+.vscode/
+.idea/
+
+# Replit
+.replit/
