@@ -11,6 +11,9 @@ import { deploymentValidator } from "./utils/deploymentValidator";
 import { imageOptimizer } from "./utils/imageOptimization";
 import "./utils/polyfills";
 
+// PWA service worker registration via Vite PWA plugin
+import { registerSW } from 'virtual:pwa-register';
+
 
 // Global fetch wrapper to handle 401 errors
 window.fetch = (originalFetch => {
