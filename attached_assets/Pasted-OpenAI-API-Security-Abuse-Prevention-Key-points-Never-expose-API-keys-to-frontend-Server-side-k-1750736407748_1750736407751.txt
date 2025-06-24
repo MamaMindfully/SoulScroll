@@ -1,0 +1,194 @@
+OpenAI API Security & Abuse Prevention
+Key points:
+
+Never expose API keys to frontend
+
+Server-side key rotation
+
+Strict prompt validation
+
+Per-user quota & abuse checks
+
+Express endpoint with quotas & prompt filtering:
+
+ts
+Copy
+Edit
+// openaiApi.ts (backend route)
+import { Router } from "express";
+import { OpenAI } from "openai";
+import { getUserById } from "../services/userService";
+import { verifyJwt } from "./middleware/verifyJwt";
+import { secureRateLimiter } from "./middleware/rateLimiter";
+
+const router = Router();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+router.post("/ai", verifyJwt, secureRateLimiter, async (req, res) => {
+  const { prompt } = req.body;
+  const userId = (req as any).user?.id;
+  if (!prompt || typeof prompt !== "string" || prompt.length > 2000) {
+    return res.status(400).json({ error: "Invalid or too-long prompt." });
+  }
+  const user = await getUserById(userId);
+  if (!user) return res.status(401).json({ error: "Not found" });
+  if (user.monthlyTokensUsed > user.tokenQuota) {
+    return res.status(429).json({ error: "Monthly quota exceeded" });
+  }
+  // sanitize prompt, reject suspicious input if desired
+  if (/system|user|assistant|role/i.test(prompt)) {
+    return res.status(400).json({ error: "Prompt not allowed" });
+  }
+  const aiResp = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: prompt }]
+  });
+  res.json({ response: aiResp.choices[0]?.message?.content });
+});
+
+export default router;
+2. Error & Exception Logging
+Best-practice Sentry integration:
+
+ts
+Copy
+Edit
+// sentry.ts
+import * as Sentry from "@sentry/node";
+import { RewriteFrames } from "@sentry/integrations";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [new RewriteFrames({ root: global.__dirname })],
+  tracesSampleRate: 0.2,
+  environment: process.env.NODE_ENV,
+  beforeSend(event, hint) {
+    // Remove sensitive user data from logs
+    if (event.user) {
+      event.user.email = undefined;
+      event.user.ip_address = undefined;
+    }
+    return event;
+  },
+});
+
+// server/index.ts
+import * as Sentry from "./sentry";
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.errorHandler());
+Log redaction:
+Make sure you never log user journal text, tokens, or PII.
+
+3. Stripe/Billing Webhook Verification
+Safe webhook with signature check & idempotency:
+
+ts
+Copy
+Edit
+// stripeWebhook.ts
+import Stripe from "stripe";
+import { Request, Response } from "express";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2023-08-16" });
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+export default async function stripeWebhook(req: Request, res: Response) {
+  const sig = req.headers["stripe-signature"];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig!, endpointSecret);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Idempotency: use event.id to prevent duplicate processing
+  if (await isProcessed(event.id)) return res.status(200).send("Already processed");
+
+  switch (event.type) {
+    case "invoice.paid":
+      // handle payment
+      break;
+    // ... other cases
+  }
+  markProcessed(event.id); // store event.id as processed
+  res.json({ received: true });
+}
+4. Session & Cookie Security
+Best-practice session/cookie setup in Express:
+
+ts
+Copy
+Edit
+// session.ts
+import session from "express-session";
+import pgSession from "connect-pg-simple";
+
+app.use(session({
+  store: new (pgSession(session))({
+    conString: process.env.DATABASE_URL
+  }),
+  secret: process.env.SESSION_SECRET!,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+  }
+}));
+5. Environment Variable Handling
+Safe .env usage, validation, and secrets best practice:
+
+ts
+Copy
+Edit
+// config.ts
+import * as dotenv from "dotenv";
+import { z } from "zod";
+
+dotenv.config();
+
+const configSchema = z.object({
+  OPENAI_API_KEY: z.string().min(20),
+  DATABASE_URL: z.string().url(),
+  JWT_SECRET: z.string().min(16),
+  STRIPE_SECRET_KEY: z.string().min(20),
+  // ...add all required envs
+});
+
+const config = configSchema.parse(process.env);
+export default config;
+Pro tip: Use doppler.com, 1Password Secrets Automation, or similar to avoid putting secrets in source-controlled .env files.
+
+6. Automated Security Testing
+CI pipeline steps:
+
+yaml
+Copy
+Edit
+# .github/workflows/ci.yml
+- name: Run Security Audit
+  run: npm audit --audit-level=high
+
+- name: Lint for secrets
+  run: npx git-secrets --scan
+
+- name: Run Cypress Tests
+  run: npx cypress run
+Cypress security test example:
+
+js
+Copy
+Edit
+// cypress/integration/auth.spec.js
+describe("Auth security", () => {
+  it("should not show token in localStorage after logout", () => {
+    cy.visit("/login");
+    // ...login steps...
+    cy.get("button[aria-label=Logout]").click();
+    cy.window().then(win => {
+      expect(win.localStorage.getItem("authToken")).to.be.null;
+    });
+  });
+});

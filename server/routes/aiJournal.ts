@@ -10,6 +10,8 @@ import { retryOpenAICall } from "../utils/retryUtils";
 import { captureError } from "../utils/errorHandler";
 import { aiAnalysisRateLimit } from "../middleware/rateLimiter";
 import { requirePremium, checkPremium } from "../middleware/isPremium";
+import { openaiSecurityService } from "../services/openaiSecurityService";
+import { auditService } from "../services/auditService";
 import { journalQueue } from "../queue/journalQueue";
 
 const router = Router();
@@ -23,11 +25,16 @@ const journalAnalysisSchema = z.object({
   entryId: z.number().optional()
 });
 
-// AI Journal Analysis Route with premium verification
+// AI Journal Analysis Route with premium verification and security
 router.post('/ai/journal', isAuthenticated, checkPremium, aiAnalysisRateLimit, async (req: Request, res: Response) => {
   try {
     const { entryText } = journalAnalysisSchema.parse(req.body);
     const user = req.user;
+    const userId = user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User authentication required' });
+    }
 
     logger.info('Processing AI journal analysis', { 
       userId: user.id, 
