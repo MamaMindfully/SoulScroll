@@ -1,40 +1,37 @@
+// SoulScroll AI - Cypress E2E Support Configuration
+
 // Import commands.js using ES2015 syntax:
-import './commands'
+import './commands';
 
-// Cypress global configuration
+// Alternatively you can use CommonJS syntax:
+// require('./commands')
+
+// Global test configuration
 Cypress.on('uncaught:exception', (err, runnable) => {
-  // Ignore React hydration errors in development
-  if (err.message.includes('Hydration')) {
-    return false
+  // Prevent Cypress from failing on React development errors
+  if (err.message.includes('ResizeObserver loop limit exceeded') ||
+      err.message.includes('Non-Error promise rejection captured') ||
+      err.message.includes('Loading chunk')) {
+    return false;
   }
-  // Ignore network errors during testing
-  if (err.message.includes('NetworkError')) {
-    return false
-  }
-  return true
-})
+  return true;
+});
 
-// Custom commands for authentication simulation
-Cypress.Commands.add('simulateAuth', (userId = 'test-user-123') => {
-  cy.window().then((win) => {
-    win.localStorage.setItem('userId', userId)
-    win.localStorage.setItem('isAuthenticated', 'true')
-  })
-})
+// Custom commands for SoulScroll AI
+Cypress.Commands.add('waitForApp', () => {
+  cy.get('#root', { timeout: 10000 }).should('exist');
+  cy.get('[data-testid="app-loaded"], .app-container', { timeout: 10000 }).should('exist');
+});
 
-Cypress.Commands.add('simulatePremium', () => {
-  cy.window().then((win) => {
-    win.localStorage.setItem('premiumStatus', JSON.stringify({
-      isPremium: true,
-      plan: 'monthly',
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    }))
-  })
-})
+Cypress.Commands.add('writeJournalEntry', (text) => {
+  cy.get('[data-testid="journal-editor"], textarea, [contenteditable="true"]')
+    .first()
+    .focus()
+    .clear()
+    .type(text, { delay: 50 });
+});
 
-Cypress.Commands.add('clearAppState', () => {
-  cy.window().then((win) => {
-    win.localStorage.clear()
-    win.sessionStorage.clear()
-  })
-})
+Cypress.Commands.add('waitForAIResponse', () => {
+  cy.get('[data-testid="ai-response"], .ai-insight, .reflection', { timeout: 15000 })
+    .should('exist');
+});

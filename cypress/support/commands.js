@@ -1,26 +1,47 @@
-// Custom commands for SoulScroll testing
+// SoulScroll AI - Custom Cypress Commands
 
-Cypress.Commands.add('waitForApp', () => {
-  cy.get('body').should('be.visible')
-  cy.get('[data-testid="app-loaded"]', { timeout: 10000 }).should('exist')
-})
+// Authentication helpers (if needed)
+Cypress.Commands.add('login', (email = 'test@example.com') => {
+  // Mock login for testing
+  cy.window().then((win) => {
+    win.localStorage.setItem('isAuthenticated', 'true');
+    win.localStorage.setItem('userId', 'test-user-123');
+  });
+});
 
+Cypress.Commands.add('logout', () => {
+  cy.window().then((win) => {
+    win.localStorage.clear();
+  });
+});
+
+// Journal-specific commands
 Cypress.Commands.add('createJournalEntry', (content) => {
-  cy.get('[data-testid="journal-textarea"]').clear().type(content)
-  cy.get('[data-testid="submit-journal"]').click()
-  cy.get('[data-testid="ai-reflection"]', { timeout: 15000 }).should('be.visible')
-})
+  cy.writeJournalEntry(content);
+  cy.get('[data-testid="save-button"], button:contains("Save")').click();
+  cy.waitForAIResponse();
+});
 
-Cypress.Commands.add('navigateToPage', (page) => {
-  cy.get(`[data-testid="nav-${page}"]`).click()
-  cy.url().should('include', `/${page}`)
-})
+// Viewport helpers
+Cypress.Commands.add('setMobileViewport', () => {
+  cy.viewport(375, 667);
+});
 
-Cypress.Commands.add('checkPremiumGate', () => {
-  cy.get('[data-testid="premium-gate"]').should('be.visible')
-  cy.get('[data-testid="upgrade-button"]').should('contain', 'Upgrade')
-})
+Cypress.Commands.add('setTabletViewport', () => {
+  cy.viewport(768, 1024);
+});
 
-Cypress.Commands.add('mockAPIResponse', (endpoint, response) => {
-  cy.intercept('GET', endpoint, response).as(`mock${endpoint.replace(/\//g, '')}`)
-})
+Cypress.Commands.add('setDesktopViewport', () => {
+  cy.viewport(1280, 720);
+});
+
+// API helpers
+Cypress.Commands.add('waitForHealthCheck', () => {
+  cy.request({
+    url: '/api/health',
+    timeout: 10000
+  }).then((response) => {
+    expect(response.status).to.eq(200);
+    expect(response.body).to.have.property('healthy', true);
+  });
+});
