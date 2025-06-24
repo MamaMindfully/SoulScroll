@@ -1,0 +1,102 @@
+How /dist Works in SoulScrollAI-1
+1. What Should Be in /dist After a Successful Build?
+After you run npm run build, /dist should look like:
+
+css
+Copy
+Edit
+/dist
+  index.html
+  assets/
+    index-xxxxxx.js
+    index-xxxxxx.css
+    ...other bundled assets
+  manifest.json
+  service-worker.js
+  icon-192.png
+  icon-512.png
+  apple-touch-icon.png
+  favicon-32x32.png
+  favicon-16x16.png
+  ...any other static files
+All assets (CSS, JS, images) referenced by your code are hashed and put in /dist/assets/.
+
+Manifest and icons should be in the root of /dist, NOT just in assets/.
+
+index.html at the root (used by SPA fallback).
+
+Service Worker and manifest at root for PWA installability.
+
+2. How the Server Uses /dist
+In your server.js:
+
+js
+Copy
+Edit
+app.use(express.static(path.join(__dirname, 'dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+All static requests (/assets/..., /icon-192.png, etc) served as files.
+
+All other routes (/, /dashboard, /journal/123) return index.html for the React SPA.
+
+3. How to Fix if Something is Missing or Broken
+If you get 404s:
+
+Double check: Does the file exist in /dist?
+
+If not, make sure you imported/linked it correctly in your React or HTML code.
+
+Re-run npm run build.
+
+If manifest.json, icons, or service-worker.js are missing:
+
+Make sure they're referenced in /client/index.html (or imported via Vite plugin).
+
+For custom assets, copy them into /dist post-build or use a Vite plugin like vite-plugin-static-copy.
+
+4. Pro-tip: Ensure Static Files Always Make it to /dist
+If your icons, manifest, etc., are in /client/ or /attached_assets/, and not making it to /dist on build, add this to vite.config.js:
+
+js
+Copy
+Edit
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import path from 'path';
+
+export default defineConfig({
+  // ...existing config
+  plugins: [
+    react(),
+    viteStaticCopy({
+      targets: [
+        { src: 'attached_assets/*', dest: '.' },        // copies to dist/
+        { src: 'client/manifest.json', dest: '.' },     // copies manifest
+        // Add more if needed
+      ]
+    })
+  ]
+});
+Install with: npm install vite-plugin-static-copy --save-dev
+
+5. To Test Production Locally:
+bash
+Copy
+Edit
+npm run build
+npm run start
+# Then visit http://localhost:5000 in your browser
+Go directly to /assets/index-xxxxxx.css and /icon-192.png in your browser.
+
+If you see the actual file (not HTML), it works!
+
+Visit /manifest.json and /service-worker.js. Should see valid JSON and JS.
+
+6. Never Edit /dist by Hand
+Only edit source files; /dist is regenerated on every build.
+
+If you want custom static files, add them to your source/assets and copy in the build step.
+
