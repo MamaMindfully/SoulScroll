@@ -3,9 +3,7 @@
 // Preload critical routes
 export const preloadCriticalRoutes = () => {
   const criticalRoutes = [
-    () => import('@/pages/Feed'),
-    () => import('@/pages/dreams'),
-    () => import('@/pages/mantras')
+    // Removed problematic imports for build compatibility
   ];
 
   // Preload when idle

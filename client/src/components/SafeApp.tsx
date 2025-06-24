@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "../context/ThemeContext";
-import { PremiumProvider } from "../context/PremiumContext";
 import SimpleAppRoutes from "./SimpleAppRoutes";
 import { useHasMounted } from "../hooks/useHasMounted";
 import ErrorBoundary from "./ErrorBoundary";
@@ -82,18 +78,11 @@ export default function SafeApp() {
   return (
     <ErrorBoundary fallback={<AppFallback />}>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ThemeProvider>
-            <PremiumProvider>
-              <div className="App min-h-screen bg-background text-foreground">
-                <ErrorBoundary>
-                  <SimpleAppRoutes />
-                </ErrorBoundary>
-                <Toaster />
-              </div>
-            </PremiumProvider>
-          </ThemeProvider>
-        </TooltipProvider>
+        <div className="App min-h-screen bg-gray-900 text-white">
+          <ErrorBoundary>
+            <SimpleAppRoutes />
+          </ErrorBoundary>
+        </div>
       </QueryClientProvider>
     </ErrorBoundary>
   );
