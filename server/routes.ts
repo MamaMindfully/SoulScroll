@@ -2195,6 +2195,83 @@ End with a simple, poetic follow-up question.
     });
   });
 
+  // SPA fallback route - must be added before creating the server
+  app.get('*', (req, res) => {
+    // Don't serve SPA for API routes
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    // For production, try to serve the built index.html
+    if (process.env.NODE_ENV === 'production') {
+      const indexPath = path.resolve(__dirname, '..', 'dist', 'index.html');
+      if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+      }
+    }
+    
+    // Development fallback - serve a proper HTML page that loads the app
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SoulScroll AI - Emotional Journaling</title>
+    <style>
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        text-align: center;
+        max-width: 500px;
+        padding: 2rem;
+      }
+      .loading {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+      }
+      .button {
+        background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        margin-top: 1rem;
+        text-decoration: none;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="loading">
+        <h1>🌙 SoulScroll AI</h1>
+        <p>Your emotional journaling companion</p>
+        <p><small>Application is starting...</small></p>
+        <a href="/api/health" class="button">Check Status</a>
+      </div>
+    </div>
+    <script>
+      // Check if this is development mode and reload to get Vite dev server
+      if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit.dev')) {
+        setTimeout(() => window.location.reload(), 3000);
+      }
+    </script>
+  </body>
+</html>`);
+  });
+
   const httpServer = createServer(app);
   
   // Setup Socket.IO realtime server
