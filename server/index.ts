@@ -15,6 +15,7 @@ import { gracefulDegradation, serviceFailureHandler, detectServiceAvailability }
 import { performStartupChecks } from "./utils/deploymentReadiness";
 import { deploymentSafetyMiddleware, redisErrorHandler } from "./middleware/deploymentSafety";
 import { initializeDeploymentSafety } from "./utils/deploymentSafety";
+import { databaseErrorHandler, ensureDatabaseConnection } from "./middleware/databaseErrorHandler";
 
 // Initialize deployment safety measures before any Redis imports
 initializeDeploymentSafety();
@@ -27,9 +28,9 @@ const app = express();
 // Add comprehensive error handling for uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  // Never exit on Redis errors, just log them
-  if (error.message && error.message.includes('Redis')) {
-    console.warn('Redis error caught globally - continuing with fallback mode');
+  // Never exit on Redis or database connection errors, just log them
+  if (error.message && (error.message.includes('Redis') || error.message.includes('terminating connection') || error.message.includes('connection terminated'))) {
+    console.warn('Connection error caught globally - continuing with fallback mode');
     return;
   }
   // Don't exit in production, just log the error
@@ -40,9 +41,9 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (reason: any, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Never exit on Redis errors, just log them
-  if (reason?.message && reason.message.includes('Redis')) {
-    console.warn('Redis rejection caught globally - continuing with fallback mode');
+  // Never exit on Redis or database connection errors, just log them
+  if (reason?.message && (reason.message.includes('Redis') || reason.message.includes('terminating connection') || reason.message.includes('connection terminated'))) {
+    console.warn('Connection rejection caught globally - continuing with fallback mode');
     return;
   }
   // Don't exit in production, just log the error
