@@ -53,6 +53,7 @@
     "@types/d3": "^7.4.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/memoizee": "^0.4.12",
+    "adm-zip": "^0.5.16",
     "body-parser": "^2.2.0",
     "bullmq": "^5.55.0",
     "class-variance-authority": "^0.7.1",
