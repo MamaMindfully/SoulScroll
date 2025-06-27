@@ -1,0 +1,205 @@
+A. Privacy & Trust
+1. Field-Level Encryption for All Journal Content
+Backend:
+
+Use crypto (Node.js) to encrypt/decrypt journal text fields on save/load.
+
+ts
+Copy
+Edit
+// utils/encryption.ts
+import crypto from "crypto";
+const KEY = process.env.FIELD_ENCRYPTION_KEY!; // 32 bytes
+
+export function encryptField(plain: string) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(KEY, "hex"), iv);
+  const enc = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);
+  return iv.toString("hex") + ":" + enc.toString("hex");
+}
+
+export function decryptField(encField: string) {
+  const [ivHex, dataHex] = encField.split(":");
+  const iv = Buffer.from(ivHex, "hex");
+  const encrypted = Buffer.from(dataHex, "hex");
+  const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(KEY, "hex"), iv);
+  const dec = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  return dec.toString();
+}
+DB Migration:
+Change journal_entries to store entry_text as TEXT (encrypted).
+In service:
+
+ts
+Copy
+Edit
+// When saving:
+entry.entry_text = encryptField(entry.entry_text);
+// When loading:
+entry.entry_text = decryptField(entry.entry_text);
+2. Admin/Audit Logging for Data Export & Download
+Backend:
+
+ts
+Copy
+Edit
+// utils/auditLogger.ts
+import fs from "fs";
+export function logAudit(userId: string, action: string, meta: any) {
+  const line = JSON.stringify({ userId, action, time: Date.now(), ...meta }) + "\n";
+  fs.appendFileSync("./audit.log", line);
+}
+// Usage in /export and /download-export routes:
+logAudit(req.user!.id, "data_export", { ip: req.ip });
+3. Local-Only Mode for Journals
+Frontend:
+
+Use localforage or indexedDB to store journals client-side.
+
+Add a “Local Only” switch in settings.
+
+Don’t send local-only entries to server.
+
+js
+Copy
+Edit
+import localforage from "localforage";
+async function saveLocalEntry(entry) {
+  let all = (await localforage.getItem("localJournals")) || [];
+  all.push(entry);
+  await localforage.setItem("localJournals", all);
+}
+B. Data/Analytics
+1. Personalized Nudges (Emotion Analytics to Proactive Prompts)
+Backend or Frontend:
+
+Run rolling average or z-score detection (see earlier “outlier” code).
+
+If “bad streak” detected, send in-app nudge or push notification.
+
+ts
+Copy
+Edit
+if (last3Days.every(e => e.emotion_score < 2)) {
+  // trigger nudge
+  sendNotification(userId, "You’ve had a tough week. Try a self-care ritual?");
+}
+2. Full Anomaly Detection Pipeline
+Backend:
+
+Run a daily job that flags outlier days per user.
+
+Add an anomaly boolean field to journal_entries.
+
+ts
+Copy
+Edit
+if (Math.abs(entry.emotion_score - userAvg) > 2 * userStdDev) {
+  entry.anomaly = true;
+  // Save to DB, trigger UI badge
+}
+C. Engagement
+1. Actionable Notifications
+Service Worker:
+
+js
+Copy
+Edit
+self.registration.showNotification("Journal time!", {
+  body: "Write today’s entry.",
+  actions: [
+    { action: "snooze", title: "Snooze 1 hour" },
+    { action: "open", title: "Open App" }
+  ]
+});
+
+self.addEventListener("notificationclick", event => {
+  if (event.action === "snooze") {
+    // Post message to reschedule
+  }
+  if (event.action === "open") {
+    event.waitUntil(clients.openWindow("/"));
+  }
+});
+2. Social/Community (Feed + Privacy Gating)
+Backend:
+
+Add a journal_entries.is_public flag (default false)
+
+Only show public entries in /community-feed
+
+Frontend:
+
+Add privacy toggle to entry creation UI
+
+tsx
+Copy
+Edit
+<label>
+  <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} />
+  Share to community feed
+</label>
+D. Performance
+1. User-Centric Perf Budgets
+CI/CD:
+
+Add Lighthouse CI
+
+yaml
+Copy
+Edit
+# .github/workflows/lighthouse.yml
+- run: npx lhci autorun --assert.preset=lighthouse:recommended --assert.assertions='{"categories:performance":">=0.85"}'
+2. Cold Start Detection
+Backend:
+
+Log time from process start to first request; if >2s, send alert.
+
+E. Security
+1. Automated Pentesting in CI
+GitHub Actions:
+
+yaml
+Copy
+Edit
+- name: Run OWASP ZAP Baseline
+  uses: zaproxy/action-baseline@v0.7.0
+  with:
+    target: 'http://localhost:3000'
+2. SSO/OAuth Integration
+Backend/Frontend:
+
+Use passport.js with Google/Apple/Microsoft strategies
+
+See: https://www.passportjs.org/packages/
+
+3. Rate Limit + CAPTCHA
+Backend:
+
+Add express-rate-limit to auth routes
+
+Use hCaptcha or reCAPTCHA on sensitive forms
+
+F. Accessibility
+1. Screen Reader & Keyboard Support
+Frontend:
+
+Use semantic HTML (<button>, <nav>, etc)
+
+Add ARIA labels to all interactive elements
+
+Use axe in CI for automated checks
+
+2. Color Contrast Checker in Build
+Use pa11y-ci or storybook-addon-a11y
+
+G. Internationalization
+1. i18n Support
+Frontend:
+
+Add i18next or react-intl
+
+Extract all strings into translation files
+
+UI language switcher
+

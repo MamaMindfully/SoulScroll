@@ -1,0 +1,81 @@
+Best Practice cypress.config.js for Vite/React/Node Projects
+Recommended Complete Example
+js
+Copy
+Edit
+const { defineConfig } = require('cypress');
+
+module.exports = defineConfig({
+  e2e: {
+    baseUrl: 'http://localhost:5000',          // Matches Express port!
+    viewportWidth: 1280,
+    viewportHeight: 800,
+    chromeWebSecurity: false,                  // Allow 3rd-party APIs if needed
+    screenshotOnRunFailure: true,
+    video: false,
+    specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: 'cypress/support/e2e.js',
+    env: {
+      // Add any custom env vars you want Cypress to see here.
+    },
+    setupNodeEvents(on, config) {
+      // Add plugin/event handlers here if needed
+      return config;
+    },
+  },
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'vite',
+    },
+    specPattern: 'cypress/component/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: 'cypress/support/component.js',
+  },
+});
+What This Does
+baseUrl: Ensure this matches your backend server (localhost:5000 for Express).
+
+viewportWidth/Height: Sets reasonable desktop defaults.
+
+chromeWebSecurity: Sometimes required to interact with APIs in E2E.
+
+screenshotOnRunFailure/video: Useful for CI; set to true if you want visual logs, false for faster local runs.
+
+specPattern/supportFile: Standard folder structure, no surprises for team or CI.
+
+env: You can inject any test credentials or feature flags here.
+
+setupNodeEvents: Place to register event handlers/plugins for Cypress.
+
+Additional Best Practices
+Always run Cypress with your server running! (Start your Express/Vite app first.)
+
+Use npx cypress open for interactive debugging, npx cypress run for headless/CI.
+
+Put tests in /cypress/e2e/ or /cypress/component/ for clarity.
+
+Ignore Cypress screenshots/videos in .gitignore.
+
+If You Use TypeScript
+Cypress automatically supports .ts and .tsx specs if you have a tsconfig.json at root.
+
+Example Folder Structure
+bash
+Copy
+Edit
+/cypress
+  /e2e
+    home.cy.js
+  /component
+    Button.cy.jsx
+  /support
+    e2e.js
+    component.js
+cypress.config.js
+When to Adjust This Config
+If your app runs on a different port, update baseUrl.
+
+Add plugins/event hooks for DB seeding, user login, or custom commands in setupNodeEvents.
+
+For parallel/CI runs, tweak video, screenshotOnRunFailure, etc.
+

@@ -1,0 +1,109 @@
+Best Practice replit.md Template
+markdown
+Copy
+Edit
+# SoulScrollAI – Replit Project Guide
+
+Welcome to the **SoulScrollAI** Replit monorepo!  
+This guide explains how to run, develop, test, and deploy this project on Replit.
+
+---
+
+## 1. Project Structure
+
+/client # React frontend (Vite, Tailwind)
+/src
+/server # Express API and backend logic
+/shared # Types, schemas, and API contracts
+/cypress # End-to-end and component tests
+dist/ # Built frontend for production
+.replit # Replit's run/build config
+.env # Your secrets – never commit!
+
+yaml
+Copy
+Edit
+
+---
+
+## 2. Getting Started
+
+- **Clone this repo or open on Replit**
+- **Add your `.env` file** with:
+  ```env
+  DATABASE_URL=postgresql://user:pass@host:port/db
+  # (Optional) REDIS_URL=redis://...
+Install dependencies:
+
+bash
+Copy
+Edit
+npm install
+Run the dev server (Vite + Express):
+
+bash
+Copy
+Edit
+npm run dev
+The frontend will hot-reload at the given Replit URL.
+
+3. Building for Production
+Build the app:
+
+bash
+Copy
+Edit
+npm run build
+This generates /dist from /client/src
+
+Start the production server:
+
+bash
+Copy
+Edit
+npm run start
+4. Testing
+Run Cypress tests:
+
+bash
+Copy
+Edit
+npx cypress open   # Interactive
+npx cypress run    # Headless/CI
+Backend unit tests:
+(add info if you have Jest or other tests)
+
+5. Database & Migrations
+Migrations (Drizzle):
+
+bash
+Copy
+Edit
+npx drizzle-kit generate
+npx drizzle-kit up
+See /shared/schema.ts and drizzle.config.ts for schema details.
+
+6. Assets & Static Files
+Place images in /attached_assets
+
+Access them via imports using @assets/ alias
+
+7. Common Issues / FAQ
+Frontend not updating? Run npm run build again, then npm run start.
+
+Cypress not finding server? Make sure baseUrl in cypress.config.js matches Express port.
+
+Port already in use? Change PORT in .env and cypress.config.js.
+
+8. Deployment
+On Replit, hit “Run” or use the shell for commands.
+
+For static deploys, you can also drag/drop /dist to Netlify.
+
+Always verify /dist has all assets and HTML after build.
+
+9. Contributors
+Main: Lennon Pace
+
+AI Assistant: Grimoire (GPT)
+

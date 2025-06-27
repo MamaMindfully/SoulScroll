@@ -1,0 +1,73 @@
+import React, { useState } from 'react';
+
+const EveningFlow = ({ onComplete }) => {
+  const [highPoint, setHighPoint] = useState('');
+  const [lesson, setLesson] = useState('');
+  const [emotion, setEmotion] = useState('');
+  const [step, setStep] = useState(1);
+
+  const handleNext = () => {
+    if (step === 3) {
+      const entry = {
+        type: 'evening',
+        timestamp: new Date().toISOString(),
+        highPoint,
+        lesson,
+        emotion,
+      };
+      const existing = JSON.parse(localStorage.getItem('soulscroll-entries') || '[]');
+      localStorage.setItem('soulscroll-entries', JSON.stringify([...existing, entry]));
+      if (onComplete) onComplete();
+    } else {
+      setStep(step + 1);
+    }
+  };
+
+  return (
+    <div className="evening-flow-container">
+      <h2>🌙 Evening Ritual</h2>
+
+      {step === 1 && (
+        <>
+          <p>What was the best moment of your day?</p>
+          <textarea
+            value={highPoint}
+            onChange={(e) => setHighPoint(e.target.value)}
+            placeholder="That moment when..."
+          />
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <p>What did you learn or realize today?</p>
+          <textarea
+            value={lesson}
+            onChange={(e) => setLesson(e.target.value)}
+            placeholder="Today taught me that..."
+          />
+        </>
+      )}
+
+      {step === 3 && (
+        <>
+          <p>What emotion are you going to bed with?</p>
+          <select value={emotion} onChange={(e) => setEmotion(e.target.value)}>
+            <option value="">Choose one</option>
+            <option value="peace">Peace</option>
+            <option value="hope">Hope</option>
+            <option value="regret">Regret</option>
+            <option value="gratitude">Gratitude</option>
+            <option value="fatigue">Fatigue</option>
+          </select>
+        </>
+      )}
+
+      <button onClick={handleNext} disabled={step === 1 && !highPoint}>
+        {step === 3 ? 'Complete' : 'Next'}
+      </button>
+    </div>
+  );
+};
+
+export default EveningFlow;

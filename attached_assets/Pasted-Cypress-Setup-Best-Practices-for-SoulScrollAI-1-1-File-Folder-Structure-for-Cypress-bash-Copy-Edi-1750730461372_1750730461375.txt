@@ -1,0 +1,117 @@
+Cypress Setup & Best Practices for SoulScrollAI-1
+1. File/Folder Structure for Cypress
+bash
+Copy
+Edit
+/cypress
+  /e2e
+    your-tests.cy.js
+  /component
+    component-tests.cy.jsx
+  /support
+    e2e.js
+    component.js
+cypress.config.js
+All Cypress files live in /cypress/ at the project root.
+
+Your cypress.config.js controls global settings.
+
+2. Sample Cypress Config
+You already have a strong config! Here’s a best-practice template for your stack:
+
+js
+Copy
+Edit
+const { defineConfig } = require('cypress');
+
+module.exports = defineConfig({
+  e2e: {
+    baseUrl: 'http://localhost:5000', // Must match Express server PORT
+    viewportWidth: 1280,
+    viewportHeight: 720,
+    video: false,
+    screenshotOnRunFailure: true,
+    setupNodeEvents(on, config) {
+      // Add event listeners here if needed (e.g., before:run)
+    },
+    specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: 'cypress/support/e2e.js',
+  },
+  component: {
+    devServer: {
+      framework: 'react',
+      bundler: 'vite',
+    },
+    specPattern: 'cypress/component/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: 'cypress/support/component.js',
+  }
+});
+Update baseUrl if your dev server uses a different port.
+
+3. How to Run Cypress on Replit
+Install Cypress:
+
+bash
+Copy
+Edit
+npm install --save-dev cypress
+To run tests locally (Replit shell or your own terminal):
+
+bash
+Copy
+Edit
+npx cypress open   # For the interactive UI
+npx cypress run    # For headless/CI
+On Replit, use the shell tab (Cypress UI won’t show up in Replit’s browser pane, but headless runs work fine).
+
+4. Example E2E Test
+js
+Copy
+Edit
+// cypress/e2e/home.cy.js
+describe('SoulScroll Home Page', () => {
+  it('loads the homepage', () => {
+    cy.visit('/');
+    cy.contains('SoulScroll').should('exist');
+    cy.get('#root').should('exist');
+  });
+});
+5. Troubleshooting
+App must be running (via npm run start or npm run dev) for Cypress to test it!
+
+If Cypress can’t connect, check the baseUrl in cypress.config.js.
+
+Errors about missing selectors usually mean your React app didn't render, likely due to backend errors or port mismatches.
+
+6. Git Ignore
+Make sure .gitignore includes:
+
+bash
+Copy
+Edit
+cypress/videos/
+cypress/screenshots/
+Prevents test artifacts from clogging your repo.
+
+7. Advanced: Component Testing
+Place React component specs in /cypress/component/
+
+Use:
+
+bash
+Copy
+Edit
+npx cypress open --component
+Configures Vite as bundler for React.
+
+Summary of Best Practices
+/cypress folder at project root
+
+Correct cypress.config.js (match baseUrl to server)
+
+Keep your supportFile and specPattern settings up to date
+
+Test run only when app is running locally
+
+Ignore videos/screenshots in git
+

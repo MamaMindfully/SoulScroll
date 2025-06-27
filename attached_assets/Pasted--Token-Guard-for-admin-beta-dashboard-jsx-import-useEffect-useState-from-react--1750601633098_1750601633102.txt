@@ -1,0 +1,84 @@
+// === 🔐 Token Guard for /admin/beta-dashboard.jsx ===
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+
+export default function BetaDashboard() {
+  const [accessGranted, setAccessGranted] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    const token = localStorage.getItem('soul_admin_token')
+    const VALID_TOKEN = 'scrollmaster2025' // Set in .env or replace manually
+
+    if (token === VALID_TOKEN) {
+      setAccessGranted(true)
+    } else {
+      const input = prompt('🔒 Admin Access Required:\nEnter token:')
+      if (input === VALID_TOKEN) {
+        localStorage.setItem('soul_admin_token', input)
+        setAccessGranted(true)
+      } else {
+        alert('Access denied.')
+        router.push('/')
+      }
+    }
+  }, [])
+
+  if (!accessGranted) return null
+
+  // --- Existing dashboard content below ---
+  const [usage, setUsage] = useState({ reflections: 0, insights: 0, users: 0 })
+  const [scores, setScores] = useState([])
+
+  useEffect(() => {
+    async function fetchStats() {
+      const { count: reflections } = await supabase.from('saved_reflections').select('*', { count: 'exact', head: true })
+      const { count: insights } = await supabase.from('insight_logs').select('*', { count: 'exact', head: true })
+      const { count: users } = await supabase.from('users').select('*', { count: 'exact', head: true })
+      const { data: trends } = await supabase.from('emotion_trends').select('score')
+      setUsage({ reflections, insights, users })
+      setScores(trends?.map(t => t.score))
+    }
+    fetchStats()
+  }, [])
+
+  const avg = scores.length ? (scores.reduce((a, b) => a + parseFloat(b), 0) / scores.length).toFixed(2) : '—'
+
+  return (
+    <div className="p-8 text-white">
+      <h1 className="text-2xl font-bold mb-4">🧪 Beta Testing Dashboard</h1>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-gray-800 p-4 rounded">Users: <span className="font-bold">{usage.users}</span></div>
+        <div className="bg-gray-800 p-4 rounded">Reflections: <span className="font-bold">{usage.reflections}</span></div>
+        <div className="bg-gray-800 p-4 rounded">Insights Triggered: <span className="font-bold">{usage.insights}</span></div>
+        <div className="bg-gray-800 p-4 rounded">Avg. Emotion Score: <span className="font-bold">{avg}</span></div>
+      </div>
+    </div>
+  )
+}
+
+
+// === 🌟 FINAL LAUNCH ADDITIONS ===
+
+// components/JournalStreak.js
+export function JournalStreak({ count }) {
+  if (!count || count < 2) return null
+  return (
+    <div className="text-sm text-indigo-400 mt-2">
+      🔥 You’ve journaled {count} days in a row. Keep going.
+    </div>
+  )
+}
+
+// utils/getStreak.js
+export async function getStreak(userId) {
+  const { data } = await supabase.from('saved_reflections')
+    .select('created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  const days = new Set(data.map(entry => new Date(entry.created_at).toDateString()))
+  return days.size
+}
+
+// 🎯 Usage: call getStreak(user.id) → pass to <JournalStreak />

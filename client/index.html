@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>SoulScroll AI - Emotional Journaling</title>
+    <meta name="description" content="SoulScroll AI: Emotionally intelligent journaling with AI insights, mood tracking, and personal growth." />
+    <link rel="canonical" href="https://f9b45165-55f8-4c3f-9c5d-833c2453b595-00-2nr3wvfykwdbx.kirk.replit.dev/" />
+    <meta property="og:image" content="/icon-192.png" />
+    <meta name="theme-color" content="#0f172a" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple touch icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/icon-192.png" as="image">
+    <link rel="preload" href="/icon-512.png" as="image">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://api.openai.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preconnect to external services for faster API calls -->
+    <link rel="preconnect" href="https://api.openai.com" />
+    <link rel="preconnect" href="https://api.stripe.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-192.png" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Mobile optimizations -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Prevent zooming on input focus -->
+    <style>
+      input, textarea, select {
+        font-size: 16px !important;
+      }
+    </style>
+  </head>
+  <body class="bg-calm">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx" defer></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            console.log('Service Worker registered: ', registration);
+            
+            // Request notification permission
+            if ('Notification' in window && navigator.serviceWorker) {
+              if (Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                  console.log('Notification permission:', permission);
+                });
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Service Worker registration failed:', error);
+          });
+      }
+    </script>
+    
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>

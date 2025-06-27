@@ -1,0 +1,91 @@
+Best Practice service-worker.js for Vite + React SPA
+1. Minimal but Functional PWA Service Worker
+This pattern:
+
+Caches app shell and assets on install.
+
+Serves from cache when offline.
+
+Updates cache on new deploy.
+
+js
+Copy
+Edit
+const CACHE_NAME = 'soulscroll-v1';
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  // Add CSS/JS asset filenames output by Vite build!
+  // e.g. '/assets/index-xyz123.js', '/assets/index-xyz123.css'
+];
+
+// On install: cache all assets
+self.addEventListener('install', event => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
+});
+
+// On activate: clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+    )
+  );
+  self.clients.claim();
+});
+
+// On fetch: serve from cache, else from network
+self.addEventListener('fetch', event => {
+  // Only handle GET requests for navigation or static assets
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    caches.match(event.request).then(response =>
+      response ||
+      fetch(event.request).then(fetchRes => {
+        // Optionally: put fetched files into cache
+        return fetchRes;
+      }).catch(() => {
+        // Optionally: fallback to index.html for SPA navigation
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
+        }
+      })
+    )
+  );
+});
+2. How to Keep ASSETS Up To Date Automatically
+For best results: auto-generate asset list in build step
+
+Use vite-plugin-pwa to generate your service worker and manifest, handling asset hashes.
+
+If doing manually, update asset filenames in ASSETS after each build (Vite outputs with hashes).
+
+3. Register Service Worker in index.html or React
+js
+Copy
+Edit
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log('Service Worker registered!'));
+}
+Always register at /service-worker.js (not ./service-worker.js).
+
+4. Common Pitfalls
+Wrong file path: Service worker must be at the web root (/dist/service-worker.js).
+
+Missing assets: If files aren’t listed in ASSETS, they won’t be cached/offline.
+
+Outdated cache names: Always bump the CACHE_NAME to force cache update on deploy.
+
+5. Debugging
+Chrome DevTools > Application > Service Workers: See if it’s installed/active.
+
+Go offline: Visit your app—does it still work?
+

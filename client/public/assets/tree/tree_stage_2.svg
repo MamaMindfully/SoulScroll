@@ -1,0 +1,38 @@
+<svg width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Soil line -->
+  <ellipse cx="125" cy="180" rx="110" ry="18" fill="#8B5A3C" opacity="0.4"/>
+  
+  <!-- Main trunk -->
+  <rect x="120" y="120" width="10" height="60" fill="#92400E" rx="5"/>
+  
+  <!-- Small branches -->
+  <rect x="110" y="135" width="15" height="4" fill="#92400E" rx="2" transform="rotate(-20 110 135)"/>
+  <rect x="130" y="140" width="18" height="4" fill="#92400E" rx="2" transform="rotate(25 130 140)"/>
+  <rect x="115" y="155" width="12" height="3" fill="#92400E" rx="2" transform="rotate(-15 115 155)"/>
+  
+  <!-- Leaf clusters -->
+  <g transform="translate(105,130)">
+    <ellipse cx="0" cy="0" rx="12" ry="8" fill="#22C55E" opacity="0.9"/>
+    <ellipse cx="5" cy="-3" rx="8" ry="6" fill="#16A34A"/>
+  </g>
+  
+  <g transform="translate(145,135)">
+    <ellipse cx="0" cy="0" rx="15" ry="10" fill="#22C55E" opacity="0.9"/>
+    <ellipse cx="-5" cy="-4" rx="10" ry="7" fill="#16A34A"/>
+  </g>
+  
+  <g transform="translate(110,150)">
+    <ellipse cx="0" cy="0" rx="10" ry="7" fill="#22C55E" opacity="0.8"/>
+    <ellipse cx="3" cy="-2" rx="6" ry="5" fill="#16A34A"/>
+  </g>
+  
+  <!-- Growing roots -->
+  <path d="M125 180 Q115 195 105 205" stroke="#8B5A3C" stroke-width="3" fill="none"/>
+  <path d="M125 180 Q135 195 145 205" stroke="#8B5A3C" stroke-width="3" fill="none"/>
+  <path d="M125 180 Q125 190 120 200" stroke="#8B5A3C" stroke-width="2" fill="none"/>
+  
+  <!-- Growth sparkles -->
+  <circle cx="95" cy="125" r="2" fill="#FCD34D" opacity="0.7"/>
+  <circle cx="155" cy="130" r="1.5" fill="#FCD34D" opacity="0.8"/>
+  <circle cx="125" cy="115" r="1" fill="#FCD34D" opacity="0.9"/>
+</svg>

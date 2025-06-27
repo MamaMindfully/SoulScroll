@@ -1,0 +1,119 @@
+Best Practice vite.config.ts
+1. Modern, Full-Featured Example
+ts
+Copy
+Edit
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: [
+        'favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'
+      ],
+      manifest: {
+        name: 'SoulScrollAI',
+        short_name: 'SoulScroll',
+        description: 'A mindful journaling app for reflection and growth.',
+        theme_color: '#ffffff',
+        icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+        ]
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.openai\.com\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'openai-api',
+              expiration: { maxEntries: 50, maxAgeSeconds: 3600 }
+            }
+          }
+        ]
+      }
+    })
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'client/src'),
+      '@shared': path.resolve(__dirname, 'shared'),
+      '@assets': path.resolve(__dirname, 'attached_assets')
+    }
+  },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: true,
+    assetsDir: 'assets'
+  },
+  server: {
+    host: '0.0.0.0', // Allow access from all devices/networks (needed on Replit)
+    port: 5173,      // Or your desired port
+    strictPort: true
+  },
+  preview: {
+    port: 4173
+  }
+});
+2. Why This Works
+PWA (vite-plugin-pwa):
+
+Handles manifest, icons, and service worker auto-generation.
+
+Auto precaches all your assets—no manual cache list needed.
+
+Smart runtime caching for APIs (e.g., OpenAI).
+
+Alias setup:
+
+@ for frontend src, @shared for types/utils, @assets for images/static.
+
+Build output:
+
+Clean /dist, hashed files in /assets, source maps enabled.
+
+Server config:
+
+Host on 0.0.0.0 for Replit or containerized cloud.
+
+strictPort avoids silent port fallback bugs.
+
+Preview:
+
+Consistent local/preview port.
+
+3. Pro Tips
+Update manifest.icons if you add/rename icons!
+
+If you add more asset folders, update includeAssets and aliases.
+
+Use vite-plugin-static-copy if you need to copy assets not referenced in code.
+
+Add more plugins as needed:
+
+Storybook (@storybook/addon-vite)
+
+SVGR for SVG imports
+
+4. Required Dev Deps
+bash
+Copy
+Edit
+npm install -D vite @vitejs/plugin-react vite-plugin-pwa path
+5. Full TypeScript Support
+With vite.config.ts, you get type safety and intellisense on config.
+
+6. Gotchas
+Never use relative asset paths in output: Always import or include via Vite config.
+
+All plugins should be listed in the plugins array in the correct order.
+
+Always rebuild (npm run build) after updating this config.
+

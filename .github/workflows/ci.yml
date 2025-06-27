@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        ports: [5432:5432]
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:6
+        ports: [6379:6379]
+
+    env:
+      DATABASE_URL: postgres://testuser:testpass@localhost:5432/testdb
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: test_jwt_secret_123
+      OPENAI_API_KEY: testkey
+      STRIPE_SECRET_KEY: test
+      STRIPE_PRICE_ID: test
+      STRIPE_PRICE_ID_MONTHLY: test
+      STRIPE_PRICE_ID_YEARLY: test
+      STRIPE_WEBHOOK_SECRET: test
+      VAPID_PUBLIC_KEY: test
+      VAPID_PRIVATE_KEY: test
+      REACT_APP_ADMIN_TOKEN: test
+      REACT_APP_SUPER_ADMIN_TOKEN: test
+      FIELD_ENCRYPTION_KEY: test_field_encryption_key_1234567890123456
+      ADMIN_USER_ID: 1
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type Check
+        run: npm run check
+      - name: Test
+        run: npm run test

@@ -1,0 +1,103 @@
+// === 🕯️ SoulScroll Masterpiece Component: Journal Awakening Overlay ===
+// This is the first experience a user sees when opening the app each day.
+// A poetic greeting, a guided breath, and a seamless entry to reflection.
+// Drop into `components/JournalAwakening.jsx`
+
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+
+export default function JournalAwakening({ onAwaken }) {
+  const [visible, setVisible] = useState(true)
+  const greetings = [
+    "Today begins where you choose to meet yourself.",
+    "You are the space between silence and story.",
+    "Let the page hold what the world cannot.",
+    "You do not need to know. You need only to arrive."
+  ]
+
+  const greeting = greetings[Math.floor(Math.random() * greetings.length)]
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false)
+      onAwaken()
+    }, 7000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black text-white flex flex-col items-center justify-center z-50 p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.h1 className="text-2xl md:text-4xl text-center mb-6" initial={{ y: -40 }} animate={{ y: 0 }}>
+        {greeting}
+      </motion.h1>
+      <BreathGuidance />
+    </motion.div>
+  )
+}
+
+function BreathGuidance() {
+  const [phase, setPhase] = useState('Inhale')
+  const phases = ['Inhale', 'Hold', 'Exhale', 'Hold']
+  const durations = [4000, 4000, 6000, 4000]
+
+  useEffect(() => {
+    let i = 0
+    const cycle = () => {
+      setPhase(phases[i])
+      setTimeout(() => {
+        i = (i + 1) % phases.length
+        cycle()
+      }, durations[i])
+    }
+    cycle()
+  }, [])
+
+  return (
+    <div className="text-xl font-light text-indigo-400 animate-pulse">
+      {phase}
+    </div>
+  )
+}
+
+
+// === 🧠 Hook: useArcInsightStarter ===
+// Launches the Ask Arc session with personalized depth based on user traits
+// Drop into `hooks/useArcInsightStarter.js`
+
+import supabase from '../utils/db'
+import { useState } from 'react'
+
+export default function useArcInsightStarter(userId) {
+  const [insight, setInsight] = useState(null)
+
+  async function startArcInsight() {
+    const { data: traits } = await supabase
+      .from('user_traits')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    const prompt = traits.likes_affirmations
+      ? "Give the user a poetic affirmation to soften their guard."
+      : "Ask a direct question to guide their inner search."
+
+    const res = await fetch('/api/arc-insight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, prompt })
+    })
+
+    const data = await res.json()
+    setInsight(data.content)
+    return data.content
+  }
+
+  return { insight, startArcInsight }
+}

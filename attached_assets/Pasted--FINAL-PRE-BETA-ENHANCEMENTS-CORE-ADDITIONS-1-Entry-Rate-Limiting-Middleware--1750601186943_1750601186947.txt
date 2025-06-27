@@ -1,0 +1,91 @@
+// === ✅ FINAL PRE-BETA ENHANCEMENTS (CORE ADDITIONS) ===
+
+// 1. 🔒 Entry Rate Limiting Middleware (/utils/rateLimit.js)
+let userRequestLog = {}
+
+export function rateLimit(userId, limit = 5, windowMs = 60000) {
+  const now = Date.now()
+  const log = userRequestLog[userId] || []
+  const filtered = log.filter(ts => now - ts < windowMs)
+
+  if (filtered.length >= limit) return false
+
+  userRequestLog[userId] = [...filtered, now]
+  return true
+}
+
+
+// 2. 🌱 Intro Onboarding Modal (components/OnboardingModal.jsx)
+import { useEffect, useState } from 'react'
+
+export default function OnboardingModal() {
+  const [seen, setSeen] = useState(false)
+
+  useEffect(() => {
+    const hasSeen = localStorage.getItem('seenIntro')
+    setSeen(!!hasSeen)
+  }, [])
+
+  function dismiss() {
+    localStorage.setItem('seenIntro', 'yes')
+    setSeen(true)
+  }
+
+  if (seen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+      <div className="bg-gray-900 text-white p-6 max-w-md rounded-lg">
+        <h2 className="text-xl font-bold mb-2">Welcome to SoulScroll ✨</h2>
+        <p className="text-sm mb-4">
+          This isn’t just a journaling app. This is a mirror for your soul, a compass for your mind. Write freely. Explore deeply.
+        </p>
+        <button onClick={dismiss} className="bg-indigo-600 px-4 py-2 rounded">Begin</button>
+      </div>
+    </div>
+  )
+}
+
+
+// 3. 🛠 Feedback Button (components/FeedbackButton.jsx)
+export default function FeedbackButton() {
+  return (
+    <a
+      href="https://forms.gle/YOUR_GOOGLE_FORM_URL"
+      target="_blank"
+      rel="noreferrer"
+      className="fixed bottom-6 right-6 bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:scale-105 transition"
+    >
+      💬
+    </a>
+  )
+}
+
+
+// 4. 📜 Terms & Privacy Placeholder Page (pages/terms.jsx)
+export default function Terms() {
+  return (
+    <div className="max-w-2xl mx-auto text-white p-8">
+      <h1 className="text-2xl font-bold mb-4">Privacy & Terms</h1>
+      <p className="text-sm mb-2">
+        This app respects your data. Entries are stored securely. Nothing is sold, shared, or analyzed beyond your own journaling experience.
+      </p>
+      <p className="text-sm">For beta users: your data may be used to improve this app anonymously.</p>
+    </div>
+  )
+}
+
+
+// 5. 🧪 Add <OnboardingModal /> + <FeedbackButton /> to _app.jsx layout
+import OnboardingModal from '@/components/OnboardingModal'
+import FeedbackButton from '@/components/FeedbackButton'
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <>
+      <OnboardingModal />
+      <Component {...pageProps} />
+      <FeedbackButton />
+    </>
+  )
+}

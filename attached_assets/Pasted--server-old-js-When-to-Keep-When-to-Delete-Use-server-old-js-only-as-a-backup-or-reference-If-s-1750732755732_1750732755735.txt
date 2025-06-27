@@ -1,0 +1,86 @@
+ server-old.js — When to Keep, When to Delete
+Use server-old.js only as a backup or reference.
+
+If server.js works and is modernized (ES Modules, correct static file order), you can safely delete server-old.js.
+
+Only keep server-old.js if it contains unique experimental routes, APIs, or logic you still need.
+
+2. server.js — Final, Optimized Version (Best Practice)
+Here’s the ideal server file for Vite/React SPA + Express + PWA support.
+(Assumes dist contains your build, and you want service worker, manifest, and icons handled right.)
+
+js
+Copy
+Edit
+import express from 'express';
+import compression from 'compression';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Enable compression for all responses
+app.use(compression());
+
+// Strong ETag for cache
+app.set('etag', 'strong');
+
+// Serve static files from /dist
+app.use(express.static(path.join(__dirname, 'dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
+    if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+  }
+}));
+
+// Serve PWA assets directly if present
+['service-worker.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'favicon-32x32.png', 'favicon-16x16.png', 'apple-touch-icon.png'].forEach(asset => {
+  app.get(`/${asset}`, (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', asset));
+  });
+});
+
+// SPA fallback: send index.html for all other GET requests
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+// Start server ONCE
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ SoulScrollAI running on http://0.0.0.0:${PORT}`);
+  console.log(`📂 Static files served from: ${path.join(__dirname, 'dist')}`);
+});
+Key Points & Why This Works
+Compression: All files sent compressed.
+
+MIME Types: For JS/CSS (Express handles most automatically, but you’re double-safe).
+
+Direct asset routes: /service-worker.js, /manifest.json, and icons available at root (required for PWA and install prompt).
+
+SPA fallback: Every non-file route returns React’s index.html.
+
+Single app.listen: Never call it twice.
+
+No custom 404 middleware for SPA: The fallback is enough for SPAs.
+
+What To Do Next
+Replace your server.js with the version above (if it matches your needs).
+
+Delete server-old.js unless you need to rescue custom logic from it.
+
+If you’re unsure, archive server-old.js outside your working repo.
+
+Testing Checklist
+npm run build produces a correct /dist
+
+npm run start or node server.js starts server with no errors
+
+/, /manifest.json, /service-worker.js, /icon-192.png etc all serve actual files, not 404s or HTML
+
+React SPA works on all deep URLs (try /dashboard, /journal/xyz etc)
+

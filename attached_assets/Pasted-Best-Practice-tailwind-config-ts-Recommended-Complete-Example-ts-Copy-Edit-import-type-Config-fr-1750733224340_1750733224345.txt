@@ -1,0 +1,93 @@
+Best Practice tailwind.config.ts
+Recommended Complete Example
+ts
+Copy
+Edit
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./client/src/**/*.{js,ts,jsx,tsx}",   // All source files for React (adjust as needed)
+    "./client/index.html",                 // Vite index
+    "./server/**/*.{js,ts}",               // If you use Tailwind in server-rendered emails, etc.
+    "./shared/**/*.{js,ts,jsx,tsx}",       // If using shared UI/types
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: "#7b5aff",
+        secondary: "#ebecfa",
+        calm: "#f8fafd",
+        accent: "#f5a623",
+        error: "#ff4545",
+      },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        heading: ["Inter", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        "2xl": "1.25rem",
+      },
+      boxShadow: {
+        soft: "0 4px 24px 0 rgba(123,90,255,0.06)",
+      },
+    },
+  },
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    // Add more plugins as needed
+  ],
+  darkMode: "media", // or "class" for manual theme toggling
+};
+
+export default config;
+What This Covers
+content: Finds all your project’s UI files for tree-shaking unused classes.
+
+Adjust these paths if you move files or use .mdx, etc.
+
+theme.extend:
+
+Adds custom colors, radii, shadows, and font stacks—great for design system consistency.
+
+fontFamily: Uses Inter everywhere, fallback to system.
+
+plugins:
+
+@tailwindcss/forms for beautiful inputs.
+
+@tailwindcss/typography for beautiful rich text.
+
+darkMode:
+
+Use "class" if you want a dark mode toggle, "media" for automatic (system theme).
+
+Pro Tips
+Rebuild after any config change:
+
+bash
+Copy
+Edit
+npm run build
+If you add new files/folders, update the content glob.
+
+You can add more plugins (e.g., @tailwindcss/aspect-ratio, @tailwindcss/container-queries) as needed.
+
+Custom themes: Put design tokens in theme.extend for max reusability.
+
+Install Required Plugins
+bash
+Copy
+Edit
+npm install -D tailwindcss @tailwindcss/forms @tailwindcss/typography
+Using Custom Classes in React
+jsx
+Copy
+Edit
+<div className="rounded-2xl shadow-soft bg-primary text-white font-heading p-4">
+  Hello, beautiful UI!
+</div>
+If You Need TypeScript Intellisense:
+Use tailwindcss-intellisense VS Code extension for smart class suggestions.
+

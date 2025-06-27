@@ -1,0 +1,88 @@
+
+⸻
+
+PROJECT OVERVIEW
+We are building a soulful, emotionally intelligent journaling app where users reflect daily, and the app responds with personalized AI-generated insights, emotional pattern recognition, and reflective storytelling. Think “a therapist meets a poet meets your future self.” The app is not just a diary — it’s an evolving relationship.
+
+⸻
+
+CORE FUNCTIONALITY IN MVP
+Start by implementing the daily journal entry interface, GPT-4-powered reflections, mood tracking, and emotional timeline. These are the heart of the app.
+	1.	User Flow (Single Session)
+	•	User logs in and is greeted with today’s prompt (e.g., “What’s been weighing on your heart lately?”).
+	•	User writes freely into a minimalist, distraction-free journaling interface.
+	•	Upon submission, GPT-4 reads the entry and returns a response — not a summary, but a meaningful, reflective message that helps the user go deeper.
+	•	Optionally, the app highlights emotional tone (e.g., anxious, joyful, uncertain) and links it to past entries that echo similar themes.
+	2.	Reflection Engine
+	•	Use GPT-4 with a temperature around 0.7–0.9 for creative, empathetic responses.
+	•	Create a structured system of prompts that evolve (not random). Store writing themes and track emotional archetypes (loss, excitement, regret, gratitude).
+	•	Each GPT call should include: the latest journal entry, optional context from past similar entries, and a clearly worded instruction to “respond with compassion, insight, and memory.”
+	3.	Mood Detection & Pattern Tracking
+	•	Extract keywords and sentiment from each entry using lightweight NLP or the OpenAI API itself.
+	•	Track emotional trends over time, using simple backend tagging (e.g., joy, fear, growth, burnout).
+	•	Display mood history visually (can be basic line graphs at first).
+
+⸻
+
+UI/UX GUIDELINES
+The app must feel emotionally safe and beautiful. The user interface should be ultra-minimal, soft, and inviting. Avoid clutter, complex buttons, or loud colors.
+	•	Use large, centered journal entry text boxes.
+	•	Keep distractions out of the interface while writing.
+	•	After writing, gently fade in the AI response as if the app “took a moment to think.”
+	•	Use small animations: a flickering candle, breathing orb, pulsing affirmations.
+	•	Incorporate affirming microcopy everywhere (“You showed up today. That matters.”).
+	•	Optional: Add audio ambiance (gentle background loop or ambient track toggle).
+
+⸻
+
+TECHNICAL IMPLEMENTATION STRATEGY
+Backend:
+	•	Use Supabase for user authentication, entry storage, and mood tag metadata.
+	•	Replit DB is okay for prototyping, but not for production scale.
+
+Frontend:
+	•	Use React with TailwindCSS for beautiful, mobile-optimized UI.
+	•	Use stateful components to hold journal input, AI response, mood tracking.
+	•	GPT API integration should be modularized (create a reusable GPT request hook).
+	•	Enable autosave for entries as user types (prevent loss of work).
+	•	Each entry gets timestamped, tagged, and stored.
+
+OpenAI Integration:
+	•	Use GPT-4 or GPT-4o via API with clear structured prompts.
+	•	Design different reflection styles (e.g., poetic, grounding, practical) and allow user to choose tone of reply.
+	•	Store each GPT reflection with the journal entry for future display.
+
+Security:
+	•	Ensure all data is encrypted in transit and use secure Auth.
+	•	Allow users to delete their entire history easily (emotional safety).
+
+⸻
+
+PERFORMANCE & BEHAVIOR EXPECTATIONS
+	•	Load time should be near-instant — preload prompts, keep journal UI cached.
+	•	Avoid scroll jank when rendering long entries.
+	•	GPT response should appear after a slight 2–3 second “thought delay” for realism.
+	•	Enable “continue thread” feature: allow user to ask follow-up to the reflection.
+
+⸻
+
+RETENTION STRATEGY
+	•	Daily streaks with non-intrusive reminders (“A thought awaits you today.”).
+	•	Offer monthly AI-generated “Letters to Your Future Self,” summarizing themes of the past 30 days.
+	•	Optional: emotional time capsule — revisit one old entry per week with reflection from “today-you.”
+
+⸻
+
+FUTURE ROADMAP HINTS (DO NOT BUILD YET)
+	•	Add voice-to-text journaling
+	•	Monthly printable “soul journals” as exportable PDFs
+	•	Guided writing challenges (e.g., “Heal a Wound in 7 Days”)
+	•	“Anonymous wisdom wall” where users can contribute quotes
+
+⸻
+
+INSTRUCTION FOR REPLIT TEAM
+
+Tell your Replit team or co-builder:
+
+We’re building a poetic, GPT-powered journaling app that prioritizes emotional intelligence and minimal UI. The writing space should feel like a sacred ritual. Each journal entry is reflected on by GPT-4, offering personalized, compassionate, memory-aware responses. Build with React + Supabase and clean, mobile-first design. Focus first on writing → AI reflection → mood detection → memory stitching. The tone is soft, soulful, and intelligent — not clinical, not gamified, not techy. This is an app about feeling seen.

@@ -1,0 +1,176 @@
+/* Theme Variables */
+:root {
+  --theme-primary: #3b82f6;
+  --theme-secondary: #e0f2fe;
+  --theme-background: #f0f9ff;
+  --theme-text: #1e293b;
+  --theme-accent: #0ea5e9;
+}
+
+/* Calm Theme - Default */
+.theme-calm {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #1e293b;
+}
+
+.theme-calm .bg-primary {
+  background-color: #3b82f6;
+}
+
+.theme-calm .text-primary {
+  color: #3b82f6;
+}
+
+/* Galaxy Theme */
+.theme-galaxy {
+  background: radial-gradient(ellipse at center, #0d0d2b 0%, #1a1a40 50%, #2d1b69 100%);
+  color: #f9fafb;
+  min-height: 100vh;
+}
+
+.theme-galaxy .bg-primary {
+  background-color: #8b5cf6;
+}
+
+.theme-galaxy .text-primary {
+  color: #a855f7;
+}
+
+.theme-galaxy .card {
+  background: rgba(30, 27, 75, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.theme-galaxy .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+.theme-galaxy .text-gray-700 {
+  color: #f3f4f6 !important;
+}
+
+/* Forest Theme */
+.theme-forest {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+  color: #1f2937;
+}
+
+.theme-forest .bg-primary {
+  background-color: #10b981;
+}
+
+.theme-forest .text-primary {
+  color: #059669;
+}
+
+/* Sunset Theme */
+.theme-sunset {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+  color: #1f2937;
+}
+
+.theme-sunset .bg-primary {
+  background-color: #f59e0b;
+}
+
+.theme-sunset .text-primary {
+  color: #d97706;
+}
+
+/* Ocean Theme */
+.theme-ocean {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%);
+  color: #1e293b;
+}
+
+.theme-ocean .bg-primary {
+  background-color: #0891b2;
+}
+
+.theme-ocean .text-primary {
+  color: #0e7490;
+}
+
+/* Smooth transitions for theme changes */
+body {
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.card {
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* Glow effects and animations */
+.glow-button {
+  animation: glowPulse 2s infinite;
+  transition: all 0.3s ease;
+}
+
+@keyframes glowPulse {
+  0% {
+    box-shadow: 0 0 5px var(--theme-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--theme-primary), 0 0 30px var(--theme-primary);
+  }
+  100% {
+    box-shadow: 0 0 5px var(--theme-primary);
+  }
+}
+
+.glow-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--theme-primary), 0.3);
+}
+
+/* Theme-specific glow effects */
+.theme-galaxy .glow-button {
+  animation: galaxyGlow 2s infinite;
+}
+
+@keyframes galaxyGlow {
+  0% {
+    box-shadow: 0 0 5px #8b5cf6, 0 0 10px #8b5cf6;
+  }
+  50% {
+    box-shadow: 0 0 20px #8b5cf6, 0 0 30px #8b5cf6, 0 0 40px #a855f7;
+  }
+  100% {
+    box-shadow: 0 0 5px #8b5cf6, 0 0 10px #8b5cf6;
+  }
+}
+
+/* Responsive theme adjustments */
+@media (max-width: 768px) {
+  .theme-galaxy {
+    background: linear-gradient(180deg, #0d0d2b 0%, #1a1a40 100%);
+  }
+  
+  .glow-button {
+    animation-duration: 3s;
+  }
+}
+
+/* Theme transition effects */
+.theme-transition {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar for themes */
+.theme-galaxy::-webkit-scrollbar {
+  width: 8px;
+}
+
+.theme-galaxy::-webkit-scrollbar-track {
+  background: rgba(30, 27, 75, 0.3);
+}
+
+.theme-galaxy::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 4px;
+}
+
+.theme-galaxy::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}

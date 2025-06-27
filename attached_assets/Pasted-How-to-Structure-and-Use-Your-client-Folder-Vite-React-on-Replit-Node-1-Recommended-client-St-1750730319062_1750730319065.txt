@@ -1,0 +1,116 @@
+How to Structure and Use Your /client Folder (Vite + React on Replit/Node)
+1. Recommended /client Structure
+pgsql
+Copy
+Edit
+/client
+  /src
+    App.jsx
+    main.jsx
+    components/
+    pages/
+    index.css
+  index.html
+  assets/   <-- (optional for dev-only assets, not for prod)
+All your source code and imports should be in /client/src.
+
+Your entry point is main.jsx which imports App.jsx and mounts to #root.
+
+Do not put production assets in /client/assets or /client/public.
+
+Instead: keep source images in /attached_assets, and import using alias @assets.
+
+2. Vite + React Entrypoint Best Practice
+/client/src/main.jsx:
+
+jsx
+Copy
+Edit
+import React, { Suspense, lazy } from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+
+const App = lazy(() => import('./App.jsx'));
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">Loading...</div>}>
+      <App />
+    </Suspense>
+  </React.StrictMode>
+);
+Benefits: Lazy load, fast FCP, and minimal bundle.
+
+3. Asset Usage in React
+Import images (from /attached_assets, via Vite alias):
+
+jsx
+Copy
+Edit
+import logo from '@assets/logo.png';
+
+export default function Header() {
+  return <img src={logo} alt="App logo" className="w-16 h-16" />;
+}
+This ensures that logo.png is bundled into /dist/assets/ on build.
+
+4. CSS/Styling
+Use Tailwind for rapid, responsive design (@apply, utility classes).
+
+Keep global styles in /client/src/index.css.
+
+5. Correct Imports for Components
+Example:
+/client/src/components/MyButton.jsx:
+
+jsx
+Copy
+Edit
+export default function MyButton({ children, ...props }) {
+  return (
+    <button className="rounded-lg px-4 py-2 bg-primary text-white" {...props}>
+      {children}
+    </button>
+  );
+}
+Usage:
+
+jsx
+Copy
+Edit
+import MyButton from './components/MyButton';
+// ...
+<MyButton>Click Me</MyButton>
+6. /client/index.html for Dev
+In Vite, this file is used only for local dev server.
+
+In production, Vite emits /dist/index.html at root.
+
+Keep it minimal, with only necessary tags, and use absolute paths for assets:
+
+html
+Copy
+Edit
+<link rel="icon" href="/icon-192.png" />
+<link rel="manifest" href="/manifest.json" />
+7. Environment Variables
+Use .env for dev-only secrets, never expose secrets in React code!
+
+For public API keys, use VITE_ prefix so Vite exposes them to frontend.
+
+8. Building and Testing
+npm run dev — launches Vite dev server, auto-reloads on changes
+
+npm run build — outputs everything for production to /dist
+
+Production server (server.js) serves from /dist
+
+Check These in Your /client
+All imports from @assets alias or relative to /client/src
+
+No hardcoded paths to /attached_assets or /dist in your React code
+
+No production code referencing /client/assets or /client/public
+
+All component imports are relative (e.g., ./components/Btn.jsx) or aliased (@/components/Btn.jsx)
+

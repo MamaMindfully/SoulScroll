@@ -1,0 +1,125 @@
+// === 🔥 Emotion Trend Tracker (Supabase Schema + Logger) ===
+// Supabase SQL
+/*
+create table emotion_trends (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references users(id) on delete cascade,
+  date date,
+  score numeric,
+  dominant_emotion text,
+  created_at timestamp default now()
+);
+*/
+
+// utils/logEmotionTrend.js
+import supabase from './db'
+
+export async function logEmotionTrend({ userId, score, dominantEmotion }) {
+  const today = new Date().toISOString().split('T')[0]
+  await supabase.from('emotion_trends').upsert({
+    user_id: userId,
+    date: today,
+    score,
+    dominant_emotion: dominantEmotion
+  }, { onConflict: 'user_id, date' })
+}
+
+
+// === 🧭 Tone Fingerprint Update ===
+// utils/updateToneVector.js
+import supabase from './db'
+
+export async function updateToneVector({ userId, vector }) {
+  await supabase.from('tone_vectors').upsert({
+    user_id: userId,
+    vector
+  }, { onConflict: 'user_id' })
+}
+
+// Supabase SQL
+/*
+create table tone_vectors (
+  user_id uuid primary key references users(id) on delete cascade,
+  vector jsonb,
+  updated_at timestamp default now()
+);
+*/
+
+
+// === 🌀 Dream Mirror Mode AI Route ===
+// routes/api/dream-mirror.js
+import { OpenAI } from 'openai'
+import supabase from '@/utils/db'
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end()
+  const { userId } = req.body
+
+  const { data: entries } = await supabase.from('saved_reflections').select('content').eq('user_id', userId).limit(25)
+  const text = entries?.map(e => `• ${e.content}`).join('\n')
+
+  const prompt = `Cluster these personal reflections into 3-5 emotional themes. Label them clearly and briefly explain the cluster essence.`
+
+  const result = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [
+      { role: 'system', content: 'You are a reflection interpreter.' },
+      { role: 'user', content: text + '\n' + prompt }
+    ],
+    temperature: 0.7
+  })
+
+  const clusters = result.choices[0].message.content.trim()
+  res.status(200).json({ clusters })
+}
+
+
+// === 📱 PWA Manifest & Service Worker ===
+// public/manifest.json
+{
+  "short_name": "SoulScroll",
+  "name": "SoulScroll Journal",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "start_url": "/",
+  "background_color": "#000000",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#1e1e1e"
+}
+
+// public/service-worker.js
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open('soulscroll-cache-v1').then(cache => cache.addAll(['/']))
+})
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
+  )
+})
+
+// _document.jsx for manifest link
+<link rel="manifest" href="/manifest.json" />
+<script defer src="/service-worker.js"></script>
+
+
+// === ⚡ Realtime Supabase Sync ===
+// hooks/useRealtimeReflections.js
+import { useEffect } from 'react'
+import { supabase } from '@/utils/db'
+
+export function useRealtimeReflections(setReflections) {
+  useEffect(() => {
+    const channel = supabase.channel('reflections')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'saved_reflections' }, payload => {
+        setReflections(prev => [payload.new, ...prev])
+      })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [])
+}

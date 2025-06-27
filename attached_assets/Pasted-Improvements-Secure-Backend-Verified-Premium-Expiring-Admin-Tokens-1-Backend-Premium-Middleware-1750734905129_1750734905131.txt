@@ -1,0 +1,90 @@
+Improvements: Secure Backend-Verified Premium & Expiring Admin Tokens
+
+1. Backend Premium Middleware Example (Node/Express/TypeScript)
+Add to your backend (/server/middleware/isPremium.ts):
+
+ts
+Copy
+Edit
+import { Request, Response, NextFunction } from "express";
+import { getUserById } from "../services/userService";
+
+export async function requirePremium(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Not authenticated" });
+    const user = await getUserById(userId);
+    if (!user?.isPremium) return res.status(403).json({ error: "Premium required" });
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+Usage (in your API route):
+
+ts
+Copy
+Edit
+import { requirePremium } from "../middleware/isPremium";
+router.post("/ai/journal", isAuthenticated, requirePremium, async (req, res) => { ... });
+2. Real-Time Premium Status Sync (React, useEffect Example)
+Add to PremiumProvider (in PremiumContext.tsx):
+
+tsx
+Copy
+Edit
+useEffect(() => {
+  const interval = setInterval(refreshPremiumStatus, 60 * 1000); // Refresh every minute
+  return () => clearInterval(interval);
+}, []);
+(For WebSocket, subscribe to premium status and call refreshPremiumStatus() on event.)
+
+3. Expiring Admin Token (Frontend Guard Update, TSX)
+Replace in AdminTokenGuard.tsx:
+
+tsx
+Copy
+Edit
+const TOKEN_KEY = "soul_admin_token";
+const TOKEN_EXPIRY_KEY = "soul_admin_token_expiry";
+const EXPIRY_MS = 1000 * 60 * 60; // 1 hour
+
+const checkAdminAccess = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+  const now = Date.now();
+  const VALID_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || "scrollmaster2025";
+
+  if (token === VALID_TOKEN && expiry && now < parseInt(expiry, 10)) {
+    setAccessGranted(true);
+    setLoading(false);
+  } else {
+    requestToken();
+  }
+};
+
+const requestToken = () => {
+  const input = prompt("🔒 Admin Access Required\n\nEnter admin token:");
+  const VALID_TOKEN = process.env.REACT_APP_ADMIN_TOKEN || "scrollmaster2025";
+  if (input === VALID_TOKEN) {
+    localStorage.setItem(TOKEN_KEY, input);
+    localStorage.setItem(TOKEN_EXPIRY_KEY, (Date.now() + EXPIRY_MS).toString());
+    setAccessGranted(true);
+  } else if (input !== null) {
+    alert("Access denied. Invalid token.");
+    window.location.href = "/";
+    return;
+  } else {
+    window.location.href = "/";
+    return;
+  }
+};
+Now, admin tokens expire after 1 hour, forcing re-auth.
+
+Apply these for:
+True backend premium gating (no front-only bypass!)
+
+Live user status (premium sync, less confusion)
+
+Admin security (no persistent tokens)
+

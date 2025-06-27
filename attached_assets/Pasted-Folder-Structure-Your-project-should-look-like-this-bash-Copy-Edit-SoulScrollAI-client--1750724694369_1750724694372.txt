@@ -1,0 +1,213 @@
+Folder Structure
+Your project should look like this:
+
+bash
+Copy
+Edit
+/SoulScrollAI/
+  /client/                # Your Vite+React app source
+    src/
+      main.jsx
+      App.jsx
+      ...
+    index.html
+  /dist/                  # Build output (auto-generated)
+    index.html
+    ...static assets
+  server.js               # Express backend/server entry
+  vite.config.js          # Vite build config
+  package.json            # npm project config
+  tsconfig.json           # TypeScript config (optional)
+  postcss.config.js
+  tailwind.config.ts
+  service-worker.js
+  .gitignore
+  .replit
+If you use Drizzle or Cypress, keep those configs too.
+
+2. Core Files – Full, Corrected Versions
+A. package.json
+json
+Copy
+Edit
+{
+  "name": "soulscrollai",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.16"
+  }
+}
+B. vite.config.js
+js
+Copy
+Edit
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  base: './', // Critical for Replit and static hosts!
+  plugins: [react()],
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'client/src'),
+      '@shared': path.resolve(__dirname, 'shared'),
+      '@assets': path.resolve(__dirname, 'attached_assets')
+    }
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ['**/.*']
+    }
+  }
+});
+C. server.js
+js
+Copy
+Edit
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Serve static files from dist
+app.use(express.static(path.join(__dirname, 'dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript');
+    if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css');
+  }
+}));
+
+// Service worker support
+app.get('/service-worker.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(path.join(__dirname, 'dist', 'service-worker.js'), err => {
+    if (err) {
+      res.send(`self.addEventListener('install',()=>{self.skipWaiting();});`);
+    }
+  });
+});
+
+// Manifest icons (if present in /dist)
+['icon-192.png', 'icon-512.png', 'icon-144x144.png'].forEach(icon => {
+  app.get(`/${icon}`, (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', icon));
+  });
+});
+
+// SPA fallback: always serve index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ SoulScrollAI running on port ${PORT}`);
+});
+D. .replit
+ini
+Copy
+Edit
+modules = ["nodejs-20", "web", "postgresql-16"]
+run = "npm run dev"
+hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+E. .gitignore
+nginx
+Copy
+Edit
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+F. service-worker.js (Minimal Reliable PWA Example)
+js
+Copy
+Edit
+const STATIC_CACHE = 'soulscroll-static-v1.0.0';
+const STATIC_FILES = [
+  '/',
+  '/index.html',
+  '/icon-192.png',
+  '/manifest.json',
+  '/styles.css'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_FILES))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => key !== STATIC_CACHE ? caches.delete(key) : null))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(event.request)
+      .then(response =>
+        response ||
+        fetch(event.request).then(networkResponse => {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            (event.request.url.endsWith('.js') ||
+              event.request.url.endsWith('.css') ||
+              event.request.url.endsWith('.png'))
+          ) {
+            const responseToCache = networkResponse.clone();
+            caches.open(STATIC_CACHE).then(cache =>
+              cache.put(event.request, responseToCache)
+            );
+          }
+          return networkResponse;
+        })
+      )
+  );
+});

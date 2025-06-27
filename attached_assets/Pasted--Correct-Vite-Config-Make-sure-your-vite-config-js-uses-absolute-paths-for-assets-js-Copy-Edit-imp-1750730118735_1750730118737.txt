@@ -1,0 +1,98 @@
+ Correct Vite Config
+Make sure your vite.config.js uses absolute paths for assets:
+
+js
+Copy
+Edit
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  base: './', // Essential for Replit/static hosting
+  plugins: [react()],
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'client/src'),
+      '@shared': path.resolve(__dirname, 'shared'),
+      '@assets': path.resolve(__dirname, 'attached_assets') // <--- for attached_assets
+    }
+  }
+});
+With this config, you can import assets using:
+import img from '@assets/your-img.png' in your React code.
+
+When you build, Vite copies all used assets into /dist/assets/ automatically.
+
+2. Make Sure Asset Files Are Referenced Correctly
+Any files in /attached_assets that you want in production must be imported or required somewhere in your code.
+
+If you have unused files, Vite will not copy them by default!
+
+3. Serve All Static Files from /dist (NOT /attached_assets in production)
+Your Express server should serve from /dist.
+
+After npm run build, all production files (including assets) are in /dist.
+
+4. To Use an Image in Your React Code:
+jsx
+Copy
+Edit
+import banner from '@assets/banner.png';
+
+export default function Header() {
+  return <img src={banner} alt="Banner" />;
+}
+This works in dev and in prod builds.
+
+If you want icons or PNGs to show up in /dist root (for manifest, favicon, etc.), copy them manually or update your Vite config or build script.
+
+5. Static Files Checklist:
+After npm run build, check /dist in Replit file explorer:
+
+/dist/assets/ — all your images, CSS, JS
+
+/dist/manifest.json
+
+/dist/service-worker.js
+
+/dist/index.html
+
+/dist/icon-192.png, /dist/icon-512.png, etc.
+
+6. If You Have a Folder Named /attached_assets and Want to Serve Those Files at Runtime:
+At build time:
+
+Reference them in your code so Vite copies them into /dist/assets/
+
+Or, add a build step to copy all files:
+
+json
+Copy
+Edit
+"scripts": {
+  "postbuild": "cp -R attached_assets/* dist/assets/"
+}
+Add to your package.json if needed.
+
+At runtime:
+
+Express should serve everything only from /dist for production.
+
+7. If You Want to Serve /attached_assets in DEV:
+Vite dev server will serve files via alias (from /client/src or whatever you alias as @assets).
+
+Final Checklist for No More Errors
+Update all imports to use @assets if using attached_assets.
+
+After build, verify /dist/assets contains your assets.
+
+Express serves only /dist in production.
+
+No references in HTML like ./attached_assets/... — always use /assets/... or import ... from '@assets/...'.
+
+Icons, manifest, and service worker are present in /dist for browser to find them at root.

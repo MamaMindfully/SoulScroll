@@ -1,0 +1,70 @@
+Backend: /analytics/mood-outliers Route (Express + TypeScript)
+Create server/routes/analytics.ts:
+
+ts
+Copy
+Edit
+import { Router } from "express";
+import { requirePremium } from "../middleware/isPremium";
+import { getUserJournalEntries } from "../services/journalService";
+
+// Utility: Detect Z-score outliers for emotion_score
+function detectOutliers(entries: { emotion_score: number }[]) {
+  const scores = entries.map(e => e.emotion_score);
+  const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+  const std = Math.sqrt(scores.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / scores.length);
+  return entries.map((e, i) => ({
+    ...e,
+    isOutlier: std > 0 ? Math.abs(e.emotion_score - mean) > 2 * std : false
+  }));
+}
+
+const router = Router();
+
+router.get("/mood-outliers", requirePremium, async (req, res) => {
+  const userId = req.user!.id;
+  const entries = await getUserJournalEntries(userId, { days: 30 });
+  const flagged = detectOutliers(entries);
+  res.json({ entries: flagged });
+});
+
+export default router;
+Only available to premium users
+
+Returns each entry with isOutlier: true/false for frontend display
+
+Frontend: Outlier-Highlighted Mood Trend Chart (Recharts + React Query)
+Example in components/EmotionalDashboard.tsx:
+
+tsx
+Copy
+Edit
+import { useQuery } from "@tanstack/react-query";
+import { LineChart, Line, ReferenceDot, XAxis, YAxis, Tooltip } from "recharts";
+
+const { data } = useQuery(["moodOutliers"], () => api.get("/analytics/mood-outliers"));
+const entries = data?.entries || [];
+
+return (
+  <LineChart width={360} height={200} data={entries}>
+    <XAxis dataKey="date" />
+    <YAxis domain={['auto', 'auto']} />
+    <Tooltip />
+    <Line type="monotone" dataKey="emotion_score" stroke="#3b82f6" dot={false} />
+    {entries.filter(e => e.isOutlier).map((e, idx) => (
+      <ReferenceDot
+        key={idx}
+        x={e.date}
+        y={e.emotion_score}
+        r={6}
+        fill="red"
+        stroke="black"
+        label="Outlier"
+      />
+    ))}
+  </LineChart>
+);
+Highlights days where emotion scores are anomalous ("rough days" or "ecstatic wins")
+
+Lets you give users nudges/reflections: "Notice any patterns on these days?"
+

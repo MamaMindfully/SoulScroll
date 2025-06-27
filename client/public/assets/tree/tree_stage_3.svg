@@ -1,0 +1,49 @@
+<svg width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Soil line -->
+  <ellipse cx="125" cy="185" rx="120" ry="12" fill="#8B5A3C" opacity="0.5"/>
+  
+  <!-- Main trunk -->
+  <rect x="115" y="100" width="20" height="85" fill="#92400E" rx="10"/>
+  
+  <!-- Major branches -->
+  <rect x="95" y="115" width="25" height="6" fill="#92400E" rx="3" transform="rotate(-25 95 115)"/>
+  <rect x="135" y="120" width="30" height="7" fill="#92400E" rx="3" transform="rotate(20 135 120)"/>
+  <rect x="105" y="140" width="20" height="5" fill="#92400E" rx="2" transform="rotate(-15 105 140)"/>
+  <rect x="140" y="145" width="25" height="6" fill="#92400E" rx="3" transform="rotate(30 140 145)"/>
+  
+  <!-- Large canopy -->
+  <circle cx="125" cy="80" r="60" fill="#22C55E" opacity="0.3"/>
+  <circle cx="105" cy="85" r="35" fill="#16A34A" opacity="0.8"/>
+  <circle cx="145" cy="90" r="40" fill="#22C55E" opacity="0.9"/>
+  <circle cx="125" cy="70" r="30" fill="#16A34A"/>
+  <circle cx="90" cy="100" r="25" fill="#22C55E" opacity="0.7"/>
+  <circle cx="160" cy="105" r="30" fill="#16A34A" opacity="0.8"/>
+  
+  <!-- Detailed leaves -->
+  <g transform="translate(80,90)">
+    <ellipse cx="0" cy="0" rx="15" ry="10" fill="#15803D"/>
+    <ellipse cx="5" cy="-3" rx="10" ry="7" fill="#16A34A"/>
+  </g>
+  
+  <g transform="translate(170,100)">
+    <ellipse cx="0" cy="0" rx="18" ry="12" fill="#15803D"/>
+    <ellipse cx="-5" cy="-4" rx="12" ry="8" fill="#16A34A"/>
+  </g>
+  
+  <!-- Strong root system -->
+  <path d="M125 185 Q105 200 85 210" stroke="#8B5A3C" stroke-width="4" fill="none"/>
+  <path d="M125 185 Q145 200 165 210" stroke="#8B5A3C" stroke-width="4" fill="none"/>
+  <path d="M125 185 Q125 195 115 205" stroke="#8B5A3C" stroke-width="3" fill="none"/>
+  <path d="M125 185 Q125 195 135 205" stroke="#8B5A3C" stroke-width="3" fill="none"/>
+  
+  <!-- Flourishing sparkles -->
+  <circle cx="70" cy="80" r="2.5" fill="#FCD34D"/>
+  <circle cx="180" cy="95" r="2" fill="#FCD34D" opacity="0.8"/>
+  <circle cx="125" cy="50" r="1.5" fill="#FCD34D"/>
+  <circle cx="95" cy="65" r="1" fill="#FCD34D" opacity="0.9"/>
+  <circle cx="155" cy="75" r="2" fill="#FCD34D" opacity="0.7"/>
+  
+  <!-- Small birds or butterflies for life -->
+  <path d="M190 70 Q195 65 200 70 Q195 75 190 70" fill="#F59E0B" opacity="0.6"/>
+  <path d="M50 85 Q55 80 60 85 Q55 90 50 85" fill="#F59E0B" opacity="0.6"/>
+</svg>
